@@ -3,12 +3,12 @@
 # Some variables have been moved to (production || development) file
 
 try:
-	import okupy.settings.production
+	from settings.production import *
 except:
 	pass
 
 try:
-	import okupy.settings.development
+	from settings.development import *
 except:
 	pass
 
