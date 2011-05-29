@@ -78,3 +78,5 @@ LOGGING = {
         },
     }
 }
+
+AUTH_LDAP_SERVER_URI = 'ldap://ldap1.gentoo.org'
