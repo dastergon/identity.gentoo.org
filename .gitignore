@@ -1,2 +1,3 @@
 *.pyc
-settings/*.sample
+settings/*development.conf
+settings/*production.conf
