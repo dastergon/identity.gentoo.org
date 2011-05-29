@@ -80,3 +80,8 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
+
+AUTHENTICATION_BACKENDS = (
+	'django_auth_ldap.backend.LDAPBackend',
+	'django.contrib.auth.backends.ModelBackend',
+)
