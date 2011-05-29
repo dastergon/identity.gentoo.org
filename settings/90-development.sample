@@ -1,6 +1,9 @@
-# Django production settings for okupy project.
+# Django development settings for okupy project.
 
-DEBUG = False
+import ldap
+from django_auth_ldap.config import LDAPSearch
+
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -79,4 +82,8 @@ LOGGING = {
     }
 }
 
-AUTH_LDAP_SERVER_URI = 'ldap://localhost'
+AUTH_LDAP_SERVER_URI = 'ldap://ldap.example.com'
+AUTH_LDAP_BIND_DN = ''
+AUTH_LDAP_BIND_PASSWORD = ''
+AUTH_LDAP_TREE = 'ou=users,dc=example,dc=com'
+AUTH_LDAP_USER_SEARCH = LDAPSearch(AUTH_LDAP_TREE, ldap.SCOPE_SUBTREE, '(uid=%(user)s)')
