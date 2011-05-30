@@ -22,6 +22,12 @@ class LDAPBackend(object):
 		if not password:
 			return None
 		return self.get_or_create_user(username, password)
+	
+	def get_user(self, user_id):
+		try:
+			return User.objects.get(pk=user_id)
+		except User.DoesNotExist:
+			return None
 
 	def get_or_create_user(self, username, password):
 		try:
