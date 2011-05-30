@@ -5,6 +5,6 @@ from okupy.login.views import *
 admin.autodiscover()
 
 urlpatterns = patterns('',
-	url(r'^$', mylogin)
+	url(r'^$', mylogin),
     url(r'^admin/', include(admin.site.urls)),
 )
