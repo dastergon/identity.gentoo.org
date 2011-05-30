@@ -24,7 +24,7 @@ def mylogin(request):
 					request.session.set_expiry(0)
 				return HttpResponseRedirect('/user')
 		else:
-			msg = 'Wrong Password'
+			msg = 'Wrong Credentials'
 	else:
 		if request.user.is_authenticated():
 			return HttpResponseRedirect('/user')
