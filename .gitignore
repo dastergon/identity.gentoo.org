@@ -1,3 +1,4 @@
 *.pyc
 settings/*development.conf
 settings/*production.conf
+*.swp
