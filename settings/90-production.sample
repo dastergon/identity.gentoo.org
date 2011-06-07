@@ -1,7 +1,6 @@
 # Django production settings for okupy project.
 
 import ldap
-from django_auth_ldap.config import LDAPSearch
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
