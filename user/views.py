@@ -4,4 +4,4 @@ from django.template import RequestContext
 
 @login_required
 def user(request):
-	return render_to_response('user.html', {}, context_instance = RequestContext(request))
+    return render_to_response('user.html', {}, context_instance = RequestContext(request))

@@ -85,9 +85,9 @@ LDAP_BASE_DN = ['ou=users,dc=example,dc=com']
 LDAP_BASE_ATTR = 'uid'
 
 LDAP_USER_ATTR_MAP = {
-	'first_name': 'givenName',
-	'last_name': 'sn',
-	'email': 'mail',
+    'first_name': 'givenName',
+    'last_name': 'sn',
+    'email': 'mail',
 }
 
 #LDAP_PROFILE_ATTR_MAP = {
