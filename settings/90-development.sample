@@ -78,17 +78,35 @@ LOGGING = {
     }
 }
 
+# LDAP specific variables
+
+# The URI of the LDAP server
 LDAP_SERVER_URI = 'ldap://ldap.example.com'
+
+# The system needs either an anon (minimal-privileged) user
+# to perform basic searches, in case anon queries are not
+# applicable.
 LDAP_ANON_USER_DN = 'cn=anonuser,dc=example,dc=com'
 LDAP_ANON_USER_PW = 'password'
+
+# The admin user, is needed only to create new accounts
+LDAP_ADMIN_USER_DN = 'cn=Manager,dc=example,dc=com'
+LDAP_ADMIN_USER_PW = 'password'
+
+# Multiple OU's are supported
 LDAP_BASE_DN = ['ou=users,dc=example,dc=com']
+
+# The prefix of the attrs, such as cn or uid
 LDAP_BASE_ATTR = 'uid'
 
+# The basic LDAP data, also required by the Django DB
 LDAP_USER_ATTR_MAP = {
     'first_name': 'givenName',
     'last_name': 'sn',
     'email': 'mail',
 }
 
+# Additional data, that can be mapped by the Django
+# user profile
 #LDAP_PROFILE_ATTR_MAP = {
 #}
