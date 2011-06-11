@@ -36,6 +36,7 @@ class LDAPBackend(object):
             l.simple_bind_s(bind_dn, password)
             return l
         except ldap.INVALID_CREDENTIALS:
+            # log 'invalid credentials'
             return None
 
     def authenticate(self, username = None, password = None):
@@ -86,53 +87,50 @@ class LDAPBackend(object):
                                     settings.LDAP_ANON_USER_PW,
                                     ldap_anon_user_attr,
                                     ldap_anon_user_base_dn)
-
-                    for ldap_base_dn in settings.LDAP_BASE_DN:
-                        results = l.search_s(ldap_base_dn,
-                                            ldap.SCOPE_SUBTREE,
-                                            '(%s=%s)' % (settings.LDAP_BASE_ATTR, username),
-                                            ['*'])
-                        '''
-                        Since there is ability to search in multiple OU's
-                        (eg ou=developers and ou=users), if there is a result
-                        available, the for loop should break
-                        '''
-                        try:
-                            if results:
-                                break
-                        except AttributeError:
-                            pass
-                    if not results:
-                        return None
-
-                    l.unbind_s()
-
-                '''
-                In case there is a result available, it means
-                that the user is in the LDAP server. Next step
-                is to try to bind to the LDAP server using the
-                user's credentials, to check if they are valid.
-                '''
-                for ldap_base_dn in settings.LDAP_BASE_DN:
-                    l_user = self.bind(username, password,
-                                    settings.LDAP_BASE_ATTR,
-                                    ldap_base_dn)
-                    '''
-                    Again, we need to search in multiple OU's for
-                    the user's existence.
-                    '''
-                    try:
-                        if l_user:
-                            break
-                    except AttributeError:
-                        pass
-                if not l_user:
-                    return None
-                l_user.unbind()
-            except ImportError:
+            except ImportError, AttributeError:
                 pass
-            except ldap.INVALID_CREDENTIALS:
+
+            for ldap_base_dn in settings.LDAP_BASE_DN:
+                results = l.search_s(ldap_base_dn,
+                                    ldap.SCOPE_SUBTREE,
+                                    '(%s=%s)' % (settings.LDAP_BASE_ATTR, username),
+                                    ['*'])
+                '''
+                Since there is ability to search in multiple OU's
+                (eg ou=developers and ou=users), if there is a result
+                available, the for loop should break
+                '''
+                try:
+                    if results:
+                        break
+                except AttributeError:
+                    pass
+            if not results:
                 return None
+            l.unbind_s()
+
+            '''
+            In case there is a result available, it means
+            that the user is in the LDAP server. Next step
+            is to try to bind to the LDAP server using the
+            user's credentials, to check if they are valid.
+            '''
+            for ldap_base_dn in settings.LDAP_BASE_DN:
+                l_user = self.bind(username, password,
+                                settings.LDAP_BASE_ATTR,
+                                ldap_base_dn)
+                '''
+                Again, we need to search in multiple OU's for
+                the user's existence.
+                '''
+                try:
+                    if l_user:
+                        break
+                except AttributeError:
+                    pass
+            if not l_user:
+                return None
+            l_user.unbind()
 
             '''
             In case everything went fine so far, it means there is
