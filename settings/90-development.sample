@@ -94,7 +94,7 @@ LDAP_ADMIN_USER_DN = 'cn=Manager,dc=example,dc=com'
 LDAP_ADMIN_USER_PW = 'password'
 
 # Multiple OU's are supported
-LDAP_BASE_DN = ['ou=users,dc=example,dc=com']
+LDAP_BASE_DN = ['ou=users,dc=example,dc=com', 'ou=developers,dc=example,dc=com']
 
 # The prefix of the attrs, such as cn or uid
 LDAP_BASE_ATTR = 'uid'

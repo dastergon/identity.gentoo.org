@@ -78,6 +78,8 @@ LOGGING = {
     }
 }
 
+AUTH_PROFILE_MODULE = 'accounts.UserProfile'
+
 # LDAP specific variables
 
 # The URI of the LDAP server
@@ -94,13 +96,14 @@ LDAP_ADMIN_USER_DN = 'cn=Manager,dc=example,dc=com'
 LDAP_ADMIN_USER_PW = 'password'
 
 # Multiple OU's are supported
-LDAP_BASE_DN = ['ou=users,dc=example,dc=com']
+LDAP_BASE_DN = ['ou=users,dc=example,dc=com', 'ou=developers,dc=example,dc=com']
 
 # The prefix of the attrs, such as cn or uid
 LDAP_BASE_ATTR = 'uid'
 
 # The basic LDAP data, also required by the Django DB
 LDAP_USER_ATTR_MAP = {
+    'username': 'uid',
     'first_name': 'givenName',
     'last_name': 'sn',
     'email': 'mail',
@@ -108,5 +111,22 @@ LDAP_USER_ATTR_MAP = {
 
 # Additional data, that can be mapped by the Django
 # user profile
-#LDAP_PROFILE_ATTR_MAP = {
-#}
+# LDAP_PROFILE_ATTR_MAP = {
+#     'cn': 'cn',
+#     'all_mails': 'mail',
+#     'gecos': 'gecos',
+#     'ssh_public_key': 'sshPublicKey',
+#     'gpg_fingerprint': 'gpgfingerprint',
+#     'gpg_key': 'gpgkey',
+#     'lat': 'lat',
+#     'lon': 'lon',
+#     'gentoo_roles': 'gentooRoles',
+#     'gentoo_access': 'gentooAccess',
+#     'gentoo_location': 'gentooLocation',
+#     'gentoo_status': 'gentooStatus',
+# }
+
+# The attribute which has the groups that the user is part of
+# LDAP_ACL_ATTR = 'gentooAccess'
+
+# LDAP_ACL_GROUPS = ['infra', 'devrel', 'recruiters', 'trustee', 'docs', 'security']
