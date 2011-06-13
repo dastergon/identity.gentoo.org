@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
+from okupy.accounts.models import UserProfile
 import ldap
 
 class LDAPBackend(object):
@@ -140,12 +141,12 @@ class LDAPBackend(object):
             user = User()
             for field, attr in settings.LDAP_USER_ATTR_MAP.iteritems():
                 setattr(user, field, results[0][1][attr][0])
-            user.username = username
             user.set_unusable_password()
             try:
                 user.save()
             except Exception as error:
-                print error
+                # log error
+                pass
 
             '''
             Additional data that should be put in the user's profile
@@ -154,8 +155,15 @@ class LDAPBackend(object):
                 if settings.LDAP_PROFILE_ATTR_MAP:
                     user_profile = UserProfile()
                     for field, attr in settings.LDAP_PROFILE_ATTR_MAP.iteritems():
-                        setattr(user_profile, field, results[attr][0])
-                    user_profile.save()
+                        setattr(user_profile, field, '::'.join(results[0][1][attr]))
+                    '''
+                    for value in 
+                    '''
+                    try:
+                        user_profile.save()
+                    except Exception as error:
+                        # log error
+                        pass
             except:
                 pass
 
