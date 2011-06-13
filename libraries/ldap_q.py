@@ -59,16 +59,16 @@ def ldap_search(attributes):
                                 ldap.SCOPE_SUBTREE,
                                 '(%s=%s)' % (settings.LDAP_BASE_ATTR, attr),
                                 ['*'])
-        '''
-        Since there is ability to search in multiple OU's
-        (eg ou=developers and ou=users), if there is a result
-        available, the for loop should break
-        '''
-        try:
-            if results:
-                break
-        except AttributeError:
-            pass
+            '''
+            Since there is ability to search in multiple OU's
+            (eg ou=developers and ou=users), if there is a result
+            available, the for loop should break
+            '''
+            try:
+                if results:
+                    break
+            except AttributeError:
+                pass
     l.unbind_s()
     if not results:
         return None
