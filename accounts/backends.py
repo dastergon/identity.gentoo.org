@@ -1,45 +1,13 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from okupy.accounts.models import *
+from okupy.accounts.ldap_q import *
 import ldap
 
 class LDAPBackend(object):
     '''
     LDAP authentication backend
     '''
-    def bind(self, username, password, base_attr, base_dn):
-        '''
-        This function is responsible for the connection
-        to the LDAP server.
-        '''
-        l = ldap.initialize(settings.LDAP_SERVER_URI)
-        '''
-        The following is run in case a TLS connection
-        is requested
-        '''
-        try:
-            if settings.LDAP_TLS:
-                l.set_option(ldap.OPT_X_TLS_DEMAND, True)
-                l.start_tls_s()
-        except:
-            pass
-        '''
-        The user's DN is constructed by the base_attr, which is
-        usually cn or uid based on the OpenLDAP configuration,
-        the username and the base_dn, eg dc=example,dc=com
-        '''
-        bind_dn = '%s=%s,%s' % (base_attr, username, base_dn)
-        '''
-        If the bind succeeds, this returns a python-ldap object,
-        else it returns None.
-        '''
-        try:
-            l.simple_bind_s(bind_dn, password)
-            return l
-        except ldap.INVALID_CREDENTIALS:
-            # log 'invalid credentials'
-            return None
-
     def authenticate(self, username = None, password = None):
         '''
         Try to authenticate the user. If there isn't such user
@@ -57,7 +25,7 @@ class LDAPBackend(object):
         Retrieve a specific user from the Django DB
         '''
         try:
-            return User.objects.get(pk=user_id)
+            return User.objects.get(pk = user_id)
         except User.DoesNotExist:
             return None
 
@@ -75,41 +43,11 @@ class LDAPBackend(object):
         except User.DoesNotExist:
             '''
             Perform a search to find the user in the LDAP server.
-            It supports multiple OU's. The ldap search has to be
-            done with a minimal privileged account if the anonymous
-            searches are disabled.
             '''
-            try:
-                if settings.LDAP_ANON_USER_DN:
-                    ldap_anon_user_username = settings.LDAP_ANON_USER_DN.split('=')[1].split(',')[0]
-                    ldap_anon_user_attr = settings.LDAP_ANON_USER_DN.split('=')[0]
-                    ldap_anon_user_base_dn = ','.join(settings.LDAP_ANON_USER_DN.split(',')[1:])
-                    l = self.bind(ldap_anon_user_username,
-                                    settings.LDAP_ANON_USER_PW,
-                                    ldap_anon_user_attr,
-                                    ldap_anon_user_base_dn)
-            except ImportError, AttributeError:
-                pass
-
-            for ldap_base_dn in settings.LDAP_BASE_DN:
-                results = l.search_s(ldap_base_dn,
-                                    ldap.SCOPE_SUBTREE,
-                                    '(%s=%s)' % (settings.LDAP_BASE_ATTR, username),
-                                    ['*'])
-                '''
-                Since there is ability to search in multiple OU's
-                (eg ou=developers and ou=users), if there is a result
-                available, the for loop should break
-                '''
-                try:
-                    if results:
-                        break
-                except AttributeError:
-                    pass
+            attributes = ['username']
+            results = ldap_search(attributes)
             if not results:
                 return None
-            l.unbind_s()
-
             '''
             In case there is a result available, it means
             that the user is in the LDAP server. Next step
@@ -117,7 +55,7 @@ class LDAPBackend(object):
             user's credentials, to check if they are valid.
             '''
             for ldap_base_dn in settings.LDAP_BASE_DN:
-                l_user = self.bind(username, password,
+                l_user = ldap_bind(username, password,
                                 settings.LDAP_BASE_ATTR,
                                 ldap_base_dn)
                 '''
