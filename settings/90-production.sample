@@ -78,6 +78,11 @@ LOGGING = {
     }
 }
 
+# Choose the appropriate User Profile Class
+# Options are:
+#  - accounts.UserProfile (the generic one)
+#  - accounts.GentooProfile (Gentoo specific)
+#  - accounts.KDEProfile (KDE specific)
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
 # LDAP specific variables
@@ -111,22 +116,33 @@ LDAP_USER_ATTR_MAP = {
 
 # Additional data, that can be mapped by the Django
 # user profile
-# LDAP_PROFILE_ATTR_MAP = {
-#     'cn': 'cn',
-#     'all_mails': 'mail',
-#     'gecos': 'gecos',
-#     'ssh_public_key': 'sshPublicKey',
-#     'gpg_fingerprint': 'gpgfingerprint',
-#     'gpg_key': 'gpgkey',
-#     'lat': 'lat',
-#     'lon': 'lon',
+LDAP_PROFILE_ATTR_MAP = {
+    'cn': 'cn',
+    'all_mails': 'mail',
+    'gecos': 'gecos',
+    'ssh_public_key': 'sshPublicKey',
+    'gpg_fingerprint': 'gpgfingerprint',
+    'gpg_key': 'gpgkey',
+    'lat': 'lat',
+    'lon': 'lon',
+#     Gentoo specific variables
 #     'gentoo_roles': 'gentooRoles',
 #     'gentoo_access': 'gentooAccess',
 #     'gentoo_location': 'gentooLocation',
 #     'gentoo_status': 'gentooStatus',
-# }
+#     KDE specific variables
+}
 
 # The attribute which has the groups that the user is part of
-# LDAP_ACL_ATTR = 'gentooAccess'
+LDAP_ACL_ATTR = 'groupAccess'
 
-# LDAP_ACL_GROUPS = ['infra', 'devrel', 'recruiters', 'trustee', 'docs', 'security']
+# Various groups and the equivalent booleans in UserProfile
+LDAP_ACL_GROUPS = {
+    'infra-ldapadmin.group': 'is_infra',
+    'devrel.group': 'is_devrel',
+    'recruiters.group': 'is_recruiter',
+    'trustees.group': 'is_trustee',
+    'docs.group': 'is_docs',
+    'security.group': 'is_security',
+    'pr.group': 'is_pr',
+}

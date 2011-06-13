@@ -20,7 +20,7 @@ class UserProfile(models.Model):
     class Meta:
         abstract = True
 
-class GentooDevProfile(UserProfile):
+class GentooProfile(UserProfile):
     gentoo_status = models.CharField(max_length = 15)
     gentoo_access = models.TextField()
     gentoo_location = models.CharField(max_length = 50)

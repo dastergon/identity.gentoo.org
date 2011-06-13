@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
-from okupy.accounts.models import UserProfile
+from okupy.accounts.models import *
 import ldap
 
 class LDAPBackend(object):
@@ -153,12 +153,21 @@ class LDAPBackend(object):
             '''
             try:
                 if settings.LDAP_PROFILE_ATTR_MAP:
-                    user_profile = UserProfile()
+                    user_profile = settings.AUTH_PROFILE_MODULE
                     for field, attr in settings.LDAP_PROFILE_ATTR_MAP.iteritems():
                         setattr(user_profile, field, '::'.join(results[0][1][attr]))
                     '''
-                    for value in 
+                    Check if the user is member of the groups under
+                    settings.LDAP_ACL_GROUPS. In order to do this, the
+                    system compares the contents of that list with the
+                    values of the LDAP attribute settings.LDAP_ACL_ATTR.
+                    For correct results, it sets the according is_field
+                    of the UserProfile to True.
                     '''
+                    for attr, field in settings.LDAP_ACL_GROUPS.iteritems():
+                        if attr in results[0][1][settings.LDAP_ACL_ATTR]:
+                            setattr(user_profile, field, True)
+
                     try:
                         user_profile.save()
                     except Exception as error:
