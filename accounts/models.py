@@ -17,6 +17,9 @@ class UserProfile(models.Model):
     lat = models.CharField(max_length = 15, blank = True, null = True)
     lon = models.CharField(max_length = 15, blank = True, null = True)
 
+    class Meta:
+        abstract = True
+
 class GentooDevProfile(UserProfile):
     gentoo_status = models.CharField(max_length = 15)
     gentoo_access = models.TextField()
@@ -28,3 +31,4 @@ class GentooDevProfile(UserProfile):
     is_trustee = models.BooleanField(default = False)
     is_docs = models.BooleanField(default = False)
     is_security = models.BooleanField(default = False)
+    is_pr = models.BooleanField(default = False)
