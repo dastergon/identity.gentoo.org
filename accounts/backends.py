@@ -45,7 +45,7 @@ class LDAPBackend(object):
             Perform a search to find the user in the LDAP server.
             '''
             attributes = ['username']
-            results = ldap_search(attributes)
+            results = ldap_user_search(attributes)
             if not results:
                 return None
             '''
@@ -111,7 +111,7 @@ class LDAPBackend(object):
                     except Exception as error:
                         # log error
                         pass
-            except:
+            except AttributeError:
                 pass
 
             return user
