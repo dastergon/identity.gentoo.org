@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from okupy.accounts.models import *
-from okupy.accounts.ldap_q import *
+from okupy.accounts.ldap_wrappers import *
 import ldap
 
 class LDAPBackend(object):

@@ -2,7 +2,7 @@ from django.conf import settings
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from okupy.libraries.encryption import sha1Password
-from okupy.libraries.ldap_q import *
+from okupy.libraries.ldap_wrappers import *
 from okupy.signup.forms import SignupForm
 import ldap.modlist as modlist
 
