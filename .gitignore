@@ -3,3 +3,4 @@ settings/*development.conf
 settings/*production.conf
 *.swp
 *.kdev4
+*.kate-swp
