@@ -1,7 +1,7 @@
 from django.conf import settings
 import ldap
 
-def ldap_bind(username, password, base_attr, base_dn):
+def ldap_bind(username = None, password = None, base_attr = None, base_dn = None):
     '''
     This function is responsible for the connection
     to the LDAP server.
@@ -17,43 +17,36 @@ def ldap_bind(username, password, base_attr, base_dn):
             l.start_tls_s()
     except:
         pass
-    '''
-    The user's DN is constructed by the base_attr, which is
-    usually cn or uid based on the OpenLDAP configuration,
-    the username and the base_dn, eg dc=example,dc=com
-    '''
-    bind_dn = '%s=%s,%s' % (base_attr, username, base_dn)
-    '''
-    If the bind succeeds, this returns a python-ldap object,
-    else it returns None.
-    '''
-    try:
-        l.simple_bind_s(bind_dn, password)
-        return l
-    except ldap.INVALID_CREDENTIALS:
-        # log 'invalid credentials'
-        return None
+    if username:
+        '''
+        The user's DN is constructed by the base_attr, which is
+        usually cn or uid based on the OpenLDAP configuration,
+        the username and the base_dn, eg dc=example,dc=com
+        '''
+        bind_dn = '%s=%s,%s' % (base_attr, username, base_dn)
+        '''
+        If the bind succeeds, this returns a python-ldap object,
+        else it returns None.
+        '''
+        try:
+            l.simple_bind_s(bind_dn, password)
+            return l
+        except Exception as error:
+            # log error
+            return None
+    else:
+        '''
+        If no attributes are given, then a simple anonymous bind
+        is performed
+        '''
+        try:
+            l.simple_bind_s()
+            return l
+        except Exception as error:
+            # log error
+            return None
 
-def ldap_anonymous_bind():
-    '''
-    Similar to the previous function but for pure
-    anonymous bind
-    '''
-    l = ldap.initialize(settings.LDAP_SERVER_URI)
-    '''
-    The following is run in case a TLS connection
-    is requested
-    '''
-    try:
-        if settings.LDAP_TLS:
-            l.set_option(ldap.OPT_X_TLS_DEMAND, True)
-            l.start_tls_s()
-    except:
-        pass
-    l.simple_bind_s()
-    return l
-
-def ldap_search(attributes):
+def ldap_anon_user_bind():
     '''
     If the anonymous search is disabled, it has to be
     done using the LDAP_ANON_USER account
@@ -68,29 +61,32 @@ def ldap_search(attributes):
                             ldap_anon_user_attr,
                             ldap_anon_user_base_dn)
     except AttributeError:
-        l = ldap_anonymous_bind()
+        l = ldap_bind()
+    return l
+
+def ldap_user_search(attr = settings.LDAP_BASE_ATTR, filter = '*', results = None):
+    l = ldap_anon_user_bind()
     '''
     Perform LDAP query, it supports multiple OU's and attrs.
     Since there is ability to search in multiple OU's
-    (eg ou=developers and ou=users) and for various
-    attributes, if there is a result available, the
-    for loops should break
+    (eg ou=developers and ou=users). If there is a result
+    available, the for loop should break
     '''
-    results = ''
+    user = ''
     for ldap_base_dn in settings.LDAP_BASE_DN:
-        if not results:
-            for attr in attributes:
-                results = l.search_s(ldap_base_dn,
-                                ldap.SCOPE_SUBTREE,
-                                '(%s=%s)' % (settings.LDAP_BASE_ATTR, attr),
-                                ['*'])
-                if results:
-                    break
-        else:
+        try:
+            user = l.search_s(ldap_base_dn,
+                        ldap.SCOPE_SUBTREE,
+                        '(%s=%s)' % (attr, filter),
+                        results)
+        except Exception as error:
+            # log error
+            raise
+        if user:
             break
 
     l.unbind_s()
-    if not results:
+    if not user:
         return None
     else:
-        return results
+        return user
