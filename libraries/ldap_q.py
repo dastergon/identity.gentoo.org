@@ -34,6 +34,25 @@ def ldap_bind(username, password, base_attr, base_dn):
         # log 'invalid credentials'
         return None
 
+def ldap_anonymous_bind():
+    '''
+    Similar to the previous function but for pure
+    anonymous bind
+    '''
+    l = ldap.initialize(settings.LDAP_SERVER_URI)
+    '''
+    The following is run in case a TLS connection
+    is requested
+    '''
+    try:
+        if settings.LDAP_TLS:
+            l.set_option(ldap.OPT_X_TLS_DEMAND, True)
+            l.start_tls_s()
+    except:
+        pass
+    l.simple_bind_s()
+    return l
+
 def ldap_search(attributes):
     '''
     If the anonymous search is disabled, it has to be
@@ -49,26 +68,27 @@ def ldap_search(attributes):
                             ldap_anon_user_attr,
                             ldap_anon_user_base_dn)
     except AttributeError:
-        pass
+        l = ldap_anonymous_bind()
     '''
-    Perform LDAP query, it supports multiple OU's
+    Perform LDAP query, it supports multiple OU's and attrs.
+    Since there is ability to search in multiple OU's
+    (eg ou=developers and ou=users) and for various
+    attributes, if there is a result available, the
+    for loops should break
     '''
+    results = ''
     for ldap_base_dn in settings.LDAP_BASE_DN:
-        for attr in attributes:
-            results = l.search_s(ldap_base_dn,
+        if not results:
+            for attr in attributes:
+                results = l.search_s(ldap_base_dn,
                                 ldap.SCOPE_SUBTREE,
                                 '(%s=%s)' % (settings.LDAP_BASE_ATTR, attr),
                                 ['*'])
-            '''
-            Since there is ability to search in multiple OU's
-            (eg ou=developers and ou=users), if there is a result
-            available, the for loop should break
-            '''
-            try:
                 if results:
                     break
-            except AttributeError:
-                pass
+        else:
+            break
+
     l.unbind_s()
     if not results:
         return None
