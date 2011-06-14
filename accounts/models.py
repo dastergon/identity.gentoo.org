@@ -12,10 +12,6 @@ class UserProfile(models.Model):
     all_mails = models.TextField(blank = True, null = True)
     gecos = models.CharField(max_length = 50)
     ssh_public_key = models.TextField(blank = True, null = True)
-    gpg_key = models.TextField(blank = True, null = True)
-    gpg_fingerprint = models.TextField(blank = True, null = True)
-    lat = models.CharField(max_length = 15, blank = True, null = True)
-    lon = models.CharField(max_length = 15, blank = True, null = True)
 
     class Meta:
         abstract = True
@@ -25,6 +21,10 @@ class GentooProfile(UserProfile):
     gentoo_access = models.TextField()
     gentoo_location = models.CharField(max_length = 50)
     gentoo_roles = models.CharField(max_length = 50)
+    gpg_key = models.TextField(blank = True, null = True)
+    gpg_fingerprint = models.TextField(blank = True, null = True)
+    lat = models.CharField(max_length = 15, blank = True, null = True)
+    lon = models.CharField(max_length = 15, blank = True, null = True)
     is_infra = models.BooleanField(default = False)
     is_devrel = models.BooleanField(default = False)
     is_recruiter = models.BooleanField(default = False)
@@ -32,3 +32,4 @@ class GentooProfile(UserProfile):
     is_docs = models.BooleanField(default = False)
     is_security = models.BooleanField(default = False)
     is_pr = models.BooleanField(default = False)
+    
