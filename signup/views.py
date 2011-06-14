@@ -1,5 +1,5 @@
 from django.conf import settings
-from djago.template import RequestContext
+from django.template import RequestContext
 from django.shortcuts import render_to_response
 from okupy.libraries.encryption import sha1Password
 from okupy.libraries.ldap_q import *
@@ -35,14 +35,49 @@ def checkDuplicates(request):
     in the LDAP server
     '''
     attributes = ['username', 'email']
-    results = ldap_search(attributes)
+    try:
+        results = ldap_search(attributes)
+    except ldap.NO_SUCH_OBJECT:
+        return 'Uninitialized'
     if not results:
         return True
     else:
         return False
 
-def addDataToLDAP(request):
+def addDataToLDAP(request, status):
     global credentials
+    if status == 1:
+        '''
+        LDAP server is empty, before adding the new user,
+        the top O and OUs need to be created first
+        '''
+        init_attrs_o = {
+            'objectClass': settings.LDAP_O_NAME.values()[0],
+            'dn': settings.LDAP_O_NAME.keys(),
+            'dc': [settings.LDAP_O_NAME.keys()[0].split('=')[1].split(',')[0]],
+            'o': [''.join(settings.LDAP_O_NAME.keys()[0].split('dc=')).replace(',', '.')],
+        }
+        ldif1 = modlist.addModlist(init_attrs_o)
+        try:
+            l.add_s(init_attrs_o['o'][0], ldif1)
+        except Exception as error:
+            # log error
+            pass
+        for key, value in settings.LDAP_OU_LIST.iteritems():
+            init_attrs_ou = {
+                'dn': [key],
+                'objectClass': [value],
+                'ou': [key.split('=')[1].split(',')[0]],
+            }
+            ldif2 = modlist.addModlist(init_attrs_ou)
+            try:
+                l.add_s(init_attrs_ou['ou'][0], ldif2)
+            except Exception as error:
+                # log error
+                pass
+    '''
+    Add the new user
+    '''
     attrs = {
         'objectclass': settings.LDAP_NEW_USER_OBJECTCLASS,
         'uid': [credentials['username']],
@@ -56,30 +91,9 @@ def addDataToLDAP(request):
             ldif = modlist.addModlist(attrs)
             try:
                 l.add_s('uid=%s,%s' % (credentials['username'], settings.LDAP_BASE_DN[0]), ldif)
-            except:
-                init_attrs_o = {
-                    'objectClass': settings.LDAP_O_NAME.values()[0],
-                    'dn': settings.LDAP_O_NAME.keys(),
-                    'dc': [settings.LDAP_O_NAME.keys()[0].split('=')[1].split(',')[0]],
-                    'o': [''.join(settings.LDAP_O_NAME.keys()[0].split('dc=')).replace(',', '.')],
-                }
-                ldif1 = modlist.addModlist(init_attrs_o)
-                try:
-                    l.add_s(init_attrs_o['o'][0], ldif1)
-                except:
-                    pass
-                
-                for key, value in settings.LDAP_OU_LIST.iteritems():
-                    init_attrs_ou = {
-                        'dn': [key],
-                        'objectClass': [value],
-                        'ou': [key.split('=')[1].split(',')[0]],
-                    }
-                    ldif2 = modlist.addModlist(init_attrs_ou)
-                    try:
-                        l.add_s(init_attrs_ou['ou'][0], ldif2)
-                    except:
-                        pass
+            except Exception as error:
+               # log error
+               pass
             l.unbind_s()
     except AttributeError:
         # log invalid root credentials
@@ -96,13 +110,17 @@ def signup(request):
                 credentials['password'] = sha1Password(request.POST.get('password1'))
             else:
                 msg = 'passwords don\'t match'
-            if checkDuplicates(request):
-                credentials['first_name'] = request.POST.get('first_name')
-                credentials['last_name'] = request.POST.get('last_name')
-                credentials['email'] = request.POST.get('email')
+            result = checkDuplicates(request)
+            if result:
+                if result != 'Unitialized':
+                    credentials['first_name'] = request.POST.get('first_name')
+                    credentials['last_name'] = request.POST.get('last_name')
+                    credentials['email'] = request.POST.get('email')
+                    addDataToLDAP(request, 0)
+                else:
+                    addDataToLDAP(request, 1)
             else:
                 msg = 'User already exists'
-            addDataToLDAP
     else:
          form = SignupForm()
     return render_to_response(
