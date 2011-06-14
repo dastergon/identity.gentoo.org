@@ -78,10 +78,37 @@ LOGGING = {
     }
 }
 
+# Choose the appropriate User Profile Class
+# Options are:
+#  - accounts.UserProfile (the generic one)
+#  - accounts.GentooProfile (Gentoo specific)
+#  - accounts.KDEProfile (KDE specific)
+AUTH_PROFILE_MODULE = 'accounts.UserProfile'
+
+
 # LDAP specific variables
 
 # The URI of the LDAP server
 LDAP_SERVER_URI = 'ldap://ldap.example.com'
+
+# Name of the Organization, and its objectClasses
+# This will be used for LDAP initialization
+LDAP_O_NAME = {
+    'dc=example,dc=com': ['organization', 'dcObject'],
+}
+
+# List of OU's, and their objectClasses. These will
+# be used in LDAP initialization and also in LDAP
+# queries, eg to search for a user
+# The first one is also the BASE_DN for new users
+LDAP_OU_LIST = {
+    'ou=users,dc=example,dc=com': ['organizationalUnit'],
+    'ou=developers,dc=example,dc=com': ['organizationalUnit'],
+}
+
+# For ease of use, create a list of the objectclasses based
+# on the above
+LDAP_BASE_DN = LDAP_OU_LIST.keys()
 
 # The system needs either an anon (minimal-privileged) user
 # to perform basic searches, in case anon queries are not
@@ -93,14 +120,12 @@ LDAP_ANON_USER_PW = 'password'
 LDAP_ADMIN_USER_DN = 'cn=Manager,dc=example,dc=com'
 LDAP_ADMIN_USER_PW = 'password'
 
-# Multiple OU's are supported
-LDAP_BASE_DN = ['ou=users,dc=example,dc=com', 'ou=developers,dc=example,dc=com']
-
 # The prefix of the attrs, such as cn or uid
 LDAP_BASE_ATTR = 'uid'
 
 # The basic LDAP data, also required by the Django DB
 LDAP_USER_ATTR_MAP = {
+    'username': 'uid',
     'first_name': 'givenName',
     'last_name': 'sn',
     'email': 'mail',
@@ -108,5 +133,38 @@ LDAP_USER_ATTR_MAP = {
 
 # Additional data, that can be mapped by the Django
 # user profile
-#LDAP_PROFILE_ATTR_MAP = {
-#}
+LDAP_PROFILE_ATTR_MAP = {
+    'cn': 'cn',
+    'all_mails': 'mail',
+    'gecos': 'gecos',
+    'ssh_public_key': 'sshPublicKey',
+#    Gentoo specific variables
+#    'gentoo_roles': 'gentooRoles',
+#    'gentoo_access': 'gentooAccess',
+#    'gentoo_location': 'gentooLocation',
+#    'gentoo_status': 'gentooStatus',
+#    'lat': 'lat',
+#    'lon': 'lon',
+#    'gpg_fingerprint': 'gpgfingerprint',
+#    'gpg_key': 'gpgkey',
+#     KDE specific variables
+#
+#
+}
+
+# The attribute which has the groups that the user is part of
+LDAP_ACL_ATTR = 'groupAccess'
+
+# Various groups and the equivalent booleans in UserProfile
+LDAP_ACL_GROUPS = {
+    'infra-ldapadmin.group': 'is_infra',
+    'devrel.group': 'is_devrel',
+    'recruiters.group': 'is_recruiter',
+    'trustees.group': 'is_trustee',
+    'docs.group': 'is_docs',
+    'security.group': 'is_security',
+    'pr.group': 'is_pr',
+}
+
+# List of objectClasses, used in user creation
+LDAP_NEW_USER_OBJECTCLASS = ['person', 'top', 'posixAccount']

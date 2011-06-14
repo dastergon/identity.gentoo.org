@@ -2,7 +2,9 @@ from django.conf import settings
 from djago.template import RequestContext
 from django.shortcuts import render_to_response
 from okupy.libraries.encryption import sha1Password
+from okupy.libraries.ldap_q import *
 from okupy.signup.forms import SignupForm
+import ldap.modlist as modlist
 
 '''
 Global dictionary to initialize
@@ -32,56 +34,56 @@ def checkDuplicates(request):
     Check if the username or email already exist
     in the LDAP server
     '''
-    l = ldap.initialize(settings.LDAP_SERVER_URI)
-    '''
-    The following is run in case a TLS connection
-    is requested
-    '''
-    try:
-        if settings.LDAP_TLS:
-            l.set_option(ldap.OPT_X_TLS_DEMAND, True)
-            l.start_tls_s()
-    except:
-        pass
-    '''
-    Perform LDAP query to check for duplicates
-    '''
-    try:
-        if settings.LDAP_ANON_USER_DN:
-            l.simple_bind_s(
-                settings.LDAP_ANON_USER_DN,
-                settings.LDAP_ANON_USER_PW,
-            )
-    except ImportError, AttributeError:
-        pass
-    except ldap.INVALID_CREDENTIALS:
-        # log 'anon account is invalid'
-        return False
-
-    for ldap_base_dn in settings.LDAP_BASE_DN:
-        for attribute in username, email:
-            results = l.search_s(ldap_base_dn,
-                                ldap.SCOPE_SUBTREE,
-                                '(%s=%s)' % (settings.LDAP_BASE_ATTR, attribute),
-                                ['*'])
-        '''
-        Since there is ability to search in multiple OU's
-        (eg ou=developers and ou=users), if there is a result
-        available, the for loop should break
-        '''
-        try:
-            if results:
-                break
-        except AttributeError:
-            pass
-    l.unbind_s()
+    attributes = ['username', 'email']
+    results = ldap_search(attributes)
     if not results:
         return True
     else:
         return False
 
-#def addDataToLDAP(request):
-#    todo
+def addDataToLDAP(request):
+    global credentials
+    attrs = {
+        'objectclass': settings.LDAP_NEW_USER_OBJECTCLASS,
+        'uid': [credentials['username']],
+        'sn': [credentials['last_name']],
+        'givenName': [credentials['last_name']],
+        'email': [credentials['email']],
+    }
+    l = ldap_bind(settings.LDAP_ADMIN_USER_DN, settings.LDAP_ADMIN_USER_PW)
+    try:
+        if l:
+            ldif = modlist.addModlist(attrs)
+            try:
+                l.add_s('uid=%s,%s' % (credentials['username'], settings.LDAP_BASE_DN[0]), ldif)
+            except:
+                init_attrs_o = {
+                    'objectClass': settings.LDAP_O_NAME.values()[0],
+                    'dn': settings.LDAP_O_NAME.keys(),
+                    'dc': [settings.LDAP_O_NAME.keys()[0].split('=')[1].split(',')[0]],
+                    'o': [''.join(settings.LDAP_O_NAME.keys()[0].split('dc=')).replace(',', '.')],
+                }
+                ldif1 = modlist.addModlist(init_attrs_o)
+                try:
+                    l.add_s(init_attrs_o['o'][0], ldif1)
+                except:
+                    pass
+                
+                for key, value in settings.LDAP_OU_LIST.iteritems():
+                    init_attrs_ou = {
+                        'dn': [key],
+                        'objectClass': [value],
+                        'ou': [key.split('=')[1].split(',')[0]],
+                    }
+                    ldif2 = modlist.addModlist(init_attrs_ou)
+                    try:
+                        l.add_s(init_attrs_ou['ou'][0], ldif2)
+                    except:
+                        pass
+            l.unbind_s()
+    except AttributeError:
+        # log invalid root credentials
+        pass
 
 def signup(request):
     global credentials
@@ -100,7 +102,7 @@ def signup(request):
                 credentials['email'] = request.POST.get('email')
             else:
                 msg = 'User already exists'
-            # addDataToLDAP
+            addDataToLDAP
     else:
          form = SignupForm()
     return render_to_response(
