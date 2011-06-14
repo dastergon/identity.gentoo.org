@@ -137,7 +137,6 @@ LDAP_PROFILE_ATTR_MAP = {
     'cn': 'cn',
     'all_mails': 'mail',
     'gecos': 'gecos',
-    'ssh_public_key': 'sshPublicKey',
 #    Gentoo specific variables
 #    'gentoo_roles': 'gentooRoles',
 #    'gentoo_access': 'gentooAccess',
@@ -147,15 +146,17 @@ LDAP_PROFILE_ATTR_MAP = {
 #    'lon': 'lon',
 #    'gpg_fingerprint': 'gpgfingerprint',
 #    'gpg_key': 'gpgkey',
+#    'ssh_public_key': 'sshPublicKey',
 #     KDE specific variables
 #
 #
 }
 
 # The attribute which has the groups that the user is part of
-LDAP_ACL_ATTR = 'groupAccess'
+LDAP_ACL_ATTR = 'gentooAccess'
 
 # Various groups and the equivalent booleans in UserProfile
+# The followings are examples used in Gentoo
 LDAP_ACL_GROUPS = {
     'infra-ldapadmin.group': 'is_infra',
     'devrel.group': 'is_devrel',
@@ -168,3 +169,6 @@ LDAP_ACL_GROUPS = {
 
 # List of objectClasses, used in user creation
 LDAP_NEW_USER_OBJECTCLASS = ['person', 'top', 'posixAccount']
+
+# Base DN for new user
+LDAP_NEW_USER_BASE_DN = 'ou=users,dc=example,dc=gr'
