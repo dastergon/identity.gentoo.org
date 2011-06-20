@@ -10,7 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def checkPassword(request, credentials):
+def checkPassword(request, credentials, form):
     '''
     Check if the passwords match
     '''
@@ -23,7 +23,7 @@ def checkPassword(request, credentials):
         logger.error(msg)
         raise OkupyException(msg)
 
-def checkDuplicates(request):
+def checkDuplicates(request, credentials):
     '''
     Check if the username or email already exist
     in the LDAP server
@@ -39,10 +39,13 @@ def checkDuplicates(request):
     if not results_name and not results_mail:
         return True
     else:
-        logger.error(error)
-        raise OkupyException('Error with the LDAP server')
+        msg = 'Error with the LDAP server'
+        logger.error(msg)
+        raise OkupyException(msg)
 
 def addDataToLDAP(request, status, credentials):
+    print credentials
+    print credentials['first_name']
     '''
     Need to bind with the admin user to create new accounts
     '''
@@ -132,13 +135,13 @@ def signup(request):
                 '''
                 Check if passwords match
                 '''
-                checkPassword(request, credentials)
+                checkPassword(request, credentials, form)
                 '''
                 Check if username or email are already there
                 '''
-                result = checkDuplicates(request)
+                result = checkDuplicates(request, credentials)
                 if result:
-                    credentials['first_name'] = str(form.cleaned_data['first_name'])
+                    credentials['first_name'] = form.cleaned_data['first_name']
                     credentials['last_name'] = str(form.cleaned_data['last_name'])
                     credentials['email'] = str(form.cleaned_data['email'])
                     addDataToLDAP(request, 0, credentials)
@@ -148,7 +151,7 @@ def signup(request):
                     '''
                     addDataToLDAP(request, 1, credentials)
                 return render_to_response('signup.html', credentials, context_instance = RequestContext(request))
-            except Exception as error:
+            except OkupyException as error:
                 msg = error.value
                 logger.error(error)
     else:
