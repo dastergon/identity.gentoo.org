@@ -3,31 +3,25 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from okupy.libraries.encryption import sha1Password
 from okupy.libraries.ldap_wrappers import *
+from okupy.libraries.exception import OkupyException
 from okupy.signup.forms import SignupForm
 import ldap.modlist as modlist
+import logging
 
-'''
-Global dictionary to initialize
-users' required attributes
-'''
-credentials = {
-    'fist_name': '',
-    'last_name': '',
-    'email':'',
-    'username':'',
-    'password':'',
-}
+logger = logging.getLogger(__name__)
 
-def checkPassword(request):
+def checkPassword(request, credentials):
     '''
     Check if the passwords match
     '''
-    if request.POST.get('password1') == request.POST.get('password2'):
-        return True
+    if form.cleaned_data['password1'] == form.cleaned_data['password2']:
+        credentials['username'] = str(form.cleaned_data['username'])
+        credentials['password'] = sha1Password(form.cleaned_data['password1'])
+        return
     else:
-        # log 'passwords don't match'
-        # raise Error('passwords don\'t match')
-        return False
+        msg = 'passwords don\'t match'
+        logger.error(msg)
+        raise OkupyException(msg)
 
 def checkDuplicates(request):
     '''
@@ -40,16 +34,15 @@ def checkDuplicates(request):
     except ldap.NO_SUCH_OBJECT:
         '''
         The LDAP server is completely empty,
-        return a special string
         '''
-        return 'Uninitialized'
+        return False
     if not results_name and not results_mail:
         return True
     else:
-        return False
+        logger.error(error)
+        raise OkupyException('Error with the LDAP server')
 
-def addDataToLDAP(request, status):
-    global credentials
+def addDataToLDAP(request, status, credentials):
     '''
     Need to bind with the admin user to create new accounts
     '''
@@ -74,8 +67,8 @@ def addDataToLDAP(request, status):
         try:
             l.add_s(settings.LDAP_O_NAME.keys()[0], ldif1)
         except Exception as error:
-            # log error
-            pass
+            logger.error(error)
+            raise OkupyException('Error with the LDAP server')
         for key, value in settings.LDAP_OU_LIST.iteritems():
             init_attrs_ou = {
                 'objectClass': value,
@@ -85,8 +78,8 @@ def addDataToLDAP(request, status):
             try:
                 l.add_s(key, ldif2)
             except Exception as error:
-                # log error
-                pass
+                logger.error(error)
+                raise OkupyException('Error with the LDAP server')
     '''
     Collect the new user's credentials in a dictionary
     '''
@@ -111,36 +104,56 @@ def addDataToLDAP(request, status):
     try:
         l.add_s('uid=%s,%s' % (credentials['username'], settings.LDAP_NEW_USER_BASE_DN), ldif)
     except Exception as error:
-        # log error
-        pass
+        logger.error(error)
+        raise OkupyException('Error with the LDAP server')
     l.unbind_s()
 
 def signup(request):
-    global credentials
+    '''
+    Credentials dictionary to initialize
+    users' required attributes
+    '''
+    credentials = {
+        'fist_name': '',
+        'last_name': '',
+        'email':'',
+        'username':'',
+        'password':'',
+    }
     msg = ''
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
-            if checkPassword(request):
-                credentials['username'] = str(request.POST.get('username'))
-                credentials['password'] = sha1Password(request.POST.get('password1'))
-            else:
-                msg = 'passwords don\'t match'
-            result = checkDuplicates(request)
-            if result:
-                if result != 'Uninitialized':
-                    credentials['first_name'] = str(request.POST.get('first_name'))
-                    credentials['last_name'] = str(request.POST.get('last_name'))
-                    credentials['email'] = str(request.POST.get('email'))
-                    addDataToLDAP(request, 0)
+            '''
+            If any of the following functions fail, they
+            will raise the exception at the end
+            '''
+            try:
+                '''
+                Check if passwords match
+                '''
+                checkPassword(request, credentials)
+                '''
+                Check if username or email are already there
+                '''
+                result = checkDuplicates(request)
+                if result:
+                    credentials['first_name'] = str(form.cleaned_data['first_name'])
+                    credentials['last_name'] = str(form.cleaned_data['last_name'])
+                    credentials['email'] = str(form.cleaned_data['email'])
+                    addDataToLDAP(request, 0, credentials)
                 else:
-                    addDataToLDAP(request, 1)
-            else:
-                msg = 'User already exists'
+                    '''
+                    LDAP DB is empty, create the top O and OUs first
+                    '''
+                    addDataToLDAP(request, 1, credentials)
+                return render_to_response('signup.html', credentials, context_instance = RequestContext(request))
+            except Exception as error:
+                msg = error.value
+                logger.error(error)
     else:
          form = SignupForm()
     return render_to_response(
         'signup.html',
         {'msg': msg, 'form': form},
-        context_instance = RequestContext(request)
-    )
+        context_instance = RequestContext(request))
