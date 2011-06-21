@@ -79,7 +79,7 @@ def addDataToLDAP(request, status, credentials):
             try:
                 l.add_s(key, ldif2)
             except Exception as error:
-                logger.error(msg, extra = log_extra_data(request))
+                logger.error(error, extra = log_extra_data(request))
                 raise OkupyException('Error with the LDAP server')
     '''
     Collect the new user's credentials in a dictionary
@@ -105,7 +105,7 @@ def addDataToLDAP(request, status, credentials):
     try:
         l.add_s('uid=%s,%s' % (credentials['username'], settings.LDAP_NEW_USER_BASE_DN), ldif)
     except Exception as error:
-        logger.error(msg, extra = log_extra_data(request))
+        logger.error(error, extra = log_extra_data(request))
         raise OkupyException('Error with the LDAP server')
     l.unbind_s()
 
