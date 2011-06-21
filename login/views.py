@@ -39,13 +39,9 @@ def mylogout(request):
     logout(request)
     return HttpResponseRedirect('/')
 
-# override 500 error page, in order to pass MEDIA_URL to Context
 def server_error(request, template_name='500.html'):
     """
-    500 error handler.
-
-    Templates: `500.html`
-    Context: None
+    override 500 error page, in order to pass MEDIA_URL to Context
     """
     t = loader.get_template(template_name) # You need to create a 500.html template.
     return http.HttpResponseServerError(t.render(RequestContext(request, {'request_path': request.path})))

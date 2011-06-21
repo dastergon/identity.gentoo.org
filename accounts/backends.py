@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from okupy.accounts.models import *
 from okupy.accounts.ldap_wrappers import *
-import ldap
 
 class LDAPBackend(object):
     '''
@@ -44,8 +43,7 @@ class LDAPBackend(object):
             '''
             Perform a search to find the user in the LDAP server.
             '''
-            attributes = ['username']
-            results = ldap_user_search(attributes)
+            results = ldap_user_search()
             if not results:
                 return None
             '''
@@ -83,8 +81,8 @@ class LDAPBackend(object):
             try:
                 user.save()
             except Exception as error:
-                # log error
-                pass
+                logger.error(error, extra = log_extra_data(request))
+                raise OkupyException('Could not save to DB')
 
             '''
             Additional data that should be put in the user's profile
@@ -109,8 +107,8 @@ class LDAPBackend(object):
                     try:
                         user_profile.save()
                     except Exception as error:
-                        # log error
-                        pass
+                        logger.error(error, extra = log_extra_data(request))
+                        raise OkupyException('Could not save to DB')
             except AttributeError:
                 pass
 

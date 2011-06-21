@@ -1,5 +1,6 @@
 from django.conf import settings
 import ldap
+import logging
 
 def ldap_bind(username = None, password = None, base_attr = None, base_dn = None):
     '''
@@ -32,8 +33,8 @@ def ldap_bind(username = None, password = None, base_attr = None, base_dn = None
             l.simple_bind_s(bind_dn, password)
             return l
         except Exception as error:
-            # log error
-            return None
+            logger.error(error, extra = log_extra_data(request))
+            raise OkupyException('Could not bind to LDAP')
     else:
         '''
         If no attributes are given, then a simple anonymous bind
@@ -43,8 +44,8 @@ def ldap_bind(username = None, password = None, base_attr = None, base_dn = None
             l.simple_bind_s()
             return l
         except Exception as error:
-            # log error
-            return None
+            logger.error(error, extra = log_extra_data(request))
+            raise OkupyException('Could not bind to LDAP')
 
 def ldap_anon_user_bind():
     '''
@@ -80,11 +81,10 @@ def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = Non
                         '(%s=%s)' % (attr, filter),
                         results)
         except Exception as error:
-            # log error
-            raise
+            logger.error(error, extra = log_extra_data(request))
+            raise OkupyException('Error with the LDAP server')
         if user:
             break
-
     l.unbind_s()
     if not user:
         return None
