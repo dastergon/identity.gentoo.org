@@ -32,4 +32,3 @@ class GentooProfile(UserProfile):
     is_docs = models.BooleanField(default = False)
     is_security = models.BooleanField(default = False)
     is_pr = models.BooleanField(default = False)
-    

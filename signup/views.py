@@ -3,12 +3,12 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from okupy.libraries.encryption import sha1Password
 from okupy.libraries.ldap_wrappers import *
-from okupy.libraries.exception import OkupyException
+from okupy.libraries.exception import OkupyException, log_extra_data
 from okupy.signup.forms import SignupForm
 import ldap.modlist as modlist
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('okupy')
 
 def checkPassword(request, credentials, form):
     '''
@@ -20,7 +20,7 @@ def checkPassword(request, credentials, form):
         return
     else:
         msg = 'passwords don\'t match'
-        logger.error(msg)
+        logger.error(msg, extra = log_extra_data(request))
         raise OkupyException(msg)
 
 def checkDuplicates(request, credentials):
@@ -29,8 +29,8 @@ def checkDuplicates(request, credentials):
     in the LDAP server
     '''
     try:
-        results_name = ldap_user_search()
-        results_mail = ldap_user_search('mail', credentials['email'])
+        results_name = ldap_user_search(credentials['username'])
+        results_mail = ldap_user_search(credentials['email'], 'mail')
     except ldap.NO_SUCH_OBJECT:
         '''
         The LDAP server is completely empty,
@@ -39,13 +39,11 @@ def checkDuplicates(request, credentials):
     if not results_name and not results_mail:
         return True
     else:
-        msg = 'Error with the LDAP server'
-        logger.error(msg)
+        msg = 'Account already exists'
+        logger.error(msg, extra = log_extra_data(request))
         raise OkupyException(msg)
 
 def addDataToLDAP(request, status, credentials):
-    print credentials
-    print credentials['first_name']
     '''
     Need to bind with the admin user to create new accounts
     '''
@@ -70,7 +68,7 @@ def addDataToLDAP(request, status, credentials):
         try:
             l.add_s(settings.LDAP_O_NAME.keys()[0], ldif1)
         except Exception as error:
-            logger.error(error)
+            logger.error(error, extra = log_extra_data(request))
             raise OkupyException('Error with the LDAP server')
         for key, value in settings.LDAP_OU_LIST.iteritems():
             init_attrs_ou = {
@@ -81,7 +79,7 @@ def addDataToLDAP(request, status, credentials):
             try:
                 l.add_s(key, ldif2)
             except Exception as error:
-                logger.error(error)
+                logger.error(msg, extra = log_extra_data(request))
                 raise OkupyException('Error with the LDAP server')
     '''
     Collect the new user's credentials in a dictionary
@@ -107,7 +105,7 @@ def addDataToLDAP(request, status, credentials):
     try:
         l.add_s('uid=%s,%s' % (credentials['username'], settings.LDAP_NEW_USER_BASE_DN), ldif)
     except Exception as error:
-        logger.error(error)
+        logger.error(msg, extra = log_extra_data(request))
         raise OkupyException('Error with the LDAP server')
     l.unbind_s()
 
@@ -153,7 +151,7 @@ def signup(request):
                 return render_to_response('signup.html', credentials, context_instance = RequestContext(request))
             except OkupyException as error:
                 msg = error.value
-                logger.error(error)
+                logger.error(msg, extra = log_extra_data(request))
     else:
          form = SignupForm()
     return render_to_response(
