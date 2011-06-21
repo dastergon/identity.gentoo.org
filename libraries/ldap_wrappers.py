@@ -64,7 +64,7 @@ def ldap_anon_user_bind():
         l = ldap_bind()
     return l
 
-def ldap_user_search(attr = settings.LDAP_BASE_ATTR, filter = '*', results = None):
+def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = None):
     l = ldap_anon_user_bind()
     '''
     Perform LDAP query, it supports multiple OU's and attrs.
