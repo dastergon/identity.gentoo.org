@@ -1,6 +1,5 @@
 from django.contrib.sites.models import Site
 
-
 class OkupyException(Exception):
     '''
     Custon exception class
@@ -16,20 +15,23 @@ def log_extra_data(request = None, form = None):
     All values default to None
     '''
     log_extra_data = {
-        'site_name': Site.objects.get_current().name or 'None',
-        'clientip':request.META.get('REMOTE_ADDR','None'),
+        'site_name': Site.objects.get_current().name or None,
+        'clientip': request.META.get('REMOTE_ADDR','None') if request else None,
     }
     if form:
         log_extra_data['username'] = form.data.get('username','None')
     else:
-        if request.user.is_authenticated():
-            '''
-            Handle logged in users
-            '''
-            log_extra_data['username'] = request.user.name
-        else:
-            '''
-            Handle anonymous users
-            '''
-            log_extra_data['username'] = 'Anonymous'
+        try:
+            if request.user.is_authenticated():
+                '''
+                Handle logged in users
+                '''
+                log_extra_data['username'] = request.user.name
+            else:
+                '''
+                Handle anonymous users
+                '''
+                log_extra_data['username'] = 'Anonymous'
+        except AttributeError:
+            pass
     return log_extra_data

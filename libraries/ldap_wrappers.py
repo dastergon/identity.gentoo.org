@@ -1,6 +1,9 @@
 from django.conf import settings
+from okupy.libraries.exception import OkupyException, log_extra_data
 import ldap
 import logging
+
+logger = logging.getLogger('okupy')
 
 def ldap_bind(username = None, password = None, base_attr = None, base_dn = None):
     '''
