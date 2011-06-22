@@ -48,7 +48,7 @@ class LDAPBackend(object):
             '''
             Perform a search to find the user in the LDAP server.
             '''
-            results = ldap_user_search()
+            results = ldap_user_search(username)
             if not results:
                 return None
             '''
