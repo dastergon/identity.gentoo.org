@@ -1,11 +1,13 @@
-# -*- coding: utf-8 -*-
-
 from django import http
 from django.contrib.auth import login, authenticate, logout
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext, loader
 from okupy.login.forms import *
+from okupy.libraries.exception import OkupyException, log_extra_data
+import logging
+
+logger = logging.getLogger('okupy')
 
 def mylogin(request):
     msg = ''
@@ -16,18 +18,22 @@ def mylogin(request):
         form = LoginForm(request.POST)
         username = request.POST.get('username')
         password = request.POST.get('password')
-        user = authenticate(username = username, password = password)
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                if not request.POST.get('remember'):
-                    request.session.set_expiry(0)
-                return HttpResponseRedirect('/user')
-        else:
-            msg = 'Wrong Credentials'
+        try:
+            user = authenticate(username = username, password = password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    if not request.POST.get('remember'):
+                        request.session.set_expiry(0)
+                    return HttpResponseRedirect('/user')
+            else:
+                msg = 'Wrong Credentials'
+        except OkupyException as error:
+            msg = error.value
+            logger.error(msg, extra = log_extra_data(request, form))
     else:
         if request.user.is_authenticated():
-            return HttpResponseRedirect('/user')
+            return HttpResponseRedirect('/')
         else:
             form = LoginForm()
     return render_to_response('login.html', {
