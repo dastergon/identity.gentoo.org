@@ -1,7 +1,12 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from okupy.accounts.models import *
-from okupy.accounts.ldap_wrappers import *
+from okupy.libraries.ldap_wrappers import *
+from okupy.libraries.exception import OkupyException, log_extra_data
+import ldap
+import logging
+
+logger = logging.getLogger('okupy')
 
 class LDAPBackend(object):
     '''
@@ -81,7 +86,7 @@ class LDAPBackend(object):
             try:
                 user.save()
             except Exception as error:
-                logger.error(error, extra = log_extra_data(request))
+                logger.error(error, extra = log_extra_data())
                 raise OkupyException('Could not save to DB')
 
             '''
