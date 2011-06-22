@@ -1,7 +1,6 @@
 # Django development settings for okupy project.
 
 import ldap
-from settings.base import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
