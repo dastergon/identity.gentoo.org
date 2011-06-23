@@ -33,7 +33,7 @@ class LDAPBackend(object):
         except User.DoesNotExist:
             return None
 
-    def get_or_create_user(self, username, password):
+    def get_or_create_user(self, username, password, other_username = None, other_password = None):
         '''
         Retrieves a user from the Django DB. If the user is not
         found in the DB, then it tries to retrieve it from the
@@ -56,7 +56,14 @@ class LDAPBackend(object):
             that the user is in the LDAP server. Next step
             is to try to bind to the LDAP server using the
             user's credentials, to check if they are valid.
+            Since this method is used for privileged users
+            to retrieve other users' data, other is defined,
+            then it doesn't need to bind.
             '''
+            original_username = username
+            if other:
+                username = other_username
+                password = other_password
             for ldap_base_dn in settings.LDAP_BASE_DN:
                 l_user = ldap_bind(username, password,
                                 settings.LDAP_BASE_ATTR,
@@ -72,8 +79,12 @@ class LDAPBackend(object):
                     pass
             if not l_user:
                 return None
+            '''
+            Perform another search as the current user, to get
+            all his data
+            '''
+            results = l_user.ldap_user_search(original_username, 'uid', None, False)
             l_user.unbind()
-
             '''
             In case everything went fine so far, it means there is
             a valid user available. Last step is to migrate the user's
@@ -88,7 +99,6 @@ class LDAPBackend(object):
             except Exception as error:
                 logger.error(error, extra = log_extra_data())
                 raise OkupyException('Could not save to DB')
-
             '''
             Additional data that should be put in the user's profile
             '''
