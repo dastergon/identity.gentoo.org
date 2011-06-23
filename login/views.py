@@ -25,7 +25,7 @@ def mylogin(request):
                     login(request, user)
                     if not request.POST.get('remember'):
                         request.session.set_expiry(0)
-                    return HttpResponseRedirect('/user')
+                    return HttpResponseRedirect('/')
             else:
                 msg = 'Wrong Credentials'
         except OkupyException as error:
