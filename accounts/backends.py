@@ -117,4 +117,4 @@ class LDAPBackend(object):
             except AttributeError:
                 pass
 
-            return user
+        return user
