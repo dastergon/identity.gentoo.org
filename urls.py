@@ -6,9 +6,11 @@ from okupy.signup.views import *
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^login/$', mylogin),
-    url(r'^$', include('index.urls')),
-    url(r'^signup/', signup),
-    url(r'^account/', include('accounts.urls')),
-    url(r'^admin/', include(admin.site.urls)),
+    (r'^$', include('index.urls')),
+    (r'^account/', include('accounts.urls')),
+    (r'^admin/', include(admin.site.urls)),
+    (r'^login/$', mylogin),
+    (r'^logout/$', mylogout),
+    (r'^signup/', include('signup.urls')),
+    
 )
