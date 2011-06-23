@@ -43,7 +43,7 @@ def checkDuplicates(request, credentials):
         logger.error(msg, extra = log_extra_data(request))
         raise OkupyException(msg)
 
-def addDataToLDAP(request, status, credentials):
+def addDataToLDAP(request, credentials, empty = True):
     '''
     Need to bind with the admin user to create new accounts
     '''
@@ -54,7 +54,7 @@ def addDataToLDAP(request, status, credentials):
             settings.LDAP_ADMIN_USER_PW,
             ldap_admin_user_attr,
             ldap_admin_user_base_dn)
-    if status == 1:
+    if empty:
         '''
         LDAP server is empty, before adding the new user,
         the top O and OUs need to be created first
@@ -142,12 +142,12 @@ def signup(request):
                     credentials['first_name'] = form.cleaned_data['first_name']
                     credentials['last_name'] = str(form.cleaned_data['last_name'])
                     credentials['email'] = str(form.cleaned_data['email'])
-                    addDataToLDAP(request, 0, credentials)
+                    addDataToLDAP(request, credentials, False)
                 else:
                     '''
                     LDAP DB is empty, create the top O and OUs first
                     '''
-                    addDataToLDAP(request, 1, credentials)
+                    addDataToLDAP(request, credentials)
                 return render_to_response('signup.html', credentials, context_instance = RequestContext(request))
             except OkupyException as error:
                 msg = error.value
