@@ -1,5 +1,5 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls.defaults import patterns
 
 urlpatterns = patterns('okupy.index.views',
-    url(r'^$', 'index'),
+    (r'^$', 'index'),
 )
