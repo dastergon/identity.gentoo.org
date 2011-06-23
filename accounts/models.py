@@ -10,8 +10,7 @@ class UserProfile(models.Model):
     user = models.ForeignKey(User, unique = True)
     cn = models.CharField(max_length = 15, blank = True, null = True)
     all_mails = models.TextField(blank = True, null = True)
-    gecos = models.CharField(max_length = 50)
-    ssh_public_key = models.TextField(blank = True, null = True)
+    secondary_password = models.CharField(max_length = 50, blank = True, null = True)
 
     class Meta:
         abstract = True
@@ -25,6 +24,8 @@ class GentooProfile(UserProfile):
     gpg_fingerprint = models.TextField(blank = True, null = True)
     lat = models.CharField(max_length = 15, blank = True, null = True)
     lon = models.CharField(max_length = 15, blank = True, null = True)
+    ssh_public_key = models.TextField(blank = True, null = True)
+    gecos = models.CharField(max_length = 50)
     is_infra = models.BooleanField(default = False)
     is_devrel = models.BooleanField(default = False)
     is_recruiter = models.BooleanField(default = False)
