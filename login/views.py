@@ -19,8 +19,15 @@ def mylogin(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         try:
+            '''
+            Try to authenticate using the LDAP backend
+            '''
             user = authenticate(username = username, password = password)
             if user is not None:
+                '''
+                If the LDAP backend returns a user object, then the
+                log in is successfull
+                '''
                 if user.is_active:
                     login(request, user)
                     if not request.POST.get('remember'):
