@@ -22,5 +22,9 @@ def decryptPassword(password):
     original_password = obj.decrypt(base64.b64decode(password))
     return original_password
 
-def random_password(length):
-    return ''.join([choice(string.printable[:-6]) for i in range(length)])
+def random_string(length, type = None):
+    if type == 'password':
+        chars = string.printable[:-6]
+    else:
+        chars = string.letters + string.digits
+    return ''.join([choice(chars) for i in range(length)])
