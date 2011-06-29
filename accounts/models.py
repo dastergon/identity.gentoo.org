@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -16,6 +15,9 @@ class UserProfile(models.Model):
         abstract = True
 
 class GentooProfile(UserProfile):
+    '''
+    Extends the above UserProfile class with Gentoo-specific DB fields
+    '''
     gentoo_status = models.CharField(max_length = 15)
     gentoo_access = models.TextField()
     gentoo_location = models.CharField(max_length = 50)
