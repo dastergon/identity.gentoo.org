@@ -16,30 +16,29 @@ def mylogin(request):
         if request.POST.get('signup'):
             return HttpResponseRedirect('/signup')
         form = LoginForm(request.POST)
-        #mail = form.cleaned_data['mail']
-        #password = form.cleaned_data['password']
-        mail = request.POST.get('mail')
-        password = request.POST.get('password')
-        try:
-            '''
-            Try to authenticate using the LDAP backend
-            '''
-            user = authenticate(mail = mail, password = password)
-            if user is not None:
+        if form.is_valid():
+            mail = form.cleaned_data['mail']
+            password = form.cleaned_data['password']
+            try:
                 '''
-                If the LDAP backend returns a user object, then the
-                log in is successfull
+                Try to authenticate using the LDAP backend
                 '''
-                if user.is_active:
-                    login(request, user)
-                    if not request.POST.get('remember'):
-                        request.session.set_expiry(0)
-                    return HttpResponseRedirect('/')
-            else:
-                msg = 'Wrong Credentials'
-        except OkupyException as error:
-            msg = error.value
-            logger.error(msg, extra = log_extra_data(request, form))
+                user = authenticate(mail = mail, password = password)
+                if user is not None:
+                    '''
+                    If the LDAP backend returns a user object, then the
+                    log in is successfull
+                    '''
+                    if user.is_active:
+                        login(request, user)
+                        if not form.cleaned_data['remember']:
+                            request.session.set_expiry(0)
+                        return HttpResponseRedirect('/')
+                else:
+                    msg = 'Wrong Credentials'
+            except OkupyException as error:
+                msg = error.value
+                logger.error(msg, extra = log_extra_data(request, form))
     else:
         if request.user.is_authenticated():
             return HttpResponseRedirect('/')
