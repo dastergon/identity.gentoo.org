@@ -6,7 +6,8 @@ from okupy.libraries.encryption import sha1Password, random_string
 from okupy.libraries.ldap_wrappers import *
 from okupy.libraries.exception import OkupyException, log_extra_data
 from okupy.signup.forms import SignupForm
-from okupy.signup.models import InactiveEmail
+from okupy.verification.models import InactiveEmail
+from okupy.verification.views import sendConfirmationEmail
 import ldap.modlist as modlist
 import logging
 
@@ -117,24 +118,6 @@ def addDataToLDAP(request, credentials, empty = True):
         logger.error(error, extra = log_extra_data(request))
         raise OkupyException('Error with the LDAP server')
     l.unbind_s()
-
-def sendConfirmationEmail(request, credentials, form):
-    '''
-    Create a random URL and send an email to the user to confirm his email address
-    '''
-    random_url = random_string(30)
-    inactive_email = InactiveEmail(email = credentials['email'],
-                                    user = credentials['username'],
-                                    url = random_url)
-    try:
-        inactive_email.save()
-    except Exception as error:
-        logger.error(error, extra = log_extra_data(request, form))
-        raise OkupyException('Could not save to DB')
-    send_mail('[Okupy]: Please confirm your email address',
-        'To confirm your email address, please click <a href="/%s">here</a>' % random_url,
-        'admin@tampakrap.gr',
-        [credentials['email']])
 
 def signup(request):
     '''
