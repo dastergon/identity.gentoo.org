@@ -36,7 +36,7 @@ def ldap_bind(username = None, password = None, base_attr = None, base_dn = None
             l.simple_bind_s(bind_dn, password)
             return l
         except Exception as error:
-            logger.error(error, extra = log_extra_data(request))
+            logger.error(error, extra = log_extra_data())
             raise OkupyException('Could not bind to LDAP')
     else:
         '''
@@ -47,7 +47,7 @@ def ldap_bind(username = None, password = None, base_attr = None, base_dn = None
             l.simple_bind_s()
             return l
         except Exception as error:
-            logger.error(error, extra = log_extra_data(request))
+            logger.error(error, extra = log_extra_data())
             raise OkupyException('Could not bind to LDAP')
 
 def ldap_anon_user_bind():
@@ -68,7 +68,7 @@ def ldap_anon_user_bind():
         l = ldap_bind()
     return l
 
-def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = None, anon = True):
+def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = None, anon = True, l = False):
     if anon:
         l = ldap_anon_user_bind()
     '''
@@ -85,7 +85,7 @@ def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = Non
                         '(%s=%s)' % (attr, filter),
                         results)
         except Exception as error:
-            logger.error(error, extra = log_extra_data(request))
+            logger.error(error, extra = log_extra_data())
             raise OkupyException('Error with the LDAP server')
         if user:
             break
