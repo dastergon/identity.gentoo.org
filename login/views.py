@@ -3,7 +3,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext, loader
-from okupy.login.forms import *
+from okupy.login.forms import LoginForm
 from okupy.libraries.exception import OkupyException, log_extra_data
 import logging
 
@@ -16,13 +16,15 @@ def mylogin(request):
         if request.POST.get('signup'):
             return HttpResponseRedirect('/signup')
         form = LoginForm(request.POST)
-        username = request.POST.get('username')
+        #mail = form.cleaned_data['mail']
+        #password = form.cleaned_data['password']
+        mail = request.POST.get('mail')
         password = request.POST.get('password')
         try:
             '''
             Try to authenticate using the LDAP backend
             '''
-            user = authenticate(username = username, password = password)
+            user = authenticate(mail = mail, password = password)
             if user is not None:
                 '''
                 If the LDAP backend returns a user object, then the
