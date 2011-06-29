@@ -1,10 +1,12 @@
 from django.conf import settings
+from django.core.mail import send_mail
 from django.template import RequestContext
 from django.shortcuts import render_to_response
-from okupy.libraries.encryption import sha1Password
+from okupy.libraries.encryption import sha1Password, random_string
 from okupy.libraries.ldap_wrappers import *
 from okupy.libraries.exception import OkupyException, log_extra_data
 from okupy.signup.forms import SignupForm
+from okupy.signup.models import InactiveEmail
 import ldap.modlist as modlist
 import logging
 
@@ -37,6 +39,9 @@ def checkDuplicates(request, credentials):
         '''
         return False
     if not results_name and not results_mail:
+        '''
+        The username or email was not found, proceed normally
+        '''
         return True
     else:
         msg = 'Account already exists'
@@ -82,11 +87,15 @@ def addDataToLDAP(request, credentials, empty = True):
                 logger.error(error, extra = log_extra_data(request))
                 raise OkupyException('Error with the LDAP server')
     '''
-    Collect the new user's credentials in a dictionary
+    Collect the new user's credentials in a dictionary excluding the email,
+    until it is verified
     '''
+    temp = credentials['email']
+    credentials['email'] = None
     new_user_attrs = {}
     for field, attr in settings.LDAP_USER_ATTR_MAP.iteritems():
         new_user_attrs[attr] = [str(credentials[field])]
+    credentials['email'] = temp
     new_user_attrs['objectClass'] = settings.LDAP_NEW_USER_OBJECTCLASS
     new_user_attrs['userPassword'] = [credentials['password']]
     '''
@@ -108,6 +117,24 @@ def addDataToLDAP(request, credentials, empty = True):
         logger.error(error, extra = log_extra_data(request))
         raise OkupyException('Error with the LDAP server')
     l.unbind_s()
+
+def sendConfirmationEmail(request, credentials, form):
+    '''
+    Create a random URL and send an email to the user to confirm his email address
+    '''
+    random_url = random_string(30)
+    inactive_email = InactiveEmail(email = credentials['email'],
+                                    user = credentials['username'],
+                                    url = random_url)
+    try:
+        inactive_email.save()
+    except Exception as error:
+        logger.error(error, extra = log_extra_data(request, form))
+        raise OkupyException('Could not save to DB')
+    send_mail('[Okupy]: Please confirm your email address',
+        'To confirm your email address, please click <a href="/%s">here</a>' % random_url,
+        'admin@tampakrap.gr',
+        [credentials['email']])
 
 def signup(request):
     '''
@@ -148,10 +175,14 @@ def signup(request):
                     LDAP DB is empty, create the top O and OUs first
                     '''
                     addDataToLDAP(request, credentials)
+                '''
+                Send a confirmation email to the user, to validate his email
+                '''
+                sendConfirmationEmail(request, credentials, form)
                 return render_to_response('signup.html', credentials, context_instance = RequestContext(request))
             except OkupyException as error:
                 msg = error.value
-                logger.error(msg, extra = log_extra_data(request))
+                logger.error(msg, extra = log_extra_data(request, form))
     else:
          form = SignupForm()
     return render_to_response(
