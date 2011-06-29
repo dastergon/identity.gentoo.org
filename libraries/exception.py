@@ -17,6 +17,7 @@ def log_extra_data(request = None, form = None):
     log_extra_data = {
         'site_name': Site.objects.get_current().name or None,
         'clientip': request.META.get('REMOTE_ADDR','None') if request else None,
+        'username': ''
     }
     if form:
         log_extra_data['username'] = form.data.get('username','None')
