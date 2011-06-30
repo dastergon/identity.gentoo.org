@@ -1,12 +1,10 @@
 from django.conf import settings
-from django.core.mail import send_mail
-from django.template import RequestContext
 from django.shortcuts import render_to_response
-from okupy.libraries.encryption import sha1Password, random_string
+from django.template import RequestContext
+from okupy.libraries.encryption import sha1Password
 from okupy.libraries.ldap_wrappers import *
 from okupy.libraries.exception import OkupyException, log_extra_data
 from okupy.signup.forms import SignupForm
-from okupy.verification.models import InactiveEmail
 from okupy.verification.views import sendConfirmationEmail
 import ldap.modlist as modlist
 import logging
