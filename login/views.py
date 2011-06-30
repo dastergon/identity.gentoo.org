@@ -3,8 +3,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext, loader
-from okupy.login.forms import LoginForm
 from okupy.libraries.exception import OkupyException, log_extra_data
+from okupy.login.forms import LoginForm
 import logging
 
 logger = logging.getLogger('okupy')
