@@ -21,7 +21,7 @@ class LDAPBackend(object):
         '''
         if not password:
             return None
-        return self.get_or_create_user(mail, password)
+        return self.get_or_create_user(mail = mail, password = password)
 
 
     def get_user(self, user_id):
@@ -33,7 +33,7 @@ class LDAPBackend(object):
         except User.DoesNotExist:
             return None
 
-    def get_or_create_user(self, mail, password, other_username = None, other_password = None):
+    def get_or_create_user(self, username = None, mail = None, password = None, other = False):
         '''
         Retrieves a user from the Django DB. If the user is not
         found in the DB, then it tries to retrieve it from the
@@ -43,12 +43,19 @@ class LDAPBackend(object):
         then moved to the Django DB.
         '''
         try:
-            user = User.objects.get(gentooprofile__all_mails__contains = mail)
+            if mail:
+                user = User.objects.get(gentooprofile__all_mails__contains = mail)
+            elif username:
+                user = User.objects.get(username = username)
         except (User.DoesNotExist, ValueError):
             '''
             Perform a search to find the user in the LDAP server.
             '''
-            results = ldap_user_search(mail, 'mail')
+            results = ''
+            if mail:
+                results = ldap_user_search(mail, 'mail')
+            elif username:
+                results = ldap_user_search(username)
             if not results:
                 return None
             '''
@@ -57,35 +64,40 @@ class LDAPBackend(object):
             is to try to bind to the LDAP server using the
             user's credentials, to check if they are valid.
             Since this method is used for privileged users
-            to retrieve other users' data, other is defined,
-            then it doesn't need to bind.
+            to retrieve other users' data, if other is defined,
+            then it needs to bind with the admin user.
             '''
             username = results[0][1]['uid'][0]
-            original_username = username
-            if other_username:
-                username = other_username
-                password = other_password
             l_user = None
-            for ldap_base_dn in settings.LDAP_BASE_DN:
-                try:
-                    l_user = ldap_bind(username, password,
-                                settings.LDAP_BASE_ATTR,
-                                ldap_base_dn)
-                    '''
-                    Again, we need to search in multiple OU's for
-                    the user's existence.
-                    '''
-                    if l_user:
-                        break
-                except:
-                    pass
+            if other:
+                ldap_admin_user_username = settings.LDAP_ADMIN_USER_DN.split('=')[1].split(',')[0]
+                ldap_admin_user_attr = settings.LDAP_ADMIN_USER_DN.split('=')[0]
+                ldap_admin_user_base_dn = ','.join(settings.LDAP_ADMIN_USER_DN.split(',')[1:])
+                l_user = ldap_bind(ldap_admin_user_username,
+                                settings.LDAP_ADMIN_USER_PW,
+                                ldap_admin_user_attr,
+                                ldap_admin_user_base_dn)
+            else:
+                for ldap_base_dn in settings.LDAP_BASE_DN:
+                    try:
+                        l_user = ldap_bind(username, password,
+                                    settings.LDAP_BASE_ATTR,
+                                    ldap_base_dn)
+                        '''
+                        Again, we need to search in multiple OU's for
+                        the user's existence.
+                        '''
+                        if l_user:
+                            break
+                    except:
+                        pass
             if not l_user:
                 return None
             '''
             Perform another search as the current user, to get
             all his data
             '''
-            results = ldap_user_search(original_username, anon = False, l = l_user)
+            results = ldap_user_search(username, anon = False, l = l_user)
             '''
             In case everything went fine so far, it means there is
             a valid user available. Last step is to migrate the user's
@@ -110,7 +122,8 @@ class LDAPBackend(object):
                             setattr(user_profile, field, '::'.join(results[0][1][attr]))
                         except Exception as error:
                             logger.error(error, extra = log_extra_data())
-                            raise OkupyException('LDAP Profile Attribute Map is invalid')
+                            #raise OkupyException('LDAP Profile Attribute Map is invalid')
+                            pass
                     '''
                     Check if the user is member of the groups under
                     settings.LDAP_ACL_GROUPS. In order to do this, the
