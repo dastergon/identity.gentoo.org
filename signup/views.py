@@ -104,8 +104,8 @@ def addDataToLDAP(request, credentials, empty = True):
         new_user_attrs['cn'] = [str(credentials['first_name'] + ' ' + credentials['last_name'])]
     if 'posixAccount' in settings.LDAP_NEW_USER_OBJECTCLASS:
         try:
-            new_user_attrs['uidNumber'] = [str(int(max(ldap_user_search()[-1][1]['uidNumber']) + 1))]
-        except TypeError:
+            new_user_attrs['uidNumber'] = [str(int(max(ldap_user_search()[-1][1]['uidNumber'])) + 1)]
+        except TypeError as error:
             new_user_attrs['uidNumber'] = ['1']
         new_user_attrs['gidNumber'] = ['100']
         new_user_attrs['homeDirectory'] = ['/home/%s' % credentials['username']]
