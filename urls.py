@@ -12,5 +12,5 @@ urlpatterns = patterns('',
     (r'^login/', mylogin),
     (r'^logout/', mylogout),
     (r'^signup/', include('signup.urls')),
-    
+    (r'^verification/', include('verification.urls')),
 )
