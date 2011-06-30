@@ -1,8 +1,11 @@
+from okupy.accounts.models import *
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from okupy.libraries.encryption import random_string
+from okupy.libraries.exception import OkupyException, log_extra_data
 from okupy.libraries.ldap_wrappers import *
 from okupy.verification.models import InactiveEmail
 import logging
@@ -55,6 +58,25 @@ def addEmailToLDAP(request, result, user):
         logger.error(error, extra = log_extra_data(request))
         raise OkupyException('Could not modify LDAP data')
     l.unbind_s()
+    '''
+    Check if the user is also in the DB, and update the mail list there
+    as well
+    '''
+    try:
+        db_user = User.objects.get(username = user[0][1]['uid'][0])
+    except User.DoesNotExist:
+        pass
+    else:
+        db_user_profile = db_user.get_profile()
+        if not db_user.get_profile().all_mails:
+            db_user_profile.all_mails = result.email
+        else:
+            db_user_profile.all_mails += '::%s' % result.email
+        try:
+            db_user_profile.save()
+        except Exception as error:
+            logger.error(error, extra = log_extra_data(request))
+            raise OkupyException('Could not save to DB')
     '''
     Remove the email from the table with the Inactive ones
     '''
