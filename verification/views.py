@@ -44,13 +44,7 @@ def addEmailToLDAP(request, result, user):
     '''
     Update user's mail list in LDAP
     '''
-    ldap_admin_user_username = settings.LDAP_ADMIN_USER_DN.split('=')[1].split(',')[0]
-    ldap_admin_user_attr = settings.LDAP_ADMIN_USER_DN.split('=')[0]
-    ldap_admin_user_base_dn = ','.join(settings.LDAP_ADMIN_USER_DN.split(',')[1:])
-    l = ldap_bind(ldap_admin_user_username,
-                    settings.LDAP_ADMIN_USER_PW,
-                    ldap_admin_user_attr,
-                    ldap_admin_user_base_dn)
+    l = ldap_admin_user_bind()
     mod_attrs = [(ldap.MOD_ADD, 'mail', str(result.email))]
     try:
         l.modify_s(user[0][0], mod_attrs)

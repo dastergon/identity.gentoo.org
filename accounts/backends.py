@@ -70,13 +70,7 @@ class LDAPBackend(object):
             username = results[0][1]['uid'][0]
             l_user = None
             if other:
-                ldap_admin_user_username = settings.LDAP_ADMIN_USER_DN.split('=')[1].split(',')[0]
-                ldap_admin_user_attr = settings.LDAP_ADMIN_USER_DN.split('=')[0]
-                ldap_admin_user_base_dn = ','.join(settings.LDAP_ADMIN_USER_DN.split(',')[1:])
-                l_user = ldap_bind(ldap_admin_user_username,
-                                settings.LDAP_ADMIN_USER_PW,
-                                ldap_admin_user_attr,
-                                ldap_admin_user_base_dn)
+                l_user = ldap_admin_user_bind()
             else:
                 for ldap_base_dn in settings.LDAP_BASE_DN:
                     try:

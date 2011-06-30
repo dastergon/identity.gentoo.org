@@ -67,6 +67,22 @@ def ldap_anon_user_bind():
         l = ldap_bind()
     return l
 
+def ldap_admin_user_bind():
+    '''
+    Bind with the credentials of the admin user
+    '''
+    try:
+        ldap_admin_user_username = settings.LDAP_ADMIN_USER_DN.split('=')[1].split(',')[0]
+        ldap_admin_user_attr = settings.LDAP_ADMIN_USER_DN.split('=')[0]
+        ldap_admin_user_base_dn = ','.join(settings.LDAP_ADMIN_USER_DN.split(',')[1:])
+        l = ldap_bind(ldap_admin_user_username,
+                            settings.LDAP_ADMIN_USER_PW,
+                            ldap_admin_user_attr,
+                            ldap_admin_user_base_dn)
+    except AttributeError:
+        l = None
+    return l
+
 def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = None, anon = True, l = False):
     if anon:
         l = ldap_anon_user_bind()

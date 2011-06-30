@@ -51,13 +51,7 @@ def addDataToLDAP(request, credentials, empty = True):
     '''
     Need to bind with the admin user to create new accounts
     '''
-    ldap_admin_user_username = settings.LDAP_ADMIN_USER_DN.split('=')[1].split(',')[0]
-    ldap_admin_user_attr = settings.LDAP_ADMIN_USER_DN.split('=')[0]
-    ldap_admin_user_base_dn = ','.join(settings.LDAP_ADMIN_USER_DN.split(',')[1:])
-    l = ldap_bind(ldap_admin_user_username,
-            settings.LDAP_ADMIN_USER_PW,
-            ldap_admin_user_attr,
-            ldap_admin_user_base_dn)
+    l = ldap_admin_user_bind()
     if empty:
         '''
         LDAP server is empty, before adding the new user,
