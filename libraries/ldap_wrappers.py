@@ -34,7 +34,6 @@ def ldap_bind(username = None, password = None, base_attr = None, base_dn = None
         '''
         try:
             l.simple_bind_s(bind_dn, password)
-            return l
         except Exception as error:
             logger.error(error, extra = log_extra_data())
             raise OkupyException('Could not bind to LDAP')
@@ -45,10 +44,10 @@ def ldap_bind(username = None, password = None, base_attr = None, base_dn = None
         '''
         try:
             l.simple_bind_s()
-            return l
         except Exception as error:
             logger.error(error, extra = log_extra_data())
             raise OkupyException('Could not bind to LDAP')
+    return l
 
 def ldap_anon_user_bind():
     '''
