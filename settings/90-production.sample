@@ -136,19 +136,22 @@ LDAP_PROFILE_ATTR_MAP = {
 LDAP_ACL_ATTR = 'groupAccess'
 
 # Various groups and the equivalent booleans in UserProfile
-# The followings are examples used in Gentoo
 LDAP_ACL_GROUPS = {
-    'infra-ldapadmin.group': 'is_infra',
-    'devrel.group': 'is_devrel',
-    'recruiters.group': 'is_recruiter',
-    'trustees.group': 'is_trustee',
-    'docs.group': 'is_docs',
-    'security.group': 'is_security',
-    'pr.group': 'is_pr',
+    'is_infra': 'infra-ldapadmin.group',
+    'is_devrel' :'devrel.group',
+    'is_recruiter': 'recruiters.group',
+    'is_trustee': 'trustees.group',
+    'is_docs': 'docs.group',
+    'is_security': 'security.group',
+    'is_pr': 'pr.group',
 }
 
+# The following groups have permissions to edit other users' profiles
+LDAP_ACL_GROUPS_EDIT = ['is_recruiter', 'is_infra']
+
 # List of objectClasses, used in user creation
-LDAP_NEW_USER_OBJECTCLASS = ['person', 'top', 'posixAccount']
+LDAP_NEW_USER_OBJECTCLASS = ['person', 'top', 'posixAccount',
+    'organizationalPerson', 'inetOrgPerson', 'shadowAccount']
 
 # Base DN for new user
-LDAP_NEW_USER_BASE_DN = 'ou=users,dc=example,dc=gr'
+LDAP_NEW_USER_BASE_DN = 'ou=users,dc=example,dc=com'
