@@ -1,10 +1,10 @@
 {% if msg %}
-{{ msg }}
+    {{ msg }}
 {% else %}
-{% if current_user %}
-You are viewing: <br />
-{{ current_user.username }} {{ current_user.get_profile.all_mails }}<br />
+    {% if current_user %}
+        You are viewing: <br />
+        {{ current_user.username }} {{ current_user.get_profile.all_mails }}<br />
+        You are:<br />
+        {{ user.username }} {{ user.get_profile.all_mails }}
+    {% endif %}
 {% endif %}
-{% endif %}
-You are:<br />
-{{ user.username }} {{ user.get_profile.all_mails }}

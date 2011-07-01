@@ -1,2 +1,9 @@
-{{ user.first_name }} {{ user.last_name }}
-{{ user.email }}
+{% if msg %}
+    {{ msg }}
+{% else %}
+    <form action="." method="POST">
+    {% for field in form %}<br />
+        {{ field.label_tag}}{{ field }}<br />
+    {% endfor %}
+    <input class="button" type="submit" value="Edit" />
+{% endif %}
