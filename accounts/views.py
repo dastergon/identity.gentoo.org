@@ -5,6 +5,7 @@ from django.template import RequestContext
 from okupy.accounts.backends import LDAPBackend
 from okupy.accounts.models import *
 from okupy.libraries.exception import OkupyException, log_extra_data
+from okupy.libraries.ldap_wrappers import ldap_user_search
 import logging
 
 logger = logging.getLogger('okupy')
@@ -48,10 +49,15 @@ def account(request, username):
         current_user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1]).objects.get(user__username = username)
         current_user_full = dict(current_user.__dict__.items() + current_user_profile.__dict__.items())
         privil = checkPrivilegedUser(request, username)
-        if not request.user.username == username not privil:
-            for key in current_user_full.keys():
-                if key not in settings.LDAP_PROFILE_PUBLIC_ATTRIBUTES:
-                    del current_user_full[key]
+        shown_attrs = settings.LDAP_PROFILE_PUBLIC_ATTRIBUTES
+        if privil:
+            shown_attrs = shown_attrs + settings.LDAP_ACL_GROUPS.keys() + settings.LDAP_PROFILE_PRIVATE_ATTRIBUTES
+        else:
+            if request.user.username == username:
+                shown_attrs = shown_attrs + settings.LDAP_PROFILE_PRIVATE_ATTRIBUTES
+        for key in current_user_full.keys():
+            if key not in shown_attrs:
+                del current_user_full[key]
     except OkupyException as error:
         msg = error.value
         logger.error(msg, extra = log_extra_data(request))
