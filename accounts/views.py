@@ -82,7 +82,7 @@ def account_edit(request, username):
         user_profile_privil_form = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1] + 'PrivForm')
         instance = user_profile.objects.get(user__username = username)
         if request.method == 'POST':
-            if priv:
+            if privil:
                 form = user_profile_privil_form(request.POST, instance = instance)
             else:
                 form = user_profile_form(request.POST, instance = instance)
@@ -91,7 +91,7 @@ def account_edit(request, username):
                 # Bind as the current user, and update the fields both in LDAP and DB
                 print 'todo'
         else:
-            if priv:
+            if privil:
                 form = user_profile_privil_form(instance = instance)
             else:
                 form = user_profile_form(instance = instance)
