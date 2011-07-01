@@ -10,9 +10,10 @@ class UserProfile(models.Model):
     '''
     user = models.ForeignKey(User, unique = True)
     cn = models.CharField(max_length = 15, blank = True, null = True)
-    all_mails = models.TextField(blank = True, null = True)
+    mail = models.TextField(blank = True, null = True)
     secondary_password = models.CharField(max_length = 50, blank = True, null = True)
     base_dn = models.CharField(max_length = 50)
+    objectClass = models.TextField()
 
     class Meta:
         abstract = True
@@ -21,15 +22,19 @@ class GentooProfile(UserProfile):
     '''
     Extends the above UserProfile class with Gentoo-specific DB fields
     '''
-    gentoo_status = models.CharField(max_length = 15)
-    gentoo_access = models.TextField()
-    gentoo_location = models.CharField(max_length = 50)
-    gentoo_roles = models.CharField(max_length = 50)
-    gpg_key = models.TextField(blank = True, null = True)
-    gpg_fingerprint = models.TextField(blank = True, null = True)
+    birthday = models.CharField(max_length = 10)
+    gentooAccess = models.TextField()
+    gentooIm = models.TextField(null = True)
+    gentooJoin = models.CharField(max_length = 10)
+    gentooLocation = models.CharField(max_length = 50)
+    gentooRoles = models.CharField(max_length = 100)
+    gentooSPF = models.CharField(max_length = 50)
+    gentooStatus = models.CharField(max_length = 15)
+    gpgkey = models.TextField(blank = True, null = True)
+    gpgfingerprint = models.TextField(blank = True, null = True)
     lat = models.CharField(max_length = 15, blank = True, null = True)
     lon = models.CharField(max_length = 15, blank = True, null = True)
-    ssh_public_key = models.TextField(blank = True, null = True)
+    sshPublicKey = models.TextField(blank = True, null = True)
     gecos = models.CharField(max_length = 50)
     is_infra = models.BooleanField(default = False)
     is_devrel = models.BooleanField(default = False)
@@ -45,7 +50,7 @@ def gentooExclude(priv):
     Helper function to generate a tuple with attributes that should
     be excluded from the edit form
     '''
-    exclude = ['user', 'all_mails', 'gpg_key', 'gpg_fingerprint', 'ssh_public_key', 'gentoo_access']
+    exclude = ['user', 'mail', 'secondary_password', 'base_dn']
     if not priv:
         for key in settings.LDAP_ACL_GROUPS.keys():
             exclude.append(key)
@@ -61,7 +66,7 @@ class UserProfileForm(ModelForm):
     '''
     class Meta:
         model = UserProfile
-        exclude = ('user', 'all_mails')
+        exclude = ('user', 'mail', 'secondary_password', 'base_dn')
 
 class GentooProfileForm(ModelForm):
     '''
