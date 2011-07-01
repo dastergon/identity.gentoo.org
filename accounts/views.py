@@ -1,12 +1,10 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-#from django.forms.models import modelformset_factory
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from okupy.accounts.backends import LDAPBackend
 from okupy.accounts.models import *
 from okupy.libraries.exception import OkupyException, log_extra_data
-from okupy.libraries.ldap_wrappers import ldap_user_search
 import logging
 
 logger = logging.getLogger('okupy')
@@ -20,6 +18,16 @@ def checkUsername(request, username):
     else:
         return False
 
+def checkPrivilegedUser(request, username):
+    '''
+    Check if the user is a member of the privileged
+    groups that has permissions to edit other users' data
+    '''
+    for item in settings.LDAP_ACL_GROUPS_EDIT:
+        if getattr(request.user.get_profile(), item):
+            return True
+    return False
+
 @login_required
 def account(request, username):
     msg = ''
@@ -27,14 +35,29 @@ def account(request, username):
     try:
         if not checkUsername(request, username):
             raise OkupyException('Invalid URL')
-        user = LDAPBackend()
-        user = user.get_or_create_user(username = username, other = True)
+        '''
+        If the user is not in the DB already, he should be transfered from
+        the LDAP
+        '''
+        current_user = LDAPBackend()
+        current_user = current_user.get_or_create_user(username = username, other = True)
+        '''
+        Create a dictionary with all the user's data, and keep only the ones that
+        should be public
+        '''
+        current_user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1]).objects.get(user__username = username)
+        current_user_full = dict(current_user.__dict__.items() + current_user_profile.__dict__.items())
+        priv = checkPrivilegedUser(request, username)
+        if not priv:
+            for key in current_user_full.keys():
+                if key not in settings.LDAP_PROFILE_PUBLIC_ATTRIBUTES:
+                    del current_user_full[key]
     except OkupyException as error:
         msg = error.value
         logger.error(msg, extra = log_extra_data(request))
     return render_to_response(
         'account/account.html',
-        {'current_user': user, 'msg': msg},
+        {'current_user': current_user_full, 'msg': msg},
         context_instance = RequestContext(request))
 
 @login_required
@@ -42,16 +65,7 @@ def account_edit(request, username):
     msg = ''
     form = ''
     try:
-        '''
-        Check if the user is a member of the privileged
-        groups that has permissions to edit other users' data
-        '''
-        for key in settings.LDAP_ACL_GROUPS_EDIT:
-            if getattr(request.user.get_profile(), key):
-                priv = True
-                break
-            else:
-                priv = False
+        priv = checkPrivilegedUser(request, username)
         if not request.user.username == username and not priv:
             raise OkupyException('Invalid URL')
         if not checkUsername(request, username):
