@@ -45,13 +45,13 @@ class GentooProfile(UserProfile):
     is_pr = models.BooleanField(default = False)
 
 
-def gentooExclude(priv):
+def gentooExclude(privil):
     '''
     Helper function to generate a tuple with attributes that should
     be excluded from the edit form
     '''
     exclude = ['user', 'mail', 'secondary_password', 'base_dn']
-    if not priv:
+    if not privil:
         for key in settings.LDAP_ACL_GROUPS.keys():
             exclude.append(key)
     return tuple(exclude)
@@ -77,7 +77,7 @@ class GentooProfileForm(ModelForm):
         model = GentooProfile
         exclude = gentooExclude(False)
 
-class GentooProfilePrivForm(ModelForm):
+class GentooProfilePrivilForm(ModelForm):
     '''
     GentooProfile form for privileged users
     All the fields are available

@@ -47,8 +47,8 @@ def account(request, username):
         '''
         current_user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1]).objects.get(user__username = username)
         current_user_full = dict(current_user.__dict__.items() + current_user_profile.__dict__.items())
-        priv = checkPrivilegedUser(request, username)
-        if not priv:
+        privil = checkPrivilegedUser(request, username)
+        if not request.user.username == username not privil:
             for key in current_user_full.keys():
                 if key not in settings.LDAP_PROFILE_PUBLIC_ATTRIBUTES:
                     del current_user_full[key]
@@ -65,8 +65,8 @@ def account_edit(request, username):
     msg = ''
     form = ''
     try:
-        priv = checkPrivilegedUser(request, username)
-        if not request.user.username == username and not priv:
+        privil = checkPrivilegedUser(request, username)
+        if not request.user.username == username and not privil:
             raise OkupyException('Invalid URL')
         if not checkUsername(request, username):
             raise OkupyException('Invalid URL')
@@ -79,11 +79,11 @@ def account_edit(request, username):
 
         user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1])
         user_profile_form = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1] + 'Form')
-        user_profile_priv_form = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1] + 'PrivForm')
+        user_profile_privil_form = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1] + 'PrivForm')
         instance = user_profile.objects.get(user__username = username)
         if request.method == 'POST':
             if priv:
-                form = user_profile_priv_form(request.POST, instance = instance)
+                form = user_profile_privil_form(request.POST, instance = instance)
             else:
                 form = user_profile_form(request.POST, instance = instance)
             if form.is_valid():
@@ -92,7 +92,7 @@ def account_edit(request, username):
                 print 'todo'
         else:
             if priv:
-                form = user_profile_priv_form(instance = instance)
+                form = user_profile_privil_form(instance = instance)
             else:
                 form = user_profile_form(instance = instance)
     except OkupyException as error:
