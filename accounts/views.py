@@ -77,16 +77,6 @@ def account_edit(request, username):
                 # Bind as the current user, and update the fields both in LDAP and DB
                 print 'todo'
         else:
-            '''
-            The following code is an alternative that didn't work exactly as expected
-
-            It will stay here only for one commit, so I can have it in my git history
-            exclude = ['user', 'all_mails', 'gpg_key', 'gpg_fingerprint', 'ssh_public_key']
-            for key in settings.LDAP_ACL_GROUPS.keys():
-                exclude.append(key)
-            GentooProfileFormSet = modelformset_factory(GentooProfile, exclude = tuple(exclude))
-            form = GentooProfileFormSet(queryset = GentooProfile.objects.filter(user__username = username))
-            '''
             if priv:
                 form = user_profile_priv_form(instance = instance)
             else:
