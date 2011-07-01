@@ -111,6 +111,7 @@ class LDAPBackend(object):
             try:
                 if settings.LDAP_PROFILE_ATTR_MAP:
                     user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1] + '()')
+                    user_profile.base_dn = results[0][0]
                     for field, attr in settings.LDAP_PROFILE_ATTR_MAP.iteritems():
                         try:
                             setattr(user_profile, field, '::'.join(results[0][1][attr]))

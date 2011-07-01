@@ -12,6 +12,7 @@ class UserProfile(models.Model):
     cn = models.CharField(max_length = 15, blank = True, null = True)
     all_mails = models.TextField(blank = True, null = True)
     secondary_password = models.CharField(max_length = 50, blank = True, null = True)
+    base_dn = models.CharField(max_length = 50)
 
     class Meta:
         abstract = True
