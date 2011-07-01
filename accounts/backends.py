@@ -43,8 +43,8 @@ class LDAPBackend(object):
         then moved to the Django DB.
         '''
         try:
+            user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1])
             if mail:
-                user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1])
                 user = user_profile.objects.get(mail__contains = mail)
             elif username:
                 user = User.objects.get(username = username)
@@ -129,13 +129,13 @@ class LDAPBackend(object):
                     of the UserProfile to True.
                     '''
                     for field, attr in settings.LDAP_ACL_GROUPS.iteritems():
-                        if field in results[0][1][settings.LDAP_ACL_ATTR]:
+                        if attr in results[0][1][settings.LDAP_ACL_ATTR]:
                             try:
-                                setattr(user_profile, attr, True)
+                                setattr(user_profile, field, True)
                             except Exception as error:
                                 logger.error(error, extra = log_extra_data())
                                 raise OkupyException('LDAP ACL Groups Map is invalid')
-            except AttributeError:
+            except (AttributeError, KeyError):
                 pass
             '''
             Save data in DB
