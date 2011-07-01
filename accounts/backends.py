@@ -44,10 +44,11 @@ class LDAPBackend(object):
         '''
         try:
             if mail:
-                user = User.objects.get(gentooprofile__all_mails__contains = mail)
+                user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1])
+                user = user_profile.objects.get(mail__contains = mail)
             elif username:
                 user = User.objects.get(username = username)
-        except (User.DoesNotExist, ValueError):
+        except (User.DoesNotExist, user_profile.DoesNotExist, ValueError):
             '''
             Perform a search to find the user in the LDAP server.
             '''
@@ -111,7 +112,7 @@ class LDAPBackend(object):
             try:
                 if settings.LDAP_PROFILE_ATTR_MAP:
                     user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1] + '()')
-                    user_profile.base_dn = results[0][0]
+                    user_profile.base_dn = results[0][0].split(results[0][1]['uid'][0])[1]
                     for field, attr in settings.LDAP_PROFILE_ATTR_MAP.iteritems():
                         try:
                             setattr(user_profile, field, '::'.join(results[0][1][attr]))
