@@ -14,10 +14,13 @@ def checkUsername(request, username):
     '''
     Check if the username given in the URL is correct
     '''
-    if username == request.user.username or ldap_user_search(username):
+    if username == request.user.username:
         return True
     else:
-        return False
+        if ldap_user_search(username):
+            return True
+        else:
+            return False
 
 def checkPrivilegedUser(request, username):
     '''
