@@ -17,10 +17,14 @@ def checkUsername(request, username):
     if username == request.user.username:
         return True
     else:
-        if ldap_user_search(username):
-            return True
-        else:
-            return False
+        other_user = ldap_user_search(username)
+        print other_user
+        try:
+            if other_user[0][1]['mail']:
+                return True
+        except KeyError:
+            pass
+    return False
 
 def checkPrivilegedUser(request, username):
     '''
