@@ -4,7 +4,11 @@
     {% if current_user %}
         You are viewing: <br />
         {% for attribute, value in current_user.items %}
-            {{ attribute }}: {{ value }} <br />
+            {% if value %}
+                {{ attribute }}: {{ value }} <br />
+            {% else %}
+                {{ attribute }}: Not Set<br />
+            {% endif %}
         {% endfor %}
         You are:<br />
         {{ user.username }} {{ user.get_profile.all_mails }}
