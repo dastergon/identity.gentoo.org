@@ -43,9 +43,14 @@ def checkDuplicates(request, credentials):
         '''
         return True
     else:
-        msg = 'Account already exists'
-        logger.error(msg, extra = log_extra_data(request))
-        raise OkupyException(msg)
+        if results_name:
+            msg = 'Username already exists'
+            logger.error(msg, extra = log_extra_data(request))
+            raise OkupyException(msg)
+        elif results_email:
+            msg = 'Email already exists'
+            logger.error(msg, extra = log_extra_data(request))
+            raise OkupyException(msg)
 
 def addDataToLDAP(request, credentials, empty = True):
     '''
