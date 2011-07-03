@@ -13,6 +13,10 @@ logger = logging.getLogger('okupy')
 def checkUsername(request, username):
     '''
     Check if the username given in the URL is correct
+    This function checks if the user we requested to view
+    is the same as the one who logged in, and if not,
+    check if the requested user is validated (has a
+    mail address under his account
     '''
     if username == request.user.username:
         return True
