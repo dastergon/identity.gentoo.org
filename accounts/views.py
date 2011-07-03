@@ -33,6 +33,7 @@ def checkPrivilegedUser(request, username):
 def account(request, username):
     msg = ''
     user = ''
+    current_user_full = ''
     try:
         if not checkUsername(request, username):
             raise OkupyException('Invalid URL')
@@ -85,7 +86,7 @@ def account_edit(request, username):
 
         user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1])
         user_profile_form = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1] + 'Form')
-        user_profile_privil_form = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1] + 'PrivForm')
+        user_profile_privil_form = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1] + 'PrivilForm')
         instance = user_profile.objects.get(user__username = username)
         if request.method == 'POST':
             if privil:
