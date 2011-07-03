@@ -45,7 +45,8 @@ class LDAPBackend(object):
         try:
             user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1])
             if mail:
-                user = user_profile.objects.get(mail__contains = mail)
+                user1 = user_profile.objects.get(mail__contains = mail)
+                user = User.objects.get(username = user1.user.username)
             elif username:
                 user = User.objects.get(username = username)
         except (User.DoesNotExist, user_profile.DoesNotExist, ValueError):
