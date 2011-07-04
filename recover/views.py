@@ -1,9 +1,10 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from okupy.libraries.encryption import sha1Password
 from okupy.libraries.exception import OkupyException, log_extra_data
-from okupy.libraries.ldap_wrappers import ldap_user_search
-from okupy.libraries.verification import sendConfirmationEmail
-from okupy.recover.forms import RecoverForm
+from okupy.libraries.ldap_wrappers import *
+from okupy.libraries.verification import sendConfirmationEmail, checkConfirmationKey
+from okupy.recover.forms import RecoverInitForm, RecoverForm
 from okupy.recover.models import RecoverPassword
 import logging
 
@@ -19,7 +20,10 @@ def checkUserEmail(username, email):
     '''
     Check if the email belongs to the above username
     '''
-    if email not in user[0][1]['mail']:
+    try:
+        if email not in user[0][1]['mail']:
+            return False
+    except KeyError:
         return False
     '''
     Check if the user has already requested for a
@@ -31,16 +35,41 @@ def checkUserEmail(username, email):
     # 2) Print error
     return user
 
-def recover(request):
+def changeLDAPPassword(request, result, user, form):
     '''
-    Recover password. User fills in username and email in a simple form,
-    and he gets a temporary URL where he can update the password
+    Update user's LDAP password
+    '''
+    l = ldap_admin_user_bind()
+    mod_attrs = [(ldap.MOD_DELETE, 'userPassword', None)]
+    print form.cleaned_data['password1']
+    print type(form.cleaned_data['password1'])
+    mod_attrs2 = [(ldap.MOD_ADD, 'userPassword', sha1Password(form.cleaned_data['password1']))]
+    try:
+        l.modify_s(user[0][0], mod_attrs)
+        l.modify_s(user[0][0], mod_attrs2)
+    except Exception as error:
+        logger.error(error, extra = log_extra_data(request))
+        raise OkupyException('Could not modify LDAP data')
+    l.unbind_s()
+    '''
+    Remove the password request entry from the RecoverPassword table
+    '''
+    try:
+        result.delete()
+    except Exception as error:
+        logger.error(error, extra = log_extra_data(request))
+        raise OkupyException('Could not modify DB data')
+
+def recover_init(request):
+    '''
+    A form where the user fills in username and email, and gets
+    a temporary URL in that email where he can update the password
     '''
     msg = ''
     form = ''
     email = ''
     if request.method == 'POST':
-        form = RecoverForm(request.POST)
+        form = RecoverInitForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             email = form.cleaned_data['email']
@@ -52,10 +81,45 @@ def recover(request):
                     user = user[0][1]
                 sendConfirmationEmail(request, form, RecoverPassword)
             except OkupyException as error:
+                username = email = None
                 msg = error.value
                 logger.error(msg, extra = log_extra_data(request, form))
     else:
-        form = RecoverForm()
+        form = RecoverInitForm()
     return render_to_response('recover/recover.html', 
         {'msg': msg, 'form': form, 'email': email},
+        context_instance = RequestContext(request))
+
+def recover_password(request, key):
+    '''
+    Recover password form
+    '''
+    msg = ''
+    form = ''
+    result = ''
+    if request.method == 'POST':
+        form = RecoverForm(request.POST)
+        if form.is_valid():
+            try:
+                result = checkConfirmationKey(key, RecoverPassword)
+                print result
+                print form.cleaned_data['password1']
+                if form.cleaned_data['password1'] != form.cleaned_data['password2']:
+                    raise OkupyException('Passwords don\'t match')
+                user = ldap_user_search(result.user)
+                print user
+                changeLDAPPassword(request, result, user, form)
+            except OkupyException as error:
+                msg = error.value
+                logger.error(msg, extra = log_extra_data(request, form))
+    else:
+        try:
+            checkConfirmationKey(key, RecoverPassword)
+            form = RecoverForm()
+        except OkupyException as error:
+            msg = error.value
+            logger.error(msg, extra = log_extra_data(request, form))
+    return render_to_response(
+        'recover/password.html',
+        {'msg': msg, 'form': form, 'data': result},
         context_instance = RequestContext(request))

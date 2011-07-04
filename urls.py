@@ -11,7 +11,7 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
     (r'^login/$', mylogin),
     (r'^logout/$', mylogout),
-    (r'^recover/$', include('recover.urls')),
+    (r'^recover/', include('recover.urls')),
     (r'^signup/', include('signup.urls')),
     (r'^verification/', include('verification.urls')),
 )
