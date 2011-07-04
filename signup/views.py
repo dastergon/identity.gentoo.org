@@ -160,7 +160,7 @@ def signup(request):
                 Send a confirmation email to the user, to validate his email
                 '''
                 sendConfirmationEmail(request, form, InactiveEmail)
-                return render_to_response('signup.html', credentials, context_instance = RequestContext(request))
+                
             except OkupyException as error:
                 msg = error.value
                 logger.error(msg, extra = log_extra_data(request, form))
@@ -168,5 +168,5 @@ def signup(request):
          form = SignupForm()
     return render_to_response(
         'signup.html',
-        {'msg': msg, 'form': form},
+        dict({'msg': msg, 'form': form}.items() + credentials.items()),
         context_instance = RequestContext(request))
