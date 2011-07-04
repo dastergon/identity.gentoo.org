@@ -1,4 +1,4 @@
-{% if username %}
+{% if email %}
     You will soon recieve a mail at {{ email }} to verify your account
 {% else %}
     <form action="." method="post">{% csrf_token %}
