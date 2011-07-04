@@ -6,6 +6,7 @@ from django.template import RequestContext
 from okupy.libraries.exception import OkupyException, log_extra_data
 from okupy.libraries.ldap_wrappers import *
 from okupy.libraries.verification import checkConfirmationKey
+from okupy.verification.models import InactiveEmail
 import logging
 
 logger = logging.getLogger('okupy')
@@ -62,7 +63,7 @@ def verification(request, key):
         in the LDAP server, and afterwards try to update the user's email
         list in LDAP
         '''
-        result = checkConfirmationKey(key, 'InactiveEmail')
+        result = checkConfirmationKey(key, InactiveEmail)
         user = ldap_user_search(result.user)
         if user:
             addEmailToLDAP(request, result, user)
