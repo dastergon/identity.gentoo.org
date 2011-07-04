@@ -82,13 +82,16 @@ def addEmailToLDAP(request, result, user):
 
 def verification(request, key):
     '''
-    Check if the given URL exists in the database, and if the user exists
-    in the LDAP server, and afterwards try to update the user's email
-    list in LDAP
+    Verify email account
     '''
     msg = ''
     result = ''
     try:
+        '''
+        Check if the given URL exists in the database, and if the user exists
+        in the LDAP server, and afterwards try to update the user's email
+        list in LDAP
+        '''
         result = checkConfirmationKey(key)
         user = ldap_user_search(result.user)
         if user:
