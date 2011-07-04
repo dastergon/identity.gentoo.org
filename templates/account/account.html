@@ -2,15 +2,21 @@
     {{ msg }}
 {% else %}
     {% if current_user %}
-        You are viewing: <br />
-        {% for attribute, value in current_user.items %}
-            {% if value %}
-                {{ attribute }}: {{ value }} <br />
-            {% else %}
-                {{ attribute }}: Not Set<br />
-            {% endif %}
+        You are viewing:
+        <ul>
+        {% for attr in attr_list %}
+            {% for key, value in current_user.items %}
+                {% if key == attr %}
+                    {% if value %}
+                        <li>{{ key }}: {{ value }}</li>
+                    {% else %}
+                        <li>{{ key }}: Not Set</li>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
         {% endfor %}
-        You are:<br />
+        </ul>
+        <br /><br />You are:<br />
         {{ user.username }} {{ user.get_profile.all_mails }}
     {% endif %}
 {% endif %}

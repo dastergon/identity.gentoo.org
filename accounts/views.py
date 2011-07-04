@@ -22,7 +22,6 @@ def checkUsername(request, username):
         return True
     else:
         other_user = ldap_user_search(username)
-        print other_user
         try:
             if other_user[0][1]['mail']:
                 return True
@@ -63,7 +62,7 @@ def account(request, username):
         privil = checkPrivilegedUser(request, username)
         shown_attrs = settings.LDAP_PROFILE_PUBLIC_ATTRIBUTES
         if privil:
-            shown_attrs = shown_attrs + settings.LDAP_ACL_GROUPS.keys() + settings.LDAP_PROFILE_PRIVATE_ATTRIBUTES
+            shown_attrs = shown_attrs + settings.LDAP_PROFILE_PRIVATE_ATTRIBUTES + settings.LDAP_ACL_GROUPS.keys()
         else:
             if request.user.username == username:
                 shown_attrs = shown_attrs + settings.LDAP_PROFILE_PRIVATE_ATTRIBUTES
@@ -75,7 +74,7 @@ def account(request, username):
         logger.error(msg, extra = log_extra_data(request))
     return render_to_response(
         'account/account.html',
-        {'current_user': current_user_full, 'msg': msg},
+        {'current_user': current_user_full, 'msg': msg, 'attr_list': shown_attrs},
         context_instance = RequestContext(request))
 
 @login_required
