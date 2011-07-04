@@ -2,18 +2,18 @@ from django.contrib.sites.models import Site
 from django.core.mail import send_mail
 from okupy.libraries.encryption import random_string
 from okupy.libraries.exception import OkupyException, log_extra_data
-from okupy.verification.models import InactiveEmail
 import logging
 
 logger = logging.getLogger('okupy')
 
-def sendConfirmationEmail(request, credentials, form, model):
+def sendConfirmationEmail(request, form, model):
     '''
-    Create a random URL and send an email to the user to confirm his email address
+    Create a random URL, add it to the appropriate table along with
+    the user data, and send an email to the user to confirm his email address
     '''
     random_url = random_string(30)
-    inactive_email = eval(model)(email = credentials['email'],
-                                    user = credentials['username'],
+    inactive_email = model(email = form.cleaned_data['email'],
+                                    user = form.cleaned_data['username'],
                                     url = random_url)
     try:
         inactive_email.save()
@@ -23,7 +23,7 @@ def sendConfirmationEmail(request, credentials, form, model):
     send_mail('[%s]: Please confirm your email address' % Site.objects.get_current().name or None,
         'To confirm your email address, please click <a href="/%s">here</a>' % random_url,
         'admin@tampakrap.gr',
-        [credentials['email']])
+        [form.cleaned_data['email']])
 
 def checkConfirmationKey(key, model):
     '''
