@@ -43,13 +43,6 @@ class LDAPBackend(object):
         then moved to the Django DB.
         '''
         try:
-            user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1])
-            if mail:
-                user1 = user_profile.objects.get(mail__contains = mail)
-                user = User.objects.get(username = user1.user.username)
-            elif username:
-                user = User.objects.get(username = username)
-        except (User.DoesNotExist, user_profile.DoesNotExist, ValueError):
             '''
             Perform a search to find the user in the LDAP server.
             '''
@@ -90,6 +83,12 @@ class LDAPBackend(object):
             if not l_user:
                 return None
             '''
+            Try to pull the user in from the Django DB
+            '''
+            user = User.objects.get(username = username)
+        except User.DoesNotExist:
+            '''
+            The user is not in the Django DB yet, time to add him.
             Perform another search as the current user, to get
             all his data
             '''
