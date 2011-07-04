@@ -146,6 +146,14 @@ LDAP_ACL_GROUPS = {
     'is_pr': 'pr.group',
 }
 
+# List of attributes that are public to all users
+LDAP_PROFILE_PUBLIC_ATTRIBUTES = ['username', 'first_name', 'last_name', 'cn', 'mail',
+    'gentooAccess', 'gentooIm', 'gentooJoin', 'gentooLocation', 'gentooRoles', 'gentooSPF'
+    'gentooStatus', 'lat', 'lon', 'gpgfingerprint', 'gpgkey', 'gecos']
+
+# List of private attributes
+LDAP_PROFILE_PRIVATE_ATTRIBUTES = ['birthday']
+
 # The following groups have permissions to edit other users' profiles
 LDAP_ACL_GROUPS_EDIT = ['is_recruiter', 'is_infra']
 
