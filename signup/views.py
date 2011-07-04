@@ -3,8 +3,9 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from okupy.libraries.encryption import sha1Password
 from okupy.libraries.exception import OkupyException, log_extra_data
-from okupy.libraries.ldap_wrappers import ldap_user_search
+from okupy.libraries.ldap_wrappers import *
 from okupy.libraries.verification import sendConfirmationEmail
+from okupy.verification.models import InactiveEmail
 from okupy.signup.forms import SignupForm
 import ldap.modlist as modlist
 import logging
@@ -158,7 +159,7 @@ def signup(request):
                 '''
                 Send a confirmation email to the user, to validate his email
                 '''
-                sendConfirmationEmail(request, credentials, form, 'InactiveEmail')
+                sendConfirmationEmail(request, form, InactiveEmail)
                 return render_to_response('signup.html', credentials, context_instance = RequestContext(request))
             except OkupyException as error:
                 msg = error.value
