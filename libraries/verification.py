@@ -30,7 +30,7 @@ def checkConfirmationKey(key, model):
     Check if the URL matches any of the confirmation keys in the database
     '''
     try:
-        result = eval(model).objects.get(url = key)
-    except eval(model).DoesNotExist as error:
+        result = model.objects.get(url = key)
+    except model.DoesNotExist:
         raise OkupyException('URL not found')
     return result
