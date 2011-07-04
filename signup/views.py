@@ -2,10 +2,10 @@ from django.conf import settings
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from okupy.libraries.encryption import sha1Password
-from okupy.libraries.ldap_wrappers import *
 from okupy.libraries.exception import OkupyException, log_extra_data
+from okupy.libraries.ldap_wrappers import ldap_user_search
+from okupy.libraries.verification import sendConfirmationEmail
 from okupy.signup.forms import SignupForm
-from okupy.verification.views import sendConfirmationEmail
 import ldap.modlist as modlist
 import logging
 
@@ -16,8 +16,11 @@ def checkPassword(request, credentials, form):
     Check if the passwords match
     '''
     if form.cleaned_data['password1'] == form.cleaned_data['password2']:
-        credentials['username'] = str(form.cleaned_data['username'])
+        credentials['username'] = form.cleaned_data['username']
         credentials['password'] = sha1Password(form.cleaned_data['password1'])
+        credentials['email'] = form.cleaned_data['email']
+        credentials['first_name'] = form.cleaned_data['first_name']
+        credentials['last_name'] = form.cleaned_data['last_name']
         return
     else:
         msg = 'passwords don\'t match'
@@ -31,13 +34,13 @@ def checkDuplicates(request, credentials):
     '''
     try:
         results_name = ldap_user_search(credentials['username'])
-        results_mail = ldap_user_search(credentials['email'], 'mail')
+        results_email = ldap_user_search(credentials['email'], 'mail')
     except ldap.NO_SUCH_OBJECT:
         '''
         The LDAP server is completely empty,
         '''
         return False
-    if not results_name and not results_mail:
+    if not results_name and not results_email:
         '''
         The username or email was not found, proceed normally
         '''
@@ -107,7 +110,7 @@ def addDataToLDAP(request, credentials, empty = True):
         except TypeError as error:
             new_user_attrs['uidNumber'] = ['1']
         new_user_attrs['gidNumber'] = ['100']
-        new_user_attrs['homeDirectory'] = ['/home/%s' % credentials['username']]
+        new_user_attrs['homeDirectory'] = ['/home/%s' % str(credentials['username'])]
     ldif = modlist.addModlist(new_user_attrs)
     try:
         l.add_s('uid=%s,%s' % (credentials['username'], settings.LDAP_NEW_USER_BASE_DN), ldif)
@@ -146,9 +149,6 @@ def signup(request):
                 '''
                 result = checkDuplicates(request, credentials)
                 if result:
-                    credentials['first_name'] = form.cleaned_data['first_name']
-                    credentials['last_name'] = str(form.cleaned_data['last_name'])
-                    credentials['email'] = str(form.cleaned_data['email'])
                     addDataToLDAP(request, credentials, False)
                 else:
                     '''
@@ -158,7 +158,7 @@ def signup(request):
                 '''
                 Send a confirmation email to the user, to validate his email
                 '''
-                sendConfirmationEmail(request, credentials, form)
+                sendConfirmationEmail(request, credentials, form, 'InactiveEmail')
                 return render_to_response('signup.html', credentials, context_instance = RequestContext(request))
             except OkupyException as error:
                 msg = error.value
