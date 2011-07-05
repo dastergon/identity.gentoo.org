@@ -5,7 +5,7 @@ import logging
 
 logger = logging.getLogger('okupy')
 
-def ldap_bind(username = None, password = None, base_attr = None, base_dn = None):
+def ldap_bind(username = None, password = None, base_attr = settings.LDAP_BASE_ATTR, base_dn = None):
     '''
     This function is responsible for the connection
     to the LDAP server.
