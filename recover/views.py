@@ -41,8 +41,6 @@ def changeLDAPPassword(request, result, user, form):
     '''
     l = ldap_admin_user_bind()
     mod_attrs = [(ldap.MOD_DELETE, 'userPassword', None)]
-    print form.cleaned_data['password1']
-    print type(form.cleaned_data['password1'])
     mod_attrs2 = [(ldap.MOD_ADD, 'userPassword', sha1Password(form.cleaned_data['password1']))]
     try:
         l.modify_s(user[0][0], mod_attrs)
