@@ -135,14 +135,7 @@ def account_edit_password(request, username):
             if form.is_valid():
                 if form.cleaned_data['password1'] != form.cleaned_data['password2']:
                     raise OkupyException('Passwords don\'t match')
-                l = ''
-                for base_dn in settings.LDAP_BASE_DN:
-                    try:
-                        l = ldap_bind(username = username, password = form.cleaned_data['old_password'], base_dn = base_dn)
-                    except:
-                        pass
-                    if l:
-                        break
+                l = ldap_current_user_bind(username = username, password = form.cleaned_data['old_password'])
                 if l:
                     user = ldap_user_search(filter = username, l = l)
                 else:

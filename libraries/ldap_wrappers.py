@@ -83,6 +83,20 @@ def ldap_admin_user_bind():
         l = None
     return l
 
+def ldap_current_user_bind(username, password):
+    '''
+    Bind with the credentials of the currently logged in user
+    '''
+    l = ''
+    for base_dn in settings.LDAP_BASE_DN:
+        try:
+            l = ldap_bind(username = username, password = password, base_dn = base_dn)
+        except:
+            pass
+        if l:
+            return l
+    return None
+
 def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = None, anon = True, l = False):
     if anon:
         l = ldap_anon_user_bind()
