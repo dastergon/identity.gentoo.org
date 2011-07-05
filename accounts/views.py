@@ -3,9 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from okupy.accounts.backends import LDAPBackend
+from okupy.accounts.forms import *
 from okupy.accounts.models import *
+from okupy.libraries.encryption import sha1Password
 from okupy.libraries.exception import OkupyException, log_extra_data
-from okupy.libraries.ldap_wrappers import ldap_user_search
+from okupy.libraries.ldap_wrappers import *
 import logging
 
 logger = logging.getLogger('okupy')
@@ -44,6 +46,7 @@ def account(request, username):
     msg = ''
     user = ''
     current_user_full = ''
+    shown_attrs = ''
     try:
         if not checkUsername(request, username):
             raise OkupyException('Invalid URL')
@@ -117,5 +120,49 @@ def account_edit(request, username):
         logger.error(msg, extra = log_extra_data(request))
     return render_to_response(
         'account/edit.html',
+        {'form': form, 'msg': msg},
+        context_instance = RequestContext(request))
+
+@login_required
+def account_edit_password(request, username):
+    msg = ''
+    form = ''
+    try:
+        if not request.user.username == username:
+            raise OkupyException('Invalid URL')
+        if request.method == 'POST':
+            form = PasswordForm(request.POST)
+            if form.is_valid():
+                if form.cleaned_data['password1'] != form.cleaned_data['password2']:
+                    raise OkupyException('Passwords don\'t match')
+                l = ''
+                for base_dn in settings.LDAP_BASE_DN:
+                    try:
+                        l = ldap_bind(username = username, password = form.cleaned_data['old_password'], base_dn = base_dn)
+                    except:
+                        pass
+                    if l:
+                        break
+                if l:
+                    user = ldap_user_search(filter = username, l = l)
+                else:
+                    raise OkupyException('Old password is wrong Or there is a problem with the LDAP server')
+                mod_attrs = [(ldap.MOD_DELETE, 'userPassword', None)]
+                mod_attrs2 = [(ldap.MOD_ADD, 'userPassword', sha1Password(form.cleaned_data['password1']))]
+                try:
+                    l.modify_s(user[0][0], mod_attrs)
+                    l.modify_s(user[0][0], mod_attrs2)
+                except Exception as error:
+                    logger.error(error, extra = log_extra_data(request))
+                    raise OkupyException('Could not modify LDAP data')
+                l.unbind_s()
+                msg = 'Password changed successfully'
+        else:
+            form = PasswordForm()
+    except OkupyException as error:
+        msg = error.value
+        logger.error(msg, extra = log_extra_data(request))
+    return render_to_response(
+        'account/password.html',
         {'form': form, 'msg': msg},
         context_instance = RequestContext(request))
