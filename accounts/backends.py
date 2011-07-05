@@ -44,6 +44,39 @@ class LDAPBackend(object):
         '''
         try:
             '''
+            Try to pull the user in from the Django DB
+            '''
+            user_profile = eval(settings.AUTH_PROFILE_MODULE.split('accounts.')[1])
+            if mail:
+                user1 = user_profile.objects.get(mail__contains = mail)
+                user = User.objects.get(username = user1.user.username)
+                username = user.username
+            elif username:
+                user = User.objects.get(username = username)
+            '''
+            If the user is found, next step is to verify those credentials
+            by trying to bind in LDAP
+            '''
+            if not other:
+                l_user = None
+                for ldap_base_dn in settings.LDAP_BASE_DN:
+                        try:
+                            l_user = ldap_bind(username = username,
+                                        password = password,
+                                        base_dn = ldap_base_dn)
+                            '''
+                            We need to search in multiple OU's for
+                            the user's existence.
+                            '''
+                            if l_user:
+                                break
+                        except:
+                            pass
+                if not l_user:
+                    return None
+                l_user.unbind_s()
+        except (User.DoesNotExist, user_profile.DoesNotExist, ValueError):
+            '''
             Perform a search to find the user in the LDAP server.
             '''
             results = ''
@@ -69,9 +102,9 @@ class LDAPBackend(object):
             else:
                 for ldap_base_dn in settings.LDAP_BASE_DN:
                     try:
-                        l_user = ldap_bind(username, password,
-                                    settings.LDAP_BASE_ATTR,
-                                    ldap_base_dn)
+                        l_user = ldap_bind(username = username,
+                                    password = password,
+                                    base_dn = ldap_base_dn)
                         '''
                         Again, we need to search in multiple OU's for
                         the user's existence.
@@ -82,11 +115,6 @@ class LDAPBackend(object):
                         pass
             if not l_user:
                 return None
-            '''
-            Try to pull the user in from the Django DB
-            '''
-            user = User.objects.get(username = username)
-        except User.DoesNotExist:
             '''
             The user is not in the Django DB yet, time to add him.
             Perform another search as the current user, to get
@@ -133,7 +161,6 @@ class LDAPBackend(object):
                             try:
                                 setattr(user_profile, field, True)
                             except Exception as error:
-                                logger.error(error, extra = log_extra_data())
                                 raise OkupyException('LDAP ACL Groups Map is invalid')
             except (AttributeError, KeyError):
                 pass
