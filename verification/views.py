@@ -15,6 +15,9 @@ def addEmailToLDAP(request, result, user):
     '''
     Update user's mail list in LDAP
     '''
+    # TODO
+    # IMPORTANT: Get rid of admin bind, and use the secondary
+    # password to update user's data
     l = ldap_admin_user_bind()
     mod_attrs = [(ldap.MOD_ADD, 'mail', str(result.email))]
     try:
