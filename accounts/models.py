@@ -2,6 +2,17 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.forms import ModelForm
+from okupy.accounts.fields import TestMultiField
+
+class TestMultiModelField(models.Field):
+    def formfield(self, **kwargs):
+        defaults = {'form_class': TestMultiField}
+        print "kwargs: %s" % kwargs
+        defaults.update(kwargs)
+        return super(TestMultiModelField, self).formfield(**defaults)
+    
+    def get_internal_type(self):
+        return 'TextField'
 
 class UserProfile(models.Model):
     '''
@@ -10,10 +21,10 @@ class UserProfile(models.Model):
     '''
     user = models.ForeignKey(User, unique = True)
     cn = models.CharField(max_length = 15, blank = True, null = True)
-    mail = models.TextField(blank = True, null = True)
+    mail = TestMultiModelField(blank = True, null = True)
     secondary_password = models.CharField(max_length = 50, blank = True, null = True)
     base_dn = models.CharField(max_length = 50)
-    objectClass = models.TextField()
+    objectClass = TestMultiModelField()
 
     class Meta:
         abstract = True
@@ -23,7 +34,7 @@ class GentooProfile(UserProfile):
     Extends the above UserProfile class with Gentoo-specific DB fields
     '''
     birthday = models.CharField(max_length = 10)
-    gentooAccess = models.TextField()
+    gentooAccess = TestMultiModelField()
     gentooIm = models.TextField(null = True)
     gentooJoin = models.CharField(max_length = 10)
     gentooLocation = models.CharField(max_length = 50)
@@ -96,3 +107,5 @@ class GentooProfilePrivilForm(ModelForm):
     class Meta:
         model = GentooProfile
         exclude = profileExclude(True)
+
+
