@@ -1,7 +1,0 @@
-# Choose the production or the development settings
-
-try:
-	# from production import *
-	# from development import *
-except ImportError:
-	print 'Couldn\'t find the according settings file, perhaps it still contains the .sample suffix?'
