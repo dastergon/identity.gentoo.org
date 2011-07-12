@@ -1,8 +1,12 @@
-# Django development settings for okupy project.
+# Django production settings for okupy project.
 
-import ldap
+# Fill in the full path of your project here
+PROJECT_ROOT = '/full/path/to/okupy/'
 
-DEBUG = True
+# The base configuration, it shouldn't be touched
+from base import *
+
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -133,7 +137,7 @@ LDAP_PROFILE_ATTR_MAP = {
 }
 
 # The attribute which has the groups that the user is part of
-LDAP_ACL_ATTR = 'gentooAccess'
+LDAP_ACL_ATTR = 'groupAccess'
 
 # Various groups and the equivalent booleans in UserProfile
 LDAP_ACL_GROUPS = {
