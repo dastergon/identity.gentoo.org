@@ -98,14 +98,16 @@ def ldap_current_user_bind(username, password):
     return None
 
 def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = None, anon = True, l = False):
-    if anon:
-        l = ldap_anon_user_bind()
     '''
     Perform LDAP query, it supports multiple OU's and attrs.
     Since there is ability to search in multiple OU's
     (eg ou=developers and ou=users). If there is a result
     available, the for loop should break
     '''
+    if l:
+        anon = False
+    if anon:
+        l = ldap_anon_user_bind()
     user = ''
     for ldap_base_dn in settings.LDAP_BASE_DN:
         try:
