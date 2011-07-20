@@ -27,7 +27,7 @@ def checkUsername(request, username):
         try:
             if other_user[0][1]['mail']:
                 return True
-        except KeyError:
+        except (KeyError, TypeError):
             pass
     return False
 
@@ -137,17 +137,10 @@ def account_edit_password(request, username):
                     raise OkupyException('Passwords don\'t match')
                 l = ldap_current_user_bind(username = username, password = form.cleaned_data['old_password'])
                 if l:
-                    user = ldap_user_search(filter = username, l = l)
+                    base_dn = settings.LDAP_BASE_ATTR + '=' + request.user.username + request.user.get_profile().base_dn
+                    l.passwd_s(base_dn, form.cleaned_data['old_password'], form.cleaned_data['password1'])
                 else:
                     raise OkupyException('Old password is wrong Or there is a problem with the LDAP server')
-                mod_attrs = [(ldap.MOD_DELETE, 'userPassword', None)]
-                mod_attrs2 = [(ldap.MOD_ADD, 'userPassword', sha1Password(form.cleaned_data['password1']))]
-                try:
-                    l.modify_s(user[0][0], mod_attrs)
-                    l.modify_s(user[0][0], mod_attrs2)
-                except Exception as error:
-                    logger.error(error, extra = log_extra_data(request))
-                    raise OkupyException('Could not modify LDAP data')
                 l.unbind_s()
                 msg = 'Password changed successfully'
         else:
