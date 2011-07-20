@@ -97,7 +97,7 @@ def ldap_current_user_bind(username, password):
             return l
     return None
 
-def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = None, anon = True, l = False):
+def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = None, anon = True, l = False, unbind = True):
     '''
     Perform LDAP query, it supports multiple OU's and attrs.
     Since there is ability to search in multiple OU's
@@ -120,7 +120,8 @@ def ldap_user_search(filter = '*', attr = settings.LDAP_BASE_ATTR, results = Non
             raise OkupyException('Error with the LDAP server')
         if user:
             break
-    l.unbind_s()
+    if unbind:
+        l.unbind_s()
     if not user:
         return None
     else:
