@@ -3,7 +3,10 @@ from django.contrib.auth import login, authenticate, logout
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext, loader
+from okupy.libraries.encryption import *
 from okupy.libraries.exception import OkupyException, log_extra_data
+from okupy.libraries.ldap_cleanup import ldap_second_passwd_cleanup
+from okupy.libraries.ldap_wrappers import *
 from okupy.login.forms import LoginForm
 import logging
 
@@ -31,6 +34,31 @@ def mylogin(request):
                     '''
                     if user.is_active:
                         login(request, user)
+                        '''
+                        Create the secondary password for the user
+                        '''
+                        l = ldap_current_user_bind(user.username, password)
+                        result = ldap_user_search(filter = user.username, l = l, unbind = False)
+                        if len(result[0][1]['userPassword']) > 1:
+                            for hash in result[0][1]['userPassword']:
+                                '''
+                                There is a leftover secondary password, removing
+                                '''
+                                if not check_password(hash, password):
+                                    ldap_second_passwd_cleanup(request, hash, l)
+                        '''
+                        Store the new secondary password in the session and in the LDAP
+                        '''
+                        secondary_password = random_string(48)
+                        request.session['secondary_password'] = encrypt_password(secondary_password)
+                        mod_attrs = [(ldap.MOD_ADD, 'userPassword', sha_password(secondary_password))]
+                        try:
+                            l.modify_s(result[0][0], mod_attrs)
+                        except Exception as error:
+                            logger.error(error, extra = log_extra_data(request, form))
+                            l.unbind_s()
+                            raise OkupyException('Could not modify LDAP data')
+                        l.unbind_s()
                         if not form.cleaned_data['remember']:
                             request.session.set_expiry(0)
                         return HttpResponseRedirect('/')
@@ -50,6 +78,9 @@ def mylogin(request):
         }, context_instance = RequestContext(request))
 
 def mylogout(request):
+    l = ldap_current_user_bind(request.user.get_profile().mail.split('::')[0], decrypt_password(request.session['secondary_password']))
+    ldap_second_passwd_cleanup(request, sha_password(decrypt_password(request.session['secondary_password'])), l)
+    l.unbind_s()
     logout(request)
     return HttpResponseRedirect('/')
 
