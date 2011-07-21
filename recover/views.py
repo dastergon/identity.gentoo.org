@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from okupy.libraries.encryption import sha1Password
+from okupy.libraries.encryption import sha_password
 from okupy.libraries.exception import OkupyException, log_extra_data
 from okupy.libraries.ldap_wrappers import *
 from okupy.libraries.verification import sendConfirmationEmail, checkConfirmationKey
@@ -41,7 +41,7 @@ def changeLDAPPassword(request, result, user, form):
     '''
     l = ldap_admin_user_bind()
     mod_attrs = [(ldap.MOD_DELETE, 'userPassword', None)]
-    mod_attrs2 = [(ldap.MOD_ADD, 'userPassword', sha1Password(form.cleaned_data['password1']))]
+    mod_attrs2 = [(ldap.MOD_ADD, 'userPassword', sha_password(form.cleaned_data['password1']))]
     try:
         l.modify_s(user[0][0], mod_attrs)
         l.modify_s(user[0][0], mod_attrs2)

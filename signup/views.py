@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from okupy.libraries.encryption import sha1Password
+from okupy.libraries.encryption import sha_password
 from okupy.libraries.exception import OkupyException, log_extra_data
 from okupy.libraries.ldap_wrappers import *
 from okupy.libraries.verification import sendConfirmationEmail
@@ -18,7 +18,7 @@ def checkPassword(request, credentials, form):
     '''
     if form.cleaned_data['password1'] == form.cleaned_data['password2']:
         credentials['username'] = form.cleaned_data['username']
-        credentials['password'] = sha1Password(form.cleaned_data['password1'])
+        credentials['password'] = sha_password(form.cleaned_data['password1'])
         credentials['email'] = form.cleaned_data['email']
         credentials['first_name'] = form.cleaned_data['first_name']
         credentials['last_name'] = form.cleaned_data['last_name']
