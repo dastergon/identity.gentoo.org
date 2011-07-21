@@ -1,5 +1,6 @@
 from django import http
 from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext, loader
@@ -77,9 +78,15 @@ def mylogin(request):
             'form': form,
         }, context_instance = RequestContext(request))
 
+@login_required
 def mylogout(request):
-    l = ldap_current_user_bind(request.user.get_profile().mail.split('::')[0], decrypt_password(request.session['secondary_password']))
-    ldap_second_passwd_cleanup(request, sha_password(decrypt_password(request.session['secondary_password'])), l)
+    l = ldap_current_user_bind(
+        request.user.username,
+        decrypt_password(request.session['secondary_password']))
+    result = ldap_user_search(filter = request.user.username, l = l, unbind = False)
+    for hash in result[0][1]['userPassword']:
+        if check_password(hash, decrypt_password(request.session['secondary_password'])):
+            ldap_second_passwd_cleanup(request, hash, l)
     l.unbind_s()
     logout(request)
     return HttpResponseRedirect('/')
