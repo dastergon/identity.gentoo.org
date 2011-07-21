@@ -5,7 +5,6 @@ from django.template import RequestContext
 from okupy.accounts.backends import LDAPBackend
 from okupy.accounts.forms import *
 from okupy.accounts.models import *
-from okupy.libraries.encryption import sha1Password
 from okupy.libraries.exception import OkupyException, log_extra_data
 from okupy.libraries.ldap_wrappers import *
 import logging
