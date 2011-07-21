@@ -82,6 +82,8 @@ INSTALLED_APPS = (
     'okupy.verification',
 )
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_URL = '/logout/'
