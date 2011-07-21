@@ -29,7 +29,7 @@ def encrypt_password(password):
 def decrypt_password(password):
     obj = Blowfish.new(settings.BLOWFISH_KEY)
     original_password = obj.decrypt(base64.b64decode(password + settings.SECRET_KEY[:8]))
-    return original_password
+    return original_password[:-8]
 
 def random_string(length, type = None):
     if type == 'password':
