@@ -1,7 +1,7 @@
 {% if msg %}
     {{ msg }}
 {% else %}
-    <form action="." method="POST">
+    <form action="." method="POST">{% csrf_token %}
     {% for field in form %}<br />
         {{ field.label_tag}}{{ field }}<br />
     {% endfor %}
