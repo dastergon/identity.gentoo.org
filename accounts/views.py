@@ -5,8 +5,11 @@ from django.template import RequestContext
 from okupy.accounts.backends import LDAPBackend
 from okupy.accounts.forms import *
 from okupy.accounts.models import *
+from okupy.libraries.encryption import *
 from okupy.libraries.exception import OkupyException, log_extra_data
 from okupy.libraries.ldap_wrappers import *
+import ldap
+import ldap.modlist as modlist
 import logging
 
 logger = logging.getLogger('okupy')
@@ -105,10 +108,39 @@ def account_edit(request, username):
                 form = user_profile_privil_form(request.POST, instance = instance)
             else:
                 form = user_profile_form(request.POST, instance = instance)
-            if form.is_valid():
-                # TODO
-                # Bind as the current user, and update the fields both in LDAP and DB
-                print 'todo'
+            # Bind as the current user
+            l = ldap_current_user_bind(
+                request.user.username,
+                decrypt_password(request.session['secondary_password']))
+            # Update the data in LDAP first
+            credentials = {}
+            for item in settings.LDAP_PROFILE_PUBLIC_ATTRIBUTES + settings.LDAP_PROFILE_PRIVATE_ATTRIBUTES:
+                try:
+                    if eval('request.user.get_profile().' + str(item)) != request.POST.get(item) and request.POST.get(item):
+                        credentials[item] = request.POST.get(item)
+                        if eval('request.user.get_profile().' + str(item)):
+                            print 'test'
+                            mod_attrs = [(ldap.MOD_REPLACE, item, str(credentials[item]))]
+                        else:
+                            mod_attrs = [(ldap.MOD_ADD, item, str(credentials[item]))]
+                        try:
+                            l.modify_s('uid=%s,%s' % (username, settings.LDAP_NEW_USER_BASE_DN), mod_attrs)
+                        except Exception as error:
+                            logger.error(error, extra = log_extra_data(request))
+                            raise OkupyException('Error with the LDAP server')
+                        l.unbind_s()
+                except AttributeError:
+                    pass
+                # Update the data in the DB
+                try:
+                    setattr(instance, item, credentials[item])
+                except (AttributeError, KeyError):
+                    pass
+                try:
+                    instance.save()
+                except Exception as error:
+                    logger.error(error, extra = log_extra_data(request))
+                    raise OkupyException('Could not save to DB')
         else:
             if privil:
                 form = user_profile_privil_form(instance = instance)
