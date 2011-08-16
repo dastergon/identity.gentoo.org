@@ -1,3 +1,7 @@
 *.pyc
-settings/production.*
-settings/development.*
+settings/*development.py
+settings/*production.py
+settings/__init__.py
+*.swp
+*.kdev4
+*.kate-swp

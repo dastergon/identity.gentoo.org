@@ -1,17 +1,17 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.contrib import admin
+from okupy.login.views import mylogin, mylogout
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'okupy.views.home', name='home'),
-    # url(r'^okupy/', include('okupy.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
+    #(r'^$', include('login.urls')), <-- doesn't work
+    (r'^$', include('index.urls')),
+    (r'^account/', include('accounts.urls')),
+    (r'^admin/', include(admin.site.urls)),
+    (r'^login/$', mylogin),
+    (r'^logout/$', mylogout),
+    (r'^recover/', include('recover.urls')),
+    (r'^signup/', include('signup.urls')),
+    (r'^verification/', include('verification.urls')),
 )
