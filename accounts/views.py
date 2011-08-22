@@ -187,18 +187,18 @@ def account_edit_password(request, username):
 @login_required
 def account_all(request):
     l = ldap_anon_user_bind()
-	accounts = {'uid': [], 'cn': []}
+    accounts = {'uid': [], 'cn': []}
     user = ''
     for ldap_base_dn in settings.LDAP_BASE_DN:
-    	try:
-	    	for user in l.search_s(ldap_base_dn,
+        try:
+            for user in l.search_s(ldap_base_dn,
                        ldap.SCOPE_SUBTREE,
-	                   '(%s=%s)' % (settings.LDAP_BASE_ATTR, '*'),
-	                   ['uid', 'cn'])
-				accounts['uid'].append(user[1]['uid'][0])
-				accounts['cn'].append(user[1]['cn'][0])
-    	except Exception as error:
-        	logger.error(error, extra = log_extra_data())
-        	raise OkupyException('Error with the LDAP server')
+                       '(%s=%s)' % (settings.LDAP_BASE_ATTR, '*'),
+                       ['uid', 'cn'])
+                accounts['uid'].append(user[1]['uid'][0])
+                accounts['cn'].append(user[1]['cn'][0])
+        except Exception as error:
+            logger.error(error, extra = log_extra_data())
+            raise OkupyException('Error with the LDAP server')
     l.unbind_s()
-	return render_to_response('account/all.html', accounts, context_instance = RequestContext(request))
+    return render_to_response('account/all.html', accounts, context_instance = RequestContext(request))
