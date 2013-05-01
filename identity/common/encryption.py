@@ -12,7 +12,7 @@ def sha1_password(password):
     salt = os.urandom(4)
     h = hashlib.sha1(password)
     h.update(salt)
-    return "{SSHA}" + encode(h.digest() + salt)[:-1]
+    return "{SSHA}" + base64.encodestring(h.digest() + salt)[:-1]
 
 def check_password(challenge_password, password,):
     challenge_bytes = decode(challenge_password[6:])
