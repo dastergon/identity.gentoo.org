@@ -3,6 +3,7 @@ from django.conf import settings
 import base64
 import hashlib
 import os
+import string
 
 def sha1_password(password):
     '''
@@ -47,3 +48,9 @@ def decrypt_password(password):
     DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
     cipher = AES.new(settings.SECRET_KEY[:BLOCK_SIZE])
     return DecodeAES(cipher, password)
+
+def random_string(length):
+    '''
+    Returns a random string for temporary URLs
+    '''
+    return ''.join([choice(string.letters + string.digits) for i in range(length)])
