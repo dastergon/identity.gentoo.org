@@ -4,14 +4,14 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext, loader
-from okupy.libraries.encryption import *
-from okupy.libraries.exception import OkupyException, log_extra_data
-from okupy.libraries.ldap_cleanup import ldap_second_passwd_cleanup
-from okupy.libraries.ldap_wrappers import *
-from okupy.login.forms import LoginForm
+from identity.libraries.encryption import *
+from identity.libraries.exception import OkupyException, log_extra_data
+from identity.libraries.ldap_cleanup import ldap_second_passwd_cleanup
+from identity.libraries.ldap_wrappers import *
+from identity.login.forms import LoginForm
 import logging
 
-logger = logging.getLogger('okupy')
+logger = logging.getLogger('identity')
 
 def mylogin(request):
     msg = ''

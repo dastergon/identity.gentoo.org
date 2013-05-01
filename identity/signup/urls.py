@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import patterns
 
-urlpatterns = patterns('okupy.signup.views',
+urlpatterns = patterns('identity.signup.views',
     (r'^$', 'signup'),
 )

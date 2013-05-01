@@ -1,10 +1,10 @@
 from django.contrib.sites.models import Site
 from django.core.mail import send_mail
-from okupy.libraries.encryption import random_string
-from okupy.libraries.exception import OkupyException, log_extra_data
+from identity.libraries.encryption import random_string
+from identity.libraries.exception import OkupyException, log_extra_data
 import logging
 
-logger = logging.getLogger('okupy')
+logger = logging.getLogger('identity')
 
 def sendConfirmationEmail(request, form, model):
     '''

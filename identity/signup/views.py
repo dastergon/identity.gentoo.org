@@ -1,16 +1,16 @@
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from okupy.libraries.encryption import sha_password
-from okupy.libraries.exception import OkupyException, log_extra_data
-from okupy.libraries.ldap_wrappers import *
-from okupy.libraries.verification import sendConfirmationEmail
-from okupy.verification.models import InactiveEmail
-from okupy.signup.forms import SignupForm
+from identity.libraries.encryption import sha_password
+from identity.libraries.exception import OkupyException, log_extra_data
+from identity.libraries.ldap_wrappers import *
+from identity.libraries.verification import sendConfirmationEmail
+from identity.verification.models import InactiveEmail
+from identity.signup.forms import SignupForm
 import ldap.modlist as modlist
 import logging
 
-logger = logging.getLogger('okupy')
+logger = logging.getLogger('identity')
 
 def checkPassword(request, credentials, form):
     '''

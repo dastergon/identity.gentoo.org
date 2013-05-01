@@ -1,14 +1,14 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from okupy.libraries.encryption import sha_password
-from okupy.libraries.exception import OkupyException, log_extra_data
-from okupy.libraries.ldap_wrappers import *
-from okupy.libraries.verification import sendConfirmationEmail, checkConfirmationKey
-from okupy.recover.forms import RecoverInitForm, RecoverForm
-from okupy.recover.models import RecoverPassword
+from identity.libraries.encryption import sha_password
+from identity.libraries.exception import OkupyException, log_extra_data
+from identity.libraries.ldap_wrappers import *
+from identity.libraries.verification import sendConfirmationEmail, checkConfirmationKey
+from identity.recover.forms import RecoverInitForm, RecoverForm
+from identity.recover.models import RecoverPassword
 import logging
 
-logger = logging.getLogger('okupy')
+logger = logging.getLogger('identity')
 
 def checkUserEmail(username, email):
     '''

@@ -1,12 +1,12 @@
 from django.conf import settings
 from django.contrib.auth.models import User
-from okupy.accounts.models import *
-from okupy.libraries.ldap_wrappers import *
-from okupy.libraries.exception import OkupyException, log_extra_data
+from identity.accounts.models import *
+from identity.libraries.ldap_wrappers import *
+from identity.libraries.exception import OkupyException, log_extra_data
 import ldap
 import logging
 
-logger = logging.getLogger('okupy')
+logger = logging.getLogger('identity')
 
 class LDAPBackend(object):
     '''

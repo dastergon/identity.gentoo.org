@@ -1,15 +1,15 @@
-from okupy.accounts.models import *
+from identity.accounts.models import *
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from okupy.libraries.exception import OkupyException, log_extra_data
-from okupy.libraries.ldap_wrappers import *
-from okupy.libraries.verification import checkConfirmationKey
-from okupy.verification.models import InactiveEmail
+from identity.libraries.exception import OkupyException, log_extra_data
+from identity.libraries.ldap_wrappers import *
+from identity.libraries.verification import checkConfirmationKey
+from identity.verification.models import InactiveEmail
 import logging
 
-logger = logging.getLogger('okupy')
+logger = logging.getLogger('identity')
 
 def addEmailToLDAP(request, result, user):
     '''

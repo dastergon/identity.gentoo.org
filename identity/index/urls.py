@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import patterns
 
-urlpatterns = patterns('okupy.index.views',
+urlpatterns = patterns('identity.index.views',
     (r'^$', 'index'),
 )

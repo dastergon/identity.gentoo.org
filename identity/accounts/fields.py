@@ -1,5 +1,5 @@
 from django import forms
-from okupy.accounts.widgets import OkupyMultiWidget
+from identity.accounts.widgets import OkupyMultiWidget
 
 class OkupyMultiField(forms.MultiValueField):
     widget = OkupyMultiWidget

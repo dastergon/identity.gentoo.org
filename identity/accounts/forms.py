@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from okupy.accounts.models import *
+from identity.accounts.models import *
 
 class PasswordForm(forms.Form):
     old_password = forms.CharField(max_length = 30, widget = forms.PasswordInput(), label = 'Old password:')
