@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from identity.common.encryption import sha_password
+from identity.common.encryption import sha1_password
 from identity.common.exceptionss import OkupyException
 from identity.common.ldap_wrappers import *
 from identity.common.log import log_extra_data
@@ -19,7 +19,7 @@ def checkPassword(request, credentials, form):
     '''
     if form.cleaned_data['password1'] == form.cleaned_data['password2']:
         credentials['username'] = form.cleaned_data['username']
-        credentials['password'] = sha_password(form.cleaned_data['password1'])
+        credentials['password'] = sha1_password(form.cleaned_data['password1'])
         credentials['email'] = form.cleaned_data['email']
         credentials['first_name'] = form.cleaned_data['first_name']
         credentials['last_name'] = form.cleaned_data['last_name']

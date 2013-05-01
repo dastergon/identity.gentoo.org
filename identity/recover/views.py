@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from identity.common.encryption import sha_password
+from identity.common.encryption import sha1_password
 from identity.common.exceptions import OkupyException
 from identity.common.ldap_wrappers import *
 from identity.common.log import log_extra_data
@@ -42,7 +42,7 @@ def changeLDAPPassword(request, result, user, form):
     '''
     l = ldap_admin_user_bind()
     mod_attrs = [(ldap.MOD_DELETE, 'userPassword', None)]
-    mod_attrs2 = [(ldap.MOD_ADD, 'userPassword', sha_password(form.cleaned_data['password1']))]
+    mod_attrs2 = [(ldap.MOD_ADD, 'userPassword', sha1_password(form.cleaned_data['password1']))]
     try:
         l.modify_s(user[0][0], mod_attrs)
         l.modify_s(user[0][0], mod_attrs2)

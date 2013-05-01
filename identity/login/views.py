@@ -53,7 +53,7 @@ def mylogin(request):
                         '''
                         secondary_password = random_string(48)
                         request.session['secondary_password'] = encrypt_password(secondary_password)
-                        mod_attrs = [(ldap.MOD_ADD, 'userPassword', sha_password(secondary_password))]
+                        mod_attrs = [(ldap.MOD_ADD, 'userPassword', sha1_password(secondary_password))]
                         try:
                             l.modify_s(result[0][0], mod_attrs)
                         except Exception as error:

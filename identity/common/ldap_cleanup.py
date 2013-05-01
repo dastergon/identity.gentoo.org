@@ -2,7 +2,7 @@
 import os
 import sys
 import ldap
-from identity.common.encryption import sha_password
+from identity.common.encryption import sha1_password
 from identity.common.ldap_wrappers import *
 from django.conf import settings
 #sys.path.append(PROJECT_ROOT)
