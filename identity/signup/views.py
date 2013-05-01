@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from identity.libraries.encryption import sha_password
-from identity.libraries.exception import OkupyException, log_extra_data
-from identity.libraries.ldap_wrappers import *
-from identity.libraries.verification import sendConfirmationEmail
+from identity.common.encryption import sha_password
+from identity.common.exceptionss import OkupyException
+from identity.common.ldap_wrappers import *
+from identity.common.log import log_extra_data
+from identity.common.verification import sendConfirmationEmail
 from identity.verification.models import InactiveEmail
 from identity.signup.forms import SignupForm
 import ldap.modlist as modlist

@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from identity.accounts.models import *
-from identity.libraries.ldap_wrappers import *
-from identity.libraries.exception import OkupyException, log_extra_data
+from identity.common.ldap_wrappers import *
+from identity.common.exceptions import OkupyException
+from identity.common.log import log_extra_data
 import ldap
 import logging
 

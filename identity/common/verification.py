@@ -1,7 +1,8 @@
 from django.contrib.sites.models import Site
 from django.core.mail import send_mail
-from identity.libraries.encryption import random_string
-from identity.libraries.exception import OkupyException, log_extra_data
+from identity.common.encryption import random_string
+from identity.common.exceptions import OkupyException
+from identity.common.log import log_extra_data
 import logging
 
 logger = logging.getLogger('identity')

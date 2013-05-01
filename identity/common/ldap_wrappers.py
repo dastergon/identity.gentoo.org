@@ -1,5 +1,6 @@
 from django.conf import settings
-from identity.libraries.exception import OkupyException, log_extra_data
+from identity.common.exceptions import OkupyException
+from identity.common.log import log_extra_data
 import ldap
 import logging
 

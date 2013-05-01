@@ -1,9 +1,10 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from identity.libraries.encryption import sha_password
-from identity.libraries.exception import OkupyException, log_extra_data
-from identity.libraries.ldap_wrappers import *
-from identity.libraries.verification import sendConfirmationEmail, checkConfirmationKey
+from identity.common.encryption import sha_password
+from identity.common.exceptions import OkupyException
+from identity.common.ldap_wrappers import *
+from identity.common.log import log_extra_data
+from identity.common.verification import sendConfirmationEmail, checkConfirmationKey
 from identity.recover.forms import RecoverInitForm, RecoverForm
 from identity.recover.models import RecoverPassword
 import logging

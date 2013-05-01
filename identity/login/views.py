@@ -4,10 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext, loader
-from identity.libraries.encryption import *
-from identity.libraries.exception import OkupyException, log_extra_data
-from identity.libraries.ldap_cleanup import ldap_second_passwd_cleanup
-from identity.libraries.ldap_wrappers import *
+from identity.common.encryption import *
+from identity.common.exceptions import OkupyException
+from identity.common.ldap_cleanup import ldap_second_passwd_cleanup
+from identity.common.ldap_wrappers import *
+from identity.common.log import log_extra_data
 from identity.login.forms import LoginForm
 import logging
 

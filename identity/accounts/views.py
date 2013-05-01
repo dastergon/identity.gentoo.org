@@ -5,9 +5,10 @@ from django.template import RequestContext
 from identity.accounts.backends import LDAPBackend
 from identity.accounts.forms import *
 from identity.accounts.models import *
-from identity.libraries.encryption import *
-from identity.libraries.exception import OkupyException, log_extra_data
-from identity.libraries.ldap_wrappers import *
+from identity.common.encryption import *
+from identity.common.exceptions import OkupyException
+from identity.common.ldap_wrappers import *
+from identity.common.log import log_extra_data
 import ldap
 import ldap.modlist as modlist
 import logging

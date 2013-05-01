@@ -2,8 +2,8 @@
 import os
 import sys
 import ldap
-from identity.libraries.encryption import sha_password
-from identity.libraries.ldap_wrappers import *
+from identity.common.encryption import sha_password
+from identity.common.ldap_wrappers import *
 from django.conf import settings
 #sys.path.append(PROJECT_ROOT)
 #os.environ['DJANGO_SETTINGS_MODULE'] = 'identity.settings'
