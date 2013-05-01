@@ -1,7 +1,8 @@
 *.pyc
-settings/*development.py
-settings/*production.py
-settings/__init__.py
 *.swp
 *.kdev4
 *.kate-swp
+identity/settings/local_settings.py
+identity/settings/development.py
+/media
+/static

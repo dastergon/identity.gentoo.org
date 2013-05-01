@@ -1,74 +1,38 @@
-# Django production settings for okupy project.
+# -*- conding: utf-8 -*-
 
-# Fill in the full path of your project here
-PROJECT_ROOT = '/full/path/to/okupy/'
+# Sample configuration file for identity.gentoo.org website
+# Rename it to local_settings.py and change accordingly the vars
 
-# The base configuration, it shouldn't be touched
-from base import *
-
-DEBUG = False
-TEMPLATE_DEBUG = DEBUG
-
+# The listed admins will receive mail notifications
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('admin', 'admin@localhost'),
 )
 
-MANAGERS = ADMINS
+# Select "True" for development environment, "False" for production environment
+DEVELOPMENT = True
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': '',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        # The following settings are not used with sqlite3:
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'PORT': '',                      # Set to empty string for default.
     }
 }
 
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# On Unix systems, a value of None will cause Django to use the same
-# timezone as the operating system.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
-TIME_ZONE = 'America/Chicago'
-
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
-
-SITE_ID = 1
-
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
-USE_I18N = True
-
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale
-USE_L10N = True
-
-# Additional locations of static files
-STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
+SECRET_KEY = 'secret'
 
-# Blowfish key, needed to encrypt/decrypt the user's password
-BLOWFISH_KEY = ''
-
-# Choose the appropriate User Profile Class
-# Options are:
-#  - accounts.UserProfile (the generic one)
-#  - accounts.GentooProfile (Gentoo specific)
-#  - accounts.KDEProfile (KDE specific)
-AUTH_PROFILE_MODULE = 'accounts.UserProfile'
-
+# Variables regarding email sending (host, credentials)
+# SERVER_EMAIL = 'user@localhost'
+# EMAIL_HOST = 'localhost'
+# EMAIL_PORT = '25'
+# EMAIL_HOST_USER = 'user'
+# EMAIL_HOST_PASSWORD = 'secret'
+# EMAIL_USE_TLS = False
 
 # LDAP specific variables
 
@@ -121,23 +85,23 @@ LDAP_PROFILE_ATTR_MAP = {
     'cn': 'cn',
     'all_mails': 'mail',
     'gecos': 'gecos',
-#    Gentoo specific variables
-#    'gentoo_roles': 'gentooRoles',
-#    'gentoo_access': 'gentooAccess',
-#    'gentoo_location': 'gentooLocation',
-#    'gentoo_status': 'gentooStatus',
-#    'lat': 'lat',
-#    'lon': 'lon',
-#    'gpg_fingerprint': 'gpgfingerprint',
-#    'gpg_key': 'gpgkey',
-#    'ssh_public_key': 'sshPublicKey',
-#     KDE specific variables
+# Gentoo specific variables
+# 'gentoo_roles': 'gentooRoles',
+# 'gentoo_access': 'gentooAccess',
+# 'gentoo_location': 'gentooLocation',
+# 'gentoo_status': 'gentooStatus',
+# 'lat': 'lat',
+# 'lon': 'lon',
+# 'gpg_fingerprint': 'gpgfingerprint',
+# 'gpg_key': 'gpgkey',
+# 'ssh_public_key': 'sshPublicKey',
+# KDE specific variables
 #
 #
 }
 
 # The attribute which has the groups that the user is part of
-LDAP_ACL_ATTR = 'groupAccess'
+LDAP_ACL_ATTR = 'gentooAccess'
 
 # Various groups and the equivalent booleans in UserProfile
 LDAP_ACL_GROUPS = {
