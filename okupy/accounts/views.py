@@ -12,14 +12,14 @@ def accounts_login(request):
     The login page
     '''
     notification = {}
-    form = None
+    login_form = None
     user = None
     if request.method == "POST":
-        form = LoginForm(request.POST)
+        login_form = LoginForm(request.POST)
         try:
-            if form.is_valid():
-                username = form.cleaned_data['username']
-                password = form.cleaned_data['password']
+            if login_form.is_valid():
+                username = login_form.cleaned_data['username']
+                password = login_form.cleaned_data['password']
             else:
                 raise LoginError
             '''
@@ -31,7 +31,7 @@ def accounts_login(request):
                 raise LoginError
             if user.is_active:
                 login(request, user)
-                if not form.cleaned_data['remember']:
+                if not login_form.cleaned_data['remember']:
                     request.session.set_expiry(0)
                 return HttpResponseRedirect('/')
         except LoginError as error:
@@ -43,5 +43,5 @@ def accounts_login(request):
             form = LoginForm()
     return render_to_response('login.html', {
         'notification': notification,
-        'form': form,
+        'login_form': login_form,
     }, context_instance = RequestContext(request))

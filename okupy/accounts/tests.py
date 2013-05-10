@@ -77,12 +77,13 @@ class LoginTestsEmptyDB(TestCase):
     def test_template(self):
         response = self.client.get('/login/')
         self.assertEqual(response.status_code, 200)
+        self.assertTrue('login_form' in response.context)
         self.assertTrue('notification' in response.context)
 
     def test_empty_user(self):
         response = self.client.post('/login/')
-        self.assertEqual(response.context['form']['username'].errors, [u'This field is required.'])
-        self.assertEqual(response.context['form']['password'].errors, [u'This field is required.'])
+        self.assertEqual(response.context['login_form']['username'].errors, [u'This field is required.'])
+        self.assertEqual(response.context['login_form']['password'].errors, [u'This field is required.'])
         self.assertEqual(response.context['notification']['error'], u'Login failed')
         self.assertEqual(User.objects.count(), 0)
 
