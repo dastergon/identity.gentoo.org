@@ -1,19 +1,15 @@
 <form action="." method="POST">{% csrf_token %}
     {% for field in form %}
-        {% ifequal forloop.counter0 2 %}
-            <br />
-            {{ field}}
-            <label style="display: inline; margin: 0 0 0 0" for="remember">Remember Me</label>
-            <br />
+        {% if field.label == "Remember me" %}
+            {{ field }}
         {% else %}
-            {{ field.label_tag }}{{ field }}
-        {% endifequal %}
+            {{ field.label_tag }}{{ field }}<br />
+        {% endif %}
     {% endfor %}
-    <input class="button" type="submit" value="Login" name="submit" />
-    <input class="button" type="submit" value="Signup" name="signup" />
-    <br />
-    <a href="/recover">Forgot your password?</a>
-    {% if msg %}
-        <p class="messages">{{ msg }}</p>
-    {% endif %}
+    <input class="button" type="submit" value="Login" name="login" />
 </form>
+<a href="/recover">Forgot your password?</a>
+<br />
+{% if notification %}
+    {{ notification.error }}
+{% endif %}
