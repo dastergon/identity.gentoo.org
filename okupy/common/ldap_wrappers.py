@@ -1,10 +1,10 @@
 from django.conf import settings
-from identity.common.exceptions import OkupyException
-from identity.common.log import log_extra_data
+from okupy.common.exceptions import OkupyException
+from okupy.common.log import log_extra_data
 import ldap
 import logging
 
-logger = logging.getLogger('identity')
+logger = logging.getLogger('okupy')
 
 def ldap_bind(username = None, password = None, base_attr = settings.LDAP_BASE_ATTR, base_dn = None):
     '''

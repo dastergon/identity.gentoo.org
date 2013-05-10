@@ -13,7 +13,7 @@ TEMPLATE_DEBUG = DEBUG
 # * prefix of the notification mails: "[${INSTANCE_NAME}] ${TITLE}"
 # * log dir name: /var/log/${INSTANCE_NAME}
 # * console logs: ${INSTANCE_NAME} ${IP} ${ERROR}
-INSTANCE_NAME = 'identity-dev'
+INSTANCE_NAME = 'okupy-dev'
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -65,7 +65,7 @@ STATICFILES_DIRS = (
     # "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    settings.PROJECT_ROOT + '/identity/static',
+    settings.PROJECT_ROOT + '/okupy/static',
 )
 
 # List of finder classes that know how to find static files in
@@ -97,7 +97,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    settings.PROJECT_ROOT + '/identity/templates/'
+    settings.PROJECT_ROOT + '/okupy/templates/'
 )
 
 INSTALLED_APPS = (
@@ -107,14 +107,9 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
-    'identity.accounts',
-    'identity.recover',
-    'identity.verification',
+    'django_auth_ldap',
+    'okupy.accounts',
 )
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = '/tmp/identity/mail'
+EMAIL_FILE_PATH = '/tmp/okupy/mail'

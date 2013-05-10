@@ -2,11 +2,11 @@
 import os
 import sys
 import ldap
-from identity.common.encryption import sha1_password
-from identity.common.ldap_wrappers import *
+from okupy.common.encryption import sha1_password
+from okupy.common.ldap_wrappers import *
 from django.conf import settings
 #sys.path.append(PROJECT_ROOT)
-#os.environ['DJANGO_SETTINGS_MODULE'] = 'identity.settings'
+#os.environ['DJANGO_SETTINGS_MODULE'] = 'okupy.settings'
 
 def ldap_second_passwd_cleanup(request, hash, l):
     base_dn = settings.LDAP_BASE_ATTR + '=' + request.user.username + request.user.get_profile().base_dn

@@ -12,7 +12,7 @@ TEMPLATE_DEBUG = DEBUG
 # * prefix of the notification mails: "[${INSTANCE_NAME}] ${TITLE}"
 # * log dir name: /var/log/${INSTANCE_NAME}
 # * console logs: ${INSTANCE_NAME} ${IP} ${ERROR}
-INSTANCE_NAME = 'identity'
+INSTANCE_NAME = 'okupy'
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -41,7 +41,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = '/var/www/identity.gentoo.org/htdocs/media/'
+MEDIA_ROOT = '/var/www/okupy.gentoo.org/htdocs/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -52,7 +52,7 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = '/var/www/identity.gentoo.org/htdocs/static/'
+STATIC_ROOT = '/var/www/okupy.gentoo.org/htdocs/static/'
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
@@ -64,7 +64,7 @@ STATICFILES_DIRS = (
     # "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    settings.PROJECT_ROOT + '/identity/static',
+    settings.PROJECT_ROOT + '/okupy/static',
 )
 
 # List of finder classes that know how to find static files in
@@ -96,7 +96,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    settings.PROJECT_ROOT + '/identity/templates/'
+    settings.PROJECT_ROOT + '/okupy/templates/'
 )
 
 INSTALLED_APPS = (
@@ -110,7 +110,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-    'identity.accounts',
-    'identity.recover',
-    'identity.verification',
+    'okupy.accounts',
+    'okupy.recover',
+    'okupy.verification',
 )

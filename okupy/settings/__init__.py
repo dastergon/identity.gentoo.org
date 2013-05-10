@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Django settings for identity.gentoo.org project.
+# Django settings for okupy project.
 
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 import os
@@ -25,10 +25,10 @@ MANAGERS = ADMINS
 
 SITE_ID = 1
 
-ROOT_URLCONF = 'identity.urls'
+ROOT_URLCONF = 'okupy.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'identity.wsgi.application'
+WSGI_APPLICATION = 'okupy.wsgi.application'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -39,7 +39,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters':{
-        'identity': {
+        'okupy': {
             'format': '%(instance_name)s: %(levelname)s %(id_name)s %(client_ip)s Message: %(message)s File: %(module)s Function: %(funcName)s Line: %(lineno)d',
         },
     },
@@ -58,22 +58,22 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'identity',
+            'formatter': 'okupy',
         },
         'syslog': {
             'level': 'INFO',
             'class': 'logging.handlers.SysLogHandler',
-            'formatter': 'identity',
+            'formatter': 'okupy',
             'address': '/dev/log',
         },
     },
     'loggers': {
-        'mail_identity': {
+        'mail_okupy': {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': True,
         },
-        'identity': {
+        'okupy': {
             'handlers': ['console' if DEBUG else 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
@@ -85,13 +85,9 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_URL = '/logout/'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# Custom user profile
-AUTH_PROFILE_MODULE = 'accounts.UserProfile'
-
 # Custom authentication backend
 AUTHENTICATION_BACKENDS = (
-    'identity.accounts.backends.LDAPBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    'django_auth_ldap.backend.LDAPBackend',
 )
 
 # email sending variables regarding server authentication

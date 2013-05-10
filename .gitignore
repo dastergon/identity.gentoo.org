@@ -2,7 +2,7 @@
 *.swp
 *.kdev4
 *.kate-swp
-identity/settings/local_settings.py
-identity/settings/development.py
+okupy/settings/local_settings.py
+okupy/settings/development.py
 /media
 /static

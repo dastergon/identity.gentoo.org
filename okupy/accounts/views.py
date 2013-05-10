@@ -2,18 +2,18 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from identity.accounts.backends import LDAPBackend
-from identity.accounts.forms import *
-from identity.accounts.models import *
-from identity.common.encryption import *
-from identity.common.exceptions import OkupyException
-from identity.common.ldap_wrappers import *
-from identity.common.log import log_extra_data
+from okupy.accounts.backends import LDAPBackend
+from okupy.accounts.forms import *
+from okupy.accounts.models import *
+from okupy.common.encryption import *
+from okupy.common.exceptions import OkupyException
+from okupy.common.ldap_wrappers import *
+from okupy.common.log import log_extra_data
 import ldap
 import ldap.modlist as modlist
 import logging
 
-logger = logging.getLogger('identity')
+logger = logging.getLogger('okupy')
 
 def checkUsername(request, username):
     '''
