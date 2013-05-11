@@ -7,6 +7,9 @@ from django.template import RequestContext
 from okupy.accounts.forms import LoginForm
 from okupy.common.exceptions import OkupyError, LoginError
 
+def index(request):
+   return render_to_response('index.html', {}, context_instance = RequestContext(request))
+
 def accounts_login(request):
     '''
     The login page
