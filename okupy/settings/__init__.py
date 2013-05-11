@@ -38,9 +38,12 @@ WSGI_APPLICATION = 'okupy.wsgi.application'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters':{
+    'formatters': {
         'okupy': {
             'format': '%(instance_name)s: %(levelname)s %(id_name)s %(client_ip)s Message: %(message)s File: %(module)s Function: %(funcName)s Line: %(lineno)d',
+        },
+        'django_auth_ldap': {
+            'format': 'django-auth-ldap: %(levelname)s Message: %(message)s',
         },
     },
     'filters': {
@@ -66,6 +69,18 @@ LOGGING = {
             'formatter': 'okupy',
             'address': '/dev/log',
         },
+        'dlaconsole': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'django_auth_ldap',
+        },
+        'dlasyslog': {
+            'level': 'INFO',
+            'class': 'logging.handlers.SysLogHandler',
+            'formatter': 'django_auth_ldap',
+            'address': '/dev/log',
+        },
+
     },
     'loggers': {
         'mail_okupy': {
@@ -75,6 +90,10 @@ LOGGING = {
         },
         'okupy': {
             'handlers': ['console' if DEBUG else 'syslog'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        },
+        'django_auth_ldap': {
+            'handlers': ['dlaconsole' if DEBUG else 'dlasyslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
     }
