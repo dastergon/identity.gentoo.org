@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from django.conf import settings
-from django.test import TestCase
-from django.test.client import Client
 from django_auth_ldap.config import _LDAPConfig
 from django_auth_ldap.tests import MockLDAP
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.test import TestCase
+from django.test.client import Client
 import logging
 
 class LoginTestsEmptyDB(TestCase):
@@ -143,7 +143,7 @@ class LoginTestsEmptyDB(TestCase):
         self.assertEqual(user.email, '')
 
 class LoginTestsOneAccountInDB(TestCase):
-    fixtures = ['alice.json']
+    fixtures = ['alice']
 
     logging_configured = False
 
