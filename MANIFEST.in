@@ -1,0 +1,7 @@
+recursive-include okupy/static *
+recursive-include okupy/templates *
+recursive-include okupy/tests/fixtures *.json
+include okupy/settings/local_settings.py.sample
+include okupy/settings/development.py.sample
+exclude okupy/settings/local_settings.py
+exclude okupy/settings/development.py
