@@ -43,7 +43,7 @@ def accounts_login(request):
         if request.user.is_authenticated():
             return HttpResponseRedirect('/')
         else:
-            form = LoginForm()
+            login_form = LoginForm()
     return render_to_response('login.html', {
         'notification': notification,
         'login_form': login_form,
