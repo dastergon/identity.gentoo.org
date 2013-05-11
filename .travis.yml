@@ -9,4 +9,4 @@ install:
 branches:
  only:
   - master
-script: python manage.py test accounts
+script: python manage.py test --settings=okupy.tests.settings tests
