@@ -8,71 +8,58 @@ from django.test import TestCase
 from django.test.client import Client
 import logging
 
+logger = logging.getLogger('django_auth_ldap')
+formatter = logging.Formatter("LDAP auth - %(levelname)s - %(message)s")
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+
+alice = ("uid=alice,ou=people,o=test", {
+    "uid": ["alice"],
+    "userPassword": ["ldaptest"],
+    "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
+    "uidNumber": ["1000"],
+    "gidNumber": ["1000"],
+    "givenName": ["Alice"],
+    "sn": ["Adams"],
+})
+bob = ("uid=bob,ou=people,o=test", {
+    "uid": ["bob"],
+    "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
+    "userPassword": ["ldapmoretest"],
+    "uidNumber": ["1001"],
+    "gidNumber": ["50"],
+    "givenName": ["Robert"],
+    "sn": ["Barker"]
+})
+dressler = (u"uid=dreßler,ou=people,o=test".encode('utf-8'), {
+    "uid": [u"dreßler".encode('utf-8')],
+    "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
+    "userPassword": ["password"],
+    "uidNumber": ["1002"],
+    "gidNumber": ["50"],
+    "givenName": ["Wolfgang"],
+    "sn": [u"Dreßler".encode('utf-8')]
+})
+
+_mock_ldap = MockLDAP({
+    alice[0]: alice[1],
+    bob[0]: bob[1],
+    dressler[0]: dressler[1],
+})
+
+settings.AUTH_LDAP_USER_DN_TEMPLATE='uid=%(user)s,ou=people,o=test'
+
 class LoginTestsEmptyDB(TestCase):
-    logging_configured = False
-
-    def configure_logger(cls):
-        if not cls.logging_configured:
-            logger = logging.getLogger('django_auth_ldap')
-            formatter = logging.Formatter("LDAP auth - %(levelname)s - %(message)s")
-            handler = logging.StreamHandler()
-
-            handler.setLevel(logging.DEBUG)
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-
-            logger.setLevel(logging.DEBUG)
-
-            cls.logging_configured = True
-
-    configure_logger = classmethod(configure_logger)
-
-    alice = ("uid=alice,ou=people,o=test", {
-        "uid": ["alice"],
-        "userPassword": ["ldaptest"],
-        "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-        "uidNumber": ["1000"],
-        "gidNumber": ["1000"],
-        "givenName": ["Alice"],
-        "sn": ["Adams"],
-    })
-    bob = ("uid=bob,ou=people,o=test", {
-        "uid": ["bob"],
-        "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-        "userPassword": ["ldapmoretest"],
-        "uidNumber": ["1001"],
-        "gidNumber": ["50"],
-        "givenName": ["Robert"],
-        "sn": ["Barker"]
-    })
-    dressler = (u"uid=dreßler,ou=people,o=test".encode('utf-8'), {
-        "uid": [u"dreßler".encode('utf-8')],
-        "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-        "userPassword": ["password"],
-        "uidNumber": ["1002"],
-        "gidNumber": ["50"],
-        "givenName": ["Wolfgang"],
-        "sn": [u"Dreßler".encode('utf-8')]
-    })
-
-    _mock_ldap = MockLDAP({
-        alice[0]: alice[1],
-        bob[0]: bob[1],
-        dressler[0]: dressler[1],
-    })
-
     def setUp(self):
         self.client = Client()
-        self.configure_logger()
-        self.ldap = _LDAPConfig.ldap = self._mock_ldap
+        self.ldap = _LDAPConfig.ldap = _mock_ldap
         self.account = {'username': 'alice', 'password': 'ldaptest'}
-        settings.AUTH_LDAP_PERMIT_EMPTY_PASSWORD = False
-        settings.AUTH_LDAP_USER_DN_TEMPLATE='uid=%(user)s,ou=people,o=test'
-        settings.AUTH_LDAP_USER_ATTR_MAP = {}
-        settings.AUTH_LDAP_PROFILE_ATTR_MAP = {}
 
     def tearDown(self):
-        self._mock_ldap.reset()
+        _mock_ldap.reset()
 
     def test_template(self):
         response = self.client.get('/login/')
@@ -145,61 +132,14 @@ class LoginTestsEmptyDB(TestCase):
 class LoginTestsOneAccountInDB(TestCase):
     fixtures = ['alice']
 
-    logging_configured = False
-
-    def configure_logger(cls):
-        if not cls.logging_configured:
-            logger = logging.getLogger('django_auth_ldap')
-            formatter = logging.Formatter("LDAP auth - %(levelname)s - %(message)s")
-            handler = logging.StreamHandler()
-
-            handler.setLevel(logging.DEBUG)
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-
-            logger.setLevel(logging.DEBUG)
-
-            cls.logging_configured = True
-
-    configure_logger = classmethod(configure_logger)
-
-    alice = ("uid=alice,ou=people,o=test", {
-        "uid": ["alice"],
-        "userPassword": ["ldaptest"],
-        "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-        "uidNumber": ["1000"],
-        "gidNumber": ["1000"],
-        "givenName": ["Alice"],
-        "sn": ["Adams"],
-    })
-    bob = ("uid=bob,ou=people,o=test", {
-        "uid": ["bob"],
-        "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-        "userPassword": ["ldapmoretest"],
-        "uidNumber": ["1001"],
-        "gidNumber": ["50"],
-        "givenName": ["Robert"],
-        "sn": ["Barker"]
-    })
-
-    _mock_ldap = MockLDAP({
-        alice[0]: alice[1],
-        bob[0]: bob[1],
-    })
-
     def setUp(self):
         self.client = Client()
-        self.configure_logger()
-        self.ldap = _LDAPConfig.ldap = self._mock_ldap
+        self.ldap = _LDAPConfig.ldap = _mock_ldap
         self.account1 = {'username': 'alice', 'password': 'ldaptest'}
         self.account2 = {'username': 'bob', 'password': 'ldapmoretest'}
-        settings.AUTH_LDAP_PERMIT_EMPTY_PASSWORD = False
-        settings.AUTH_LDAP_USER_DN_TEMPLATE='uid=%(user)s,ou=people,o=test'
-        settings.AUTH_LDAP_USER_ATTR_MAP = {}
-        settings.AUTH_LDAP_PROFILE_ATTR_MAP = {}
 
     def tearDown(self):
-        self._mock_ldap.reset()
+        _mock_ldap.reset()
 
     def test_dont_authenticate_from_db_when_ldap_is_down(self):
         _LDAPConfig.ldap = None
