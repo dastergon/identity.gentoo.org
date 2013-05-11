@@ -9,12 +9,6 @@ from django.test.client import Client
 import logging
 
 logger = logging.getLogger('django_auth_ldap')
-formatter = logging.Formatter("LDAP auth - %(levelname)s - %(message)s")
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
 
 alice = ("uid=alice,ou=people,o=test", {
     "uid": ["alice"],
