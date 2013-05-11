@@ -91,8 +91,7 @@ class LoginTestsEmptyDB(TestCase):
         settings.auth_ldap_user_dn_template='uid=%(user)s,ou=people,o=test'
         account = {'username': ' alice', 'password': 'ldaptest'}
         response = self.client.post('/login/', account)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], 'http://testserver/')
+        self.assertRedirects(response, '/')
         user = User.objects.get(pk=1)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(user.username, 'alice')
@@ -102,8 +101,7 @@ class LoginTestsEmptyDB(TestCase):
         settings.auth_ldap_user_dn_template='uid=%(user)s,ou=people,o=test'
         account = {'username': 'alice ', 'password': 'ldaptest'}
         response = self.client.post('/login/', account)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], 'http://testserver/')
+        self.assertRedirects(response, '/')
         user = User.objects.get(pk=1)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(user.username, 'alice')
@@ -117,8 +115,7 @@ class LoginTestsEmptyDB(TestCase):
 
     def test_correct_user(self):
         response = self.client.post('/login/', self.account)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://testserver/')
+        self.assertRedirects(response, '/')
         user = User.objects.get(pk=1)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(user.username, 'alice')
@@ -136,8 +133,7 @@ class LoginTestsEmptyDB(TestCase):
     def test_weird_account(self):
         account = {'username': 'dreßler', 'password': 'password'}
         response = self.client.post('/login/', account)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], 'http://testserver/')
+        self.assertRedirects(response, '/')
         user = User.objects.get(pk=1)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(user.username, u'dreßler')
@@ -214,8 +210,7 @@ class LoginTestsOneAccountInDB(TestCase):
 
     def test_authenticate_account_that_is_already_in_db(self):
         response = self.client.post('/login/', self.account1)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://testserver/')
+        self.assertRedirects(response, '/')
         user = User.objects.get(pk=1)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(user.username, 'alice')
@@ -226,8 +221,7 @@ class LoginTestsOneAccountInDB(TestCase):
 
     def test_authenticate_new_account(self):
         response = self.client.post('/login/', self.account2)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], 'http://testserver/')
+        self.assertRedirects(response, '/')
         self.assertEqual(User.objects.count(), 2)
         user1 = User.objects.get(pk=1)
         self.assertEqual(user1.username, 'alice')
