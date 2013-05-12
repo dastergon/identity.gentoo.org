@@ -26,8 +26,8 @@ class LoginTestsEmptyDB(TestCase):
 
     def test_empty_user(self):
         response = self.client.post('/login/')
-        self.assertEqual(response.context['login_form']['username'].errors, [u'This field is required.'])
-        self.assertEqual(response.context['login_form']['password'].errors, [u'This field is required.'])
+        self.assertFormError(response, 'login_form', 'username', [u'This field is required.'])
+        self.assertFormError(response, 'login_form', 'password', [u'This field is required.'])
         self.assertEqual(response.context['notification']['error'], u'Login failed')
         self.assertEqual(User.objects.count(), 0)
 
@@ -101,7 +101,6 @@ class LoginTestsOneAccountInDB(TestCase):
         response = self.client.post('/login/', self.account1)
         self.assertEqual(response.context['notification']['error'], u'Login failed')
         self.assertEqual(User.objects.count(), 1)
-        self.assert_(not User.objects.get(pk=1).has_usable_password())
 
     def test_authenticate_account_that_is_already_in_db(self):
         response = self.client.post('/login/', self.account1)
