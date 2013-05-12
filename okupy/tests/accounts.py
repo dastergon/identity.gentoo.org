@@ -4,13 +4,11 @@ from django_auth_ldap.config import _LDAPConfig
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.client import Client
-from django.test.utils import override_settings
-from okupy.tests import _mock_ldap
+from okupy.tests.tests import _mock_ldap
 import logging
 
 logger = logging.getLogger('django_auth_ldap')
 
-@override_settings(AUTH_LDAP_USER_DN_TEMPLATE='uid=%(user)s,ou=people,o=test')
 class LoginTestsEmptyDB(TestCase):
     def setUp(self):
         self.client = Client()
@@ -86,7 +84,6 @@ class LoginTestsEmptyDB(TestCase):
         self.assertEqual(user.last_name, '')
         self.assertEqual(user.email, '')
 
-@override_settings(AUTH_LDAP_USER_DN_TEMPLATE='uid=%(user)s,ou=people,o=test')
 class LoginTestsOneAccountInDB(TestCase):
     fixtures = ['alice']
 
