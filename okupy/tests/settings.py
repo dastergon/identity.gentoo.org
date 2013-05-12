@@ -36,7 +36,7 @@ AUTH_LDAP_CONNECTION_OPTIONS = {
 AUTH_LDAP_BIND_DN = ''
 AUTH_LDAP_BIND_PASSWORD = ''
 
-AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=users,dc=example,dc=com"
+AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=people,o=test"
 
 AUTH_LDAP_PERMIT_EMPTY_PASSWORD = False
 

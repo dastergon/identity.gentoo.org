@@ -1,51 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from django_auth_ldap.config import _LDAPConfig
-from django_auth_ldap.tests import MockLDAP
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.client import Client
+from django.test.utils import override_settings
+from okupy.tests import _mock_ldap
 import logging
 
 logger = logging.getLogger('django_auth_ldap')
 
-alice = ("uid=alice,ou=people,o=test", {
-    "uid": ["alice"],
-    "userPassword": ["ldaptest"],
-    "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-    "uidNumber": ["1000"],
-    "gidNumber": ["1000"],
-    "givenName": ["Alice"],
-    "sn": ["Adams"],
-})
-bob = ("uid=bob,ou=people,o=test", {
-    "uid": ["bob"],
-    "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-    "userPassword": ["ldapmoretest"],
-    "uidNumber": ["1001"],
-    "gidNumber": ["50"],
-    "givenName": ["Robert"],
-    "sn": ["Barker"]
-})
-dressler = (u"uid=dreßler,ou=people,o=test".encode('utf-8'), {
-    "uid": [u"dreßler".encode('utf-8')],
-    "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-    "userPassword": ["password"],
-    "uidNumber": ["1002"],
-    "gidNumber": ["50"],
-    "givenName": ["Wolfgang"],
-    "sn": [u"Dreßler".encode('utf-8')]
-})
-
-_mock_ldap = MockLDAP({
-    alice[0]: alice[1],
-    bob[0]: bob[1],
-    dressler[0]: dressler[1],
-})
-
-settings.AUTH_LDAP_USER_DN_TEMPLATE='uid=%(user)s,ou=people,o=test'
-
+@override_settings(AUTH_LDAP_USER_DN_TEMPLATE='uid=%(user)s,ou=people,o=test')
 class LoginTestsEmptyDB(TestCase):
     def setUp(self):
         self.client = Client()
@@ -69,7 +34,6 @@ class LoginTestsEmptyDB(TestCase):
         self.assertEqual(User.objects.count(), 0)
 
     def test_correct_user_leading_space_in_username(self):
-        settings.auth_ldap_user_dn_template='uid=%(user)s,ou=people,o=test'
         account = {'username': ' alice', 'password': 'ldaptest'}
         response = self.client.post('/login/', account)
         self.assertRedirects(response, '/')
@@ -79,7 +43,6 @@ class LoginTestsEmptyDB(TestCase):
         self.assert_(not user.has_usable_password())
 
     def test_correct_user_trailing_space_in_username(self):
-        settings.auth_ldap_user_dn_template='uid=%(user)s,ou=people,o=test'
         account = {'username': 'alice ', 'password': 'ldaptest'}
         response = self.client.post('/login/', account)
         self.assertRedirects(response, '/')
@@ -123,6 +86,7 @@ class LoginTestsEmptyDB(TestCase):
         self.assertEqual(user.last_name, '')
         self.assertEqual(user.email, '')
 
+@override_settings(AUTH_LDAP_USER_DN_TEMPLATE='uid=%(user)s,ou=people,o=test')
 class LoginTestsOneAccountInDB(TestCase):
     fixtures = ['alice']
 
