@@ -15,6 +15,7 @@ alice = ("uid=alice,ou=people,o=test", {
     "gidNumber": ["1000"],
     "givenName": ["Alice"],
     "sn": ["Adams"],
+    "mail": ["alice@test.com"],
 })
 bob = ("uid=bob,ou=people,o=test", {
     "uid": ["bob"],
@@ -23,7 +24,8 @@ bob = ("uid=bob,ou=people,o=test", {
     "uidNumber": ["1001"],
     "gidNumber": ["50"],
     "givenName": ["Robert"],
-    "sn": ["Barker"]
+    "sn": ["Barker"],
+    "mail": ["bob@test.com"],
 })
 dressler = (u"uid=dreßler,ou=people,o=test".encode('utf-8'), {
     "uid": [u"dreßler".encode('utf-8')],
@@ -32,7 +34,8 @@ dressler = (u"uid=dreßler,ou=people,o=test".encode('utf-8'), {
     "uidNumber": ["1002"],
     "gidNumber": ["50"],
     "givenName": ["Wolfgang"],
-    "sn": [u"Dreßler".encode('utf-8')]
+    "sn": [u"Dreßler".encode('utf-8')],
+    "mail": ["dressler@test.com"],
 })
 
 _mock_ldap = MockLDAP({
