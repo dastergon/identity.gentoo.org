@@ -210,17 +210,6 @@ LOGGING = {
             'formatter': 'okupy',
             'address': '/dev/log',
         },
-        'dlaconsole': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'django_auth_ldap',
-        },
-        'dlasyslog': {
-            'level': 'INFO',
-            'class': 'logging.handlers.SysLogHandler',
-            'formatter': 'django_auth_ldap',
-            'address': '/dev/log',
-        },
 
     },
     'loggers': {
@@ -231,10 +220,6 @@ LOGGING = {
         },
         'okupy': {
             'handlers': ['console' if DEBUG else 'syslog'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-        },
-        'django_auth_ldap': {
-            'handlers': ['dlaconsole' if DEBUG else 'dlasyslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
     }
