@@ -3,7 +3,7 @@
 from django_auth_ldap.config import _LDAPConfig
 from django.contrib.auth.models import User
 from django.test.client import Client
-from okupy.tests.okupytestcase import OkupyTestCase
+from okupy.common.testcase import OkupyTestCase
 from okupy.tests.tests import _mock_ldap
 import logging
 
