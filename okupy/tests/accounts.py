@@ -2,14 +2,14 @@
 
 from django_auth_ldap.config import _LDAPConfig
 from django.contrib.auth.models import User
-from django.test import TestCase
 from django.test.client import Client
+from okupy.tests.okupytestcase import OkupyTestCase
 from okupy.tests.tests import _mock_ldap
 import logging
 
 logger = logging.getLogger('django_auth_ldap')
 
-class LoginTestsEmptyDB(TestCase):
+class LoginTestsEmptyDB(OkupyTestCase):
     def setUp(self):
         self.client = Client()
         self.ldap = _LDAPConfig.ldap = _mock_ldap
@@ -22,13 +22,13 @@ class LoginTestsEmptyDB(TestCase):
         response = self.client.get('/login/')
         self.assertEqual(response.status_code, 200)
         self.assertTrue('login_form' in response.context)
-        self.assertTrue('notification' in response.context)
+        self.assertTrue('messages' in response.context)
 
     def test_empty_user(self):
         response = self.client.post('/login/')
         self.assertFormError(response, 'login_form', 'username', [u'This field is required.'])
         self.assertFormError(response, 'login_form', 'password', [u'This field is required.'])
-        self.assertEqual(response.context['notification']['error'], u'Login failed')
+        self.assertMessageContains(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 0)
 
     def test_correct_user_leading_space_in_username(self):
@@ -52,7 +52,7 @@ class LoginTestsEmptyDB(TestCase):
     def test_incorrect_user(self):
         wrong_account = {'username': 'username', 'password': 'password'}
         response = self.client.post('/login/', wrong_account)
-        self.assertEqual(response.context['notification']['error'], u'Login failed')
+        self.assertMessageContains(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 0)
 
     def test_correct_user(self):
@@ -69,7 +69,7 @@ class LoginTestsEmptyDB(TestCase):
     def test_no_ldap(self):
         _LDAPConfig.ldap = None
         response = self.client.post('/login/', self.account)
-        self.assertEqual(response.context['notification']['error'], u'Login failed')
+        self.assertMessageContains(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 0)
 
     def test_weird_account(self):
@@ -84,7 +84,7 @@ class LoginTestsEmptyDB(TestCase):
         self.assertEqual(user.last_name, '')
         self.assertEqual(user.email, '')
 
-class LoginTestsOneAccountInDB(TestCase):
+class LoginTestsOneAccountInDB(OkupyTestCase):
     fixtures = ['alice']
 
     def setUp(self):
@@ -99,7 +99,7 @@ class LoginTestsOneAccountInDB(TestCase):
     def test_dont_authenticate_from_db_when_ldap_is_down(self):
         _LDAPConfig.ldap = None
         response = self.client.post('/login/', self.account1)
-        self.assertEqual(response.context['notification']['error'], u'Login failed')
+        self.assertMessageContains(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 1)
 
     def test_authenticate_account_that_is_already_in_db(self):

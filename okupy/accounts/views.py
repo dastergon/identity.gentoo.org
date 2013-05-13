@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -14,7 +15,6 @@ def accounts_login(request):
     '''
     The login page
     '''
-    notification = {}
     login_form = None
     user = None
     if request.method == "POST":
@@ -38,13 +38,12 @@ def accounts_login(request):
                     request.session.set_expiry(0)
                 return HttpResponseRedirect('/')
         except LoginError as error:
-            notification['error'] = error.value
+            messages.error(request, error.value)
     else:
         if request.user.is_authenticated():
             return HttpResponseRedirect('/')
         else:
             login_form = LoginForm()
     return render_to_response('login.html', {
-        'notification': notification,
         'login_form': login_form,
     }, context_instance = RequestContext(request))

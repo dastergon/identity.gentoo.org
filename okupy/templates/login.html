@@ -10,6 +10,6 @@
 </form>
 <a href="/recover">Forgot your password?</a>
 <br />
-{% if notification %}
-    {{ notification.error }}
-{% endif %}
+{% for message in messages %}
+    {{ message }}
+{% endfor %}
