@@ -1,5 +1,6 @@
 from Crypto.Cipher import AES
 from django.conf import settings
+from random import choice
 import base64
 import hashlib
 import os
