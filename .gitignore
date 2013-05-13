@@ -2,6 +2,7 @@
 *.swp
 *.kdev4
 *.kate-swp
+*.db
 okupy/settings/local_settings.py
 okupy/settings/development.py
 /media
