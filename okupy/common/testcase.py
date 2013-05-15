@@ -8,7 +8,11 @@ class OkupyTestCase(TestCase):
         Asserts that exactly the given number of messages have been sent.
         """
 
-        actual_num = len(response.context['messages'])
+        try:
+            messages = response.context['messages']
+            actual_num = len(response.context['messages'])
+        except TypeError:
+            actual_num = 0
         if actual_num != expect_num:
             self.fail('Message count was %d, expected %d' %
                 (actual_num, expect_num))
@@ -18,7 +22,10 @@ class OkupyTestCase(TestCase):
         Asserts that there is exactly one message containing the given text.
         """
 
-        messages = response.context['messages']
+        try:
+            messages = response.context['messages']
+        except TypeError:
+            self.fail('No messages found')
 
         matches = [m for m in messages if text in m.message]
 
@@ -41,7 +48,10 @@ class OkupyTestCase(TestCase):
     def assertMessageNotContains(self, response, text):
         """ Assert that no message contains the given text. """
 
-        messages = response.context['messages']
+        try:
+            messages = response.context['messages']
+        except TypeError:
+            self.fail('No messages found')
 
         matches = [m for m in messages if text in m.message]
 
