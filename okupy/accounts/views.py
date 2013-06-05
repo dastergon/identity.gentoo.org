@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import messages
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login as _login, authenticate
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -9,12 +9,10 @@ from okupy.accounts.forms import LoginForm
 from okupy.common.exceptions import OkupyError, LoginError
 
 def index(request):
-   return render_to_response('index.html', {}, context_instance = RequestContext(request))
+    return render_to_response('index.html', {}, context_instance = RequestContext(request))
 
-def accounts_login(request):
-    '''
-    The login page
-    '''
+def login(request):
+    """ The login page """
     login_form = None
     user = None
     if request.method == "POST":
@@ -25,15 +23,15 @@ def accounts_login(request):
                 password = login_form.cleaned_data['password']
             else:
                 raise LoginError
-            '''
+            """
             Perform authentication, if it retrieves a user object then
             it was successful. If it retrieves None then it failed to login
-            '''
+            """
             user = authenticate(username = username, password = password)
             if not user:
                 raise LoginError
             if user.is_active:
-                login(request, user)
+                _login(request, user)
                 if not login_form.cleaned_data['remember']:
                     request.session.set_expiry(0)
                 return HttpResponseRedirect('/')
