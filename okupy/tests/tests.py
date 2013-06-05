@@ -45,4 +45,4 @@ _mock_ldap = MockLDAP({
 })
 
 # run tests modules
-from accounts import *
+from login import *
