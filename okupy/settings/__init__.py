@@ -111,4 +111,4 @@ AUTHENTICATION_BACKENDS = (
 
 # email sending variables regarding server authentication
 # and configuration should be specified in local_settings
-EMAIL_SUBJECT_PREFIX = '[%s] ' % INSTANCE_NAME
+EMAIL_SUBJECT_PREFIX = '[%s]: ' % INSTANCE_NAME

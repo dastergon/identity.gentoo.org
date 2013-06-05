@@ -36,7 +36,12 @@ AUTH_LDAP_CONNECTION_OPTIONS = {
 AUTH_LDAP_BIND_DN = ''
 AUTH_LDAP_BIND_PASSWORD = ''
 
-AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=people,o=test"
+AUTH_LDAP_ADMIN_BIND_DN = ''
+AUTH_LDAP_ADMIN_BIND_PASSWORD = ''
+
+AUTH_LDAP_USER_ATTR = 'uid'
+AUTH_LDAP_USER_BASE_DN = 'ou=people,o=test'
+AUTH_LDAP_USER_DN_TEMPLATE = AUTH_LDAP_USER_ATTR + '=%(user)s,' + AUTH_LDAP_USER_BASE_DN
 
 AUTH_LDAP_PERMIT_EMPTY_PASSWORD = False
 
@@ -51,14 +56,17 @@ AUTH_LDAP_START_TLS = False
 #AUTH_LDAP_FIND_GROUP_PERMS
 
 #AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    #'is_acive': '',
+    #'is_active': '',
     #'is_staff': '',
     #'is_superuser': '',
 #}
 
 #AUTH_LDAP_PROFILE_FLAGS_BY_GROUP = {}
+
+AUTH_LDAP_USER_OBJECTCLASS = ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"]
+
 # DEBUG Options: Select "True" for development use, "False" for production use
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 # Instance name, used in:
@@ -235,6 +243,5 @@ AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
 )
 
-# email sending variables regarding server authentication
-# and configuration should be specified in local_settings
-EMAIL_SUBJECT_PREFIX = '[%s] ' % INSTANCE_NAME
+EMAIL_SUBJECT_PREFIX = '[%s]: ' % INSTANCE_NAME
+SERVER_EMAIL = 'no-reply@example.com'
