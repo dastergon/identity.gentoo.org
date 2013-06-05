@@ -17,7 +17,7 @@ class OkupyTestCase(TestCase):
             self.fail('Message count was %d, expected %d' %
                 (actual_num, expect_num))
 
-    def assertMessageContains(self, response, text, level=None):
+    def assertMessage(self, response, text, level=None):
         """
         Asserts that there is exactly one message containing the given text.
         """
@@ -27,7 +27,7 @@ class OkupyTestCase(TestCase):
         except TypeError:
             self.fail('No messages found')
 
-        matches = [m for m in messages if text in m.message]
+        matches = [m for m in messages if text == m.message]
 
         if len(matches) == 1:
             msg = matches[0]
@@ -39,13 +39,13 @@ class OkupyTestCase(TestCase):
 
         elif len(matches) == 0:
             messages_str = ", ".join('"%s"' % m for m in messages)
-            self.fail('No message contained text "%s", messages were: %s' %
+            self.fail('No message has text "%s", messages were: %s' %
                 (text, messages_str))
         else:
-            self.fail('Multiple messages contained text "%s": %s' %
+            self.fail('Multiple messages have text "%s": %s' %
                 (text, ", ".join(('"%s"' % m) for m in matches)))
 
-    def assertMessageNotContains(self, response, text):
+    def assertNotMessage(self, response, text):
         """ Assert that no message contains the given text. """
 
         try:
@@ -53,8 +53,8 @@ class OkupyTestCase(TestCase):
         except TypeError:
             self.fail('No messages found')
 
-        matches = [m for m in messages if text in m.message]
+        matches = [m for m in messages if text == m.message]
 
         if len(matches) > 0:
-            self.fail('Message(s) contained text "%s": %s' %
+            self.fail('Message(s) found"%s": %s' %
                 (text, ", ".join(('"%s"' % m) for m in matches)))

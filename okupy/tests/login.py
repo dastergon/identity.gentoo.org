@@ -28,7 +28,7 @@ class LoginTestsEmptyDB(OkupyTestCase):
         response = self.client.post('/login/')
         self.assertFormError(response, 'login_form', 'username', [u'This field is required.'])
         self.assertFormError(response, 'login_form', 'password', [u'This field is required.'])
-        self.assertMessageContains(response, 'Login failed', 40)
+        self.assertMessage(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 0)
 
     def test_correct_user_leading_space_in_username(self):
@@ -52,7 +52,7 @@ class LoginTestsEmptyDB(OkupyTestCase):
     def test_incorrect_user(self):
         wrong_account = {'username': 'username', 'password': 'password'}
         response = self.client.post('/login/', wrong_account)
-        self.assertMessageContains(response, 'Login failed', 40)
+        self.assertMessage(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 0)
 
     def test_correct_user(self):
@@ -69,7 +69,7 @@ class LoginTestsEmptyDB(OkupyTestCase):
     def test_no_ldap(self):
         _LDAPConfig.ldap = None
         response = self.client.post('/login/', self.account)
-        self.assertMessageContains(response, 'Login failed', 40)
+        self.assertMessage(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 0)
 
     def test_weird_account(self):
@@ -99,7 +99,7 @@ class LoginTestsOneAccountInDB(OkupyTestCase):
     def test_dont_authenticate_from_db_when_ldap_is_down(self):
         _LDAPConfig.ldap = None
         response = self.client.post('/login/', self.account1)
-        self.assertMessageContains(response, 'Login failed', 40)
+        self.assertMessage(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 1)
 
     def test_authenticate_account_that_is_already_in_db(self):
