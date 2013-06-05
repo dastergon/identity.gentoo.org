@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# prepare environment
 from django_auth_ldap.tests import MockLDAP
-from django.conf import settings
-from okupy.tests.settings import AUTH_LDAP_USER_DN_TEMPLATE
-
-settings.AUTH_LDAP_USER_DN_TEMPLATE = AUTH_LDAP_USER_DN_TEMPLATE
 
 alice = ("uid=alice,ou=people,o=test", {
     "uid": ["alice"],
