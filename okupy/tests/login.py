@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from django_auth_ldap.config import _LDAPConfig
+from django_auth_ldap.tests import MockLDAP
 from django.contrib.auth.models import User
 from django.test.client import Client
 from okupy.common.testcase import OkupyTestCase
-from okupy.tests.tests import _mock_ldap
+from okupy.tests.tests import example_directory
 import logging
 
 logger = logging.getLogger('django_auth_ldap')
@@ -12,11 +13,12 @@ logger = logging.getLogger('django_auth_ldap')
 class LoginTestsEmptyDB(OkupyTestCase):
     def setUp(self):
         self.client = Client()
-        self.ldap = _LDAPConfig.ldap = _mock_ldap
+        self._mock_ldap = MockLDAP(example_directory)
+        self.ldap = _LDAPConfig.ldap = self._mock_ldap
         self.account = {'username': 'alice', 'password': 'ldaptest'}
 
     def tearDown(self):
-        _mock_ldap.reset()
+        self._mock_ldap.reset()
 
     def test_template(self):
         response = self.client.get('/login/')
@@ -89,12 +91,13 @@ class LoginTestsOneAccountInDB(OkupyTestCase):
 
     def setUp(self):
         self.client = Client()
-        self.ldap = _LDAPConfig.ldap = _mock_ldap
+        self._mock_ldap = MockLDAP(example_directory)
+        self.ldap = _LDAPConfig.ldap = self._mock_ldap
         self.account1 = {'username': 'alice', 'password': 'ldaptest'}
         self.account2 = {'username': 'bob', 'password': 'ldapmoretest'}
 
     def tearDown(self):
-        _mock_ldap.reset()
+        self._mock_ldap.reset()
 
     def test_dont_authenticate_from_db_when_ldap_is_down(self):
         _LDAPConfig.ldap = None
