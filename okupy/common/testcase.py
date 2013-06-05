@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.test import TestCase
+from django.contrib.messages.storage.cookie import CookieStorage
 
 class OkupyTestCase(TestCase):
     def _get_matches(self, response, text):
@@ -16,8 +17,11 @@ class OkupyTestCase(TestCase):
         """ Get all messages from the context or the CookieStorage """
         try:
             messages = response.context['messages']
-        except TypeError:
-            return
+        except (TypeError, KeyError):
+            try:
+                messages = CookieStorage(response)._decode(response.cookies['messages'].value)
+            except KeyError:
+                return
         return messages
 
     def assertMessageCount(self, response, expect_num):
