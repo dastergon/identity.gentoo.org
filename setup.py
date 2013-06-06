@@ -27,6 +27,10 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development',
     ],
+    dependency_links=[
+        # temporarily use tampakrap's fork until our patches get accepted
+        'https://bitbucket.org/tampakrap/django-auth-ldap/get/mockldap_v2.tar.gz#egg=django-auth-ldap-1.1.4.0.1',
+    ],
     install_requires=[
         'django>=1.5',
         'django-auth-ldap>=1.1.4',
