@@ -242,6 +242,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Custom authentication backend
 AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
 )
 
 EMAIL_SUBJECT_PREFIX = '[%s]: ' % INSTANCE_NAME

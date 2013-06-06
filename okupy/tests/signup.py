@@ -9,9 +9,6 @@ from django.test.client import Client
 from okupy.accounts.models import Queue
 from okupy.common.testcase import OkupyTestCase
 from okupy.tests.tests import example_directory
-from okupy.common.log import log_extra_data
-import logging
-logger = logging.getLogger('okupy')
 
 class SignupTestsEmptyDB(OkupyTestCase):
     def setUp(self):

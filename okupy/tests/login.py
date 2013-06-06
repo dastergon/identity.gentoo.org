@@ -6,9 +6,6 @@ from django.contrib.auth.models import User
 from django.test.client import Client
 from okupy.common.testcase import OkupyTestCase
 from okupy.tests.tests import example_directory
-import logging
-
-logger = logging.getLogger('django_auth_ldap')
 
 class LoginTestsEmptyDB(OkupyTestCase):
     def setUp(self):
