@@ -48,16 +48,16 @@ class OkupyTestCase(TestCase):
                 self.fail('There was one matching message but with different '
                     'level: %s != %s' % (msg.level, level))
         elif len(matches) == 0:
-            messages_str = ", ".join('"%s"' % m for m in messages)
-            self.fail('No message has text "%s", messages were: %s' %
+            messages_str = ", ".join('"%s"' % m for m in self._get_messages(response))
+            self.fail('No message contained text "%s", messages were: %s' %
                 (text, messages_str))
         else:
-            self.fail('Multiple messages have text "%s": %s' %
+            self.fail('Multiple messages contained text "%s": %s' %
                 (text, ", ".join(('"%s"' % m) for m in matches)))
 
     def assertNotMessage(self, response, text):
         """ Assert that no message contains the given text. """
         matches = self._get_matches(response, text)
         if len(matches) > 0:
-            self.fail('Message(s) found"%s": %s' %
+            self.fail('Message(s) contained text "%s": %s' %
                 (text, ", ".join(('"%s"' % m) for m in matches)))
