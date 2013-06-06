@@ -3,7 +3,7 @@
 example_directory = {
     "uid=alice,ou=people,o=test": {
         "uid": ["alice"],
-        "userPassword": ['ldaptest'],
+        "userPassword": ['{CRYPT}$1$lO/RU6zz$2fJCOwurxBtCqdImkoLQo1'],
         "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
         "uidNumber": ["1000"],
         "gidNumber": ["1000"],
@@ -14,7 +14,7 @@ example_directory = {
     "uid=bob,ou=people,o=test": {
         "uid": ["bob"],
         "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-        "userPassword": ['ldapmoretest'],
+        "userPassword": ['{CRYPT}$1$eFSQMJY6$8y.WUL/ONeEarVXqeCIbH.'],
         "uidNumber": ["1001"],
         "gidNumber": ["50"],
         "givenName": ["Robert"],
@@ -24,7 +24,7 @@ example_directory = {
     u"uid=dreßler,ou=people,o=test".encode('utf-8'): {
         "uid": [u"dreßler".encode('utf-8')],
         "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-        "userPassword": ['password'],
+        "userPassword": ['{CRYPT}$1$kQ3GmP3k$oKSdmDpdepvrni/JQQ4Ri.'],
         "uidNumber": ["1002"],
         "gidNumber": ["50"],
         "givenName": ["Wolfgang"],
@@ -35,3 +35,4 @@ example_directory = {
 
 # run tests modules
 from login import *
+from signup import *

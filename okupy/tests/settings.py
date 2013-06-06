@@ -167,6 +167,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'okupy.accounts',
     'okupy.tests'
 )
 

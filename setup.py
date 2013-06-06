@@ -35,6 +35,7 @@ setup(
         'django>=1.5',
         'django-auth-ldap>=1.1.4',
         'mysql-python>=1.2.3',
+        'passlib>=1.6.1',
         'pycrypto>=2.6',
         'python-ldap>=2.4.10',
         'setuptools>=0.6.21',
