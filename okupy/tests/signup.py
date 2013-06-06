@@ -9,6 +9,7 @@ from django.test.client import Client
 from okupy.accounts.models import Queue
 from okupy.common.testcase import OkupyTestCase
 from okupy.tests.tests import example_directory
+import re
 
 class SignupTestsEmptyDB(OkupyTestCase):
     def setUp(self):
@@ -149,4 +150,5 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertEqual(queued_account.email, self.form_data['email'])
         self.assertEqual(queued_account.password, self.form_data['password_origin'])
         self.assertEqual(len(queued_account.token), 40)
-        # TODO: check that the token consists only of chars and numbers with some regexp (if possible)
+        valid_token = re.compile(r'\w+')
+        self.assertTrue(valid_token.match(queued_account.token))
