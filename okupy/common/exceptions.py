@@ -17,3 +17,12 @@ class LoginError(Exception):
         self.value = u'Login failed'
     def __str__(self):
         return unicode(self.value).encode('utf-8')
+
+class SignupError(Exception):
+    '''
+    Custom exception class for signup failures
+    '''
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return unicode(self.value).encode('utf-8')
