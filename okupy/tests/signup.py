@@ -42,7 +42,7 @@ class SignupTestsEmptyDB(OkupyTestCase):
     def test_passwords_dont_match(self):
         self.form_data['password_verify'] = 'testpassword2'
         response = self.client.post('/signup/', self.form_data)
-        self.assertMessage(response, "Passwords don't match")
+        self.assertMessage(response, "Passwords don't match", 40)
         self.assertEqual(Queue.objects.count(), 0)
 
     def test_invalid_email(self):
@@ -75,7 +75,7 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
     def test_add_queued_account_to_ldap(self):
         response = self.client.get(self.activate_url)
         self.assertRedirects(response, '/login/')
-        self.assertMessage(response, 'Your account has been activated successfully')
+        self.assertMessage(response, 'Your account has been activated successfully', 25)
         self.assertEqual(Queue.objects.count(), 0)
         ldap_account = self._mock_ldap.directory['uid=%s,ou=people,o=test' % self.queued_account.username]
         self.assertEqual(ldap_account['uid'][0], self.queued_account.username)
@@ -89,12 +89,12 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertRedirects(response, '/')
         self.assertEqual(User.objects.count(), 1)
         response = self.client.get(self.activate_url)
-        self.assertMessage(response, 'Invalid URL')
+        self.assertMessage(response, 'Invalid URL', 40)
 
     def test_signup_no_ldap(self):
         _LDAPConfig.ldap = None
         response = self.client.post('/signup/', self.form_data)
-        self.assertMessage(response, "Can't contact LDAP server")
+        self.assertMessage(response, "Can't contact LDAP server", 40)
         self.assertEqual(Queue.objects.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, '%sERROR: {\'desc\': "Can\'t contact LDAP server"}' % settings.EMAIL_SUBJECT_PREFIX)
@@ -103,7 +103,7 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         _LDAPConfig.ldap = None
         response = self.client.get(self.activate_url)
         self.assertRedirects(response, '/login/')
-        self.assertMessage(response, "Can't contact LDAP server")
+        self.assertMessage(response, "Can't contact LDAP server", 40)
         self.assertEqual(Queue.objects.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, '%sERROR: {\'desc\': "Can\'t contact LDAP server"}' % settings.EMAIL_SUBJECT_PREFIX)
@@ -111,35 +111,35 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
     def test_wrong_activation_link(self):
         response = self.client.get('/activate/invalidurl/')
         self.assertRedirects(response, '/login/')
-        self.assertMessage(response, 'Invalid URL')
+        self.assertMessage(response, 'Invalid URL', 40)
         self.assertEqual(Queue.objects.count(), 1)
 
     def test_username_already_exists_in_ldap(self):
         self.form_data['username'] = 'alice'
         response = self.client.post('/signup/', self.form_data)
-        self.assertMessage(response, 'Username already exists')
+        self.assertMessage(response, 'Username already exists', 40)
 
     def test_email_already_exists_in_ldap(self):
         self.form_data['email'] = 'alice@test.com'
         response = self.client.post('/signup/', self.form_data)
-        self.assertMessage(response, 'Email already exists')
+        self.assertMessage(response, 'Email already exists', 40)
 
     def test_username_already_pending_activation(self):
         self.form_data['username'] = 'queueduser'
         response = self.client.post('/signup/', self.form_data)
-        self.assertMessage(response, 'Account is already pending activation')
+        self.assertMessage(response, 'Account is already pending activation', 40)
         self.assertEqual(Queue.objects.count(), 1)
 
     def test_email_already_pending_activation(self):
         self.form_data['email'] = 'queueduser@test.com'
         response = self.client.post('/signup/', self.form_data)
-        self.assertMessage(response, 'Account is already pending activation')
+        self.assertMessage(response, 'Account is already pending activation', 40)
         self.assertEqual(Queue.objects.count(), 1)
 
     def test_valid_data_to_form(self):
         response = self.client.post('/signup/', self.form_data)
         self.assertRedirects(response, '/login/')
-        self.assertMessage(response, 'You will shortly receive an activation mail')
+        self.assertMessage(response, 'You will shortly receive an activation mail', 20)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, '%sAccount Activation' % settings.EMAIL_SUBJECT_PREFIX)
         self.assertEqual(Queue.objects.count(), 2)

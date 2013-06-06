@@ -144,7 +144,7 @@ def activate(request, token):
         admin_ldap_user.unbind_s()
         # remove queued account from DB
         queued_user.delete()
-        messages.info(request, "Your account has been activated successfully")
+        messages.success(request, "Your account has been activated successfully")
     except OkupyError as error:
         messages.error(request, error.value)
     return HttpResponseRedirect('/login/')
