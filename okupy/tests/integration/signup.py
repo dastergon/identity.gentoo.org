@@ -5,10 +5,12 @@ from django_auth_ldap.config import _LDAPConfig
 from django_auth_ldap.tests import MockLDAP
 from django.contrib.auth.models import User
 from django.core import mail
+from django.db import DatabaseError
 from django.test.client import Client
 from okupy.accounts.models import Queue
 from okupy.common.testcase import OkupyTestCase
 from okupy.tests.tests import example_directory
+import mock
 import re
 
 class SignupTestsEmptyDB(OkupyTestCase):
@@ -54,6 +56,9 @@ class SignupTestsEmptyDB(OkupyTestCase):
 
 class SignupTestsOneAccountInQueue(OkupyTestCase):
     fixtures = ['queued_account.json']
+
+    cursor_wrapper = mock.Mock()
+    cursor_wrapper.side_effect = DatabaseError
 
     def setUp(self):
         self.client = Client()
@@ -152,3 +157,17 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertEqual(queued_account.password, self.form_data['password_origin'])
         valid_token = re.compile(r'^[a-zA-Z0-9]{40}$')
         self.assertTrue(valid_token.match(queued_account.token))
+
+    @mock.patch("django.db.backends.util.CursorWrapper", cursor_wrapper)
+    def test_signup_no_database(self):
+        response = self.client.post('/signup/', self.form_data)
+        self.assertMessage(response, "Can't contact the database", 40)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
+
+    @mock.patch("django.db.backends.util.CursorWrapper", cursor_wrapper)
+    def test_activate_no_database(self):
+        response = self.client.post(self.activate_url, self.form_data)
+        self.assertMessage(response, "Can't contact the database", 40)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))

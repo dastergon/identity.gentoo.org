@@ -40,7 +40,12 @@ def login(request):
             Perform authentication, if it retrieves a user object then
             it was successful. If it retrieves None then it failed to login
             """
-            user = authenticate(username = username, password = password)
+            try:
+                user = authenticate(username = username, password = password)
+            except Exception as error:
+                logger.critical(error, extra=log_extra_data(request))
+                logger_mail.exception(error)
+                raise OkupyError("Can't contact the LDAP server or the database")
             if not user:
                 raise LoginError
             if user.is_active:
@@ -48,7 +53,7 @@ def login(request):
                 if not login_form.cleaned_data['remember']:
                     request.session.set_expiry(0)
                 return HttpResponseRedirect('/')
-        except LoginError as error:
+        except (OkupyError, LoginError) as error:
             messages.error(request, error.value)
     else:
         if request.user.is_authenticated():
@@ -89,7 +94,7 @@ def signup(request):
                 except Exception as error:
                     logger.critical(error, extra=log_extra_data(request))
                     logger_mail.exception(error)
-                    raise OkupyError('An error occured with the DB')
+                    raise OkupyError("Can't contact the database")
                 send_mail(
                     '%sAccount Activation' % settings.EMAIL_SUBJECT_PREFIX,
                     'To confirm your email address, please click the following link:\n%s' % queued_user.token,
@@ -118,6 +123,10 @@ def activate(request, token):
             queued_user = Queue.objects.get(token=token)
         except Queue.DoesNotExist:
             raise OkupyError('Invalid URL')
+        except Exception as error:
+            logger.critical(error, extra=log_extra_data(request))
+            logger_mail.exception(error)
+            raise OkupyError("Can't contact the database")
         # add account to ldap
         admin_ldap_user = OkupyLDAPUser(settings.AUTH_LDAP_ADMIN_BIND_DN, settings.AUTH_LDAP_ADMIN_BIND_PASSWORD)
         new_user = {

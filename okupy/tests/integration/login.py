@@ -1,13 +1,20 @@
 # -*- coding: utf-8 -*-
 
+from django.conf import settings
 from django_auth_ldap.config import _LDAPConfig
 from django_auth_ldap.tests import MockLDAP
 from django.contrib.auth.models import User
+from django.core import mail
+from django.db import DatabaseError
 from django.test.client import Client
 from okupy.common.testcase import OkupyTestCase
 from okupy.tests.tests import example_directory
+import mock
 
 class LoginTestsEmptyDB(OkupyTestCase):
+    cursor_wrapper = mock.Mock()
+    cursor_wrapper.side_effect = DatabaseError
+
     def setUp(self):
         self.client = Client()
         self._mock_ldap = MockLDAP(example_directory)
@@ -83,6 +90,13 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertEqual(user.first_name, '')
         self.assertEqual(user.last_name, '')
         self.assertEqual(user.email, '')
+
+    @mock.patch("django.db.backends.util.CursorWrapper", cursor_wrapper)
+    def test_no_database(self):
+        response = self.client.post('/login/', self.account)
+        self.assertMessage(response, "Can't contact the LDAP server or the database", 40)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
 
 class LoginTestsOneAccountInDB(OkupyTestCase):
     fixtures = ['alice']
