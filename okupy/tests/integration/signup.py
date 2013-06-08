@@ -26,8 +26,9 @@ class SignupTestsEmptyDB(OkupyTestCase):
     def test_template(self):
         response = self.client.get('/signup/')
         self.assertEqual(response.status_code, 200)
-        self.assertTrue('signup_form' in response.context)
-        self.assertTrue('messages' in response.context)
+        self.assertTemplateUsed('signup.html')
+        self.assertIn('signup_form', response.context)
+        self.assertIn('messages', response.context)
 
     def test_empty_form(self):
         response = self.client.post('/signup/')

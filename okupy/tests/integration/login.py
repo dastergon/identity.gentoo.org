@@ -20,8 +20,9 @@ class LoginTestsEmptyDB(OkupyTestCase):
     def test_template(self):
         response = self.client.get('/login/')
         self.assertEqual(response.status_code, 200)
-        self.assertTrue('login_form' in response.context)
-        self.assertTrue('messages' in response.context)
+        self.assertTemplateUsed('login.html')
+        self.assertIn('login_form', response.context)
+        self.assertIn('messages', response.context)
 
     def test_empty_user(self):
         response = self.client.post('/login/')
