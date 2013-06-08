@@ -7,3 +7,4 @@ okupy/settings/local_settings.py
 okupy/settings/development.py
 /media
 /static
+okupy.egg-info
