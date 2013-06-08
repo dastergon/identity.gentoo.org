@@ -11,7 +11,6 @@ from okupy.accounts.models import Queue
 from okupy.common.testcase import OkupyTestCase
 from okupy.tests.tests import example_directory
 import mock
-import re
 
 class SignupTestsEmptyDB(OkupyTestCase):
     def setUp(self):
@@ -155,8 +154,7 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertEqual(queued_account.last_name, self.form_data['last_name'])
         self.assertEqual(queued_account.email, self.form_data['email'])
         self.assertEqual(queued_account.password, self.form_data['password_origin'])
-        valid_token = re.compile(r'^[a-zA-Z0-9]{40}$')
-        self.assertTrue(valid_token.match(queued_account.token))
+        self.assertRegexpMatches(queued_account.token, '^[a-zA-Z0-9]{40}$')
 
     @mock.patch("django.db.backends.util.CursorWrapper", cursor_wrapper)
     def test_signup_no_database(self):
