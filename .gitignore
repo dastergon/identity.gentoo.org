@@ -8,3 +8,6 @@ okupy/settings/development.py
 /media
 /static
 okupy.egg-info
+.coverage
+.coveralls.yml
+htmlcov

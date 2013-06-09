@@ -5,10 +5,13 @@ env:
   - DJANGO_VERSION=1.5
 install:
   - pip install -r requirements.txt --use-mirrors
+  - pip install coveralls --use-mirrors
 branches:
   only:
     - master
-script: python manage.py test --settings=okupy.tests.settings tests
+script: coverage run python manage.py test --settings=okupy.tests.settings tests
+after_success:
+  - coveralls
 notifications:
   email:
     recipients:

@@ -1,0 +1,3 @@
+[run]
+source = .
+omit = okupy/settings/*,setup.py,okupy/wsgi.py
