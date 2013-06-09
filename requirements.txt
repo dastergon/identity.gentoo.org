@@ -2,8 +2,6 @@ django>=1.5
 # temporarily use tampakrap's fork until our patches get accepted
 #django-auth-ldap>=1.1.4
 hg+https://bitbucket.org/tampakrap/django-auth-ldap@mockldap_v2#egg=django-auth-ldap-1.1.4.0.1
-mysql-python>=1.2.3
+mock>=1.0.1
 passlib>=1.6.1
-pycrypto>=2.6
 python-ldap>=2.4.10
-setuptools>=0.6.2
