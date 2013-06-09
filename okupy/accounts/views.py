@@ -142,7 +142,7 @@ def activate(request, token):
         if 'posixAccount' in new_user['objectClass']:
             try:
                 max_uidnumber = admin_ldap_user.search_s(attr='uidNumber', scope='onelevel', attrlist=['uidNumber'])[-1][1]['uidNumber'][0]
-            except TypeError:
+            except IndexError:
                 max_uidnumber = 0
             new_user['uidNumber'] = [str(int(max_uidnumber) + 1)]
             new_user['gidNumber'] = ['100']

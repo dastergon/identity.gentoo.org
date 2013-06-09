@@ -169,3 +169,24 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertMessage(response, "Can't contact the database", 40)
         self.assertEqual(len(mail.outbox), 1)
         self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
+
+    def test_add_first_user_empty_ldap_directory(self):
+        self._mock_ldap = MockLDAP([])
+        self.ldap = _LDAPConfig.ldap = self._mock_ldap
+        response = self.client.post(self.activate_url)
+        self.assertRedirects(response, '/login/')
+        self.assertMessage(response, 'Your account has been activated successfully', 25)
+        self.assertEqual(Queue.objects.count(), 0)
+        ldap_account = self._mock_ldap.directory['uid=%s,ou=people,o=test' % self.queued_account.username]
+        self.assertEqual(ldap_account['uid'][0], self.queued_account.username)
+        self.assertEqual(ldap_account['givenName'][0], self.queued_account.first_name)
+        self.assertEqual(ldap_account['sn'][0], self.queued_account.last_name)
+        self.assertEqual(ldap_account['objectClass'], settings.AUTH_LDAP_USER_OBJECTCLASS)
+        self.assertEqual(ldap_account['uidNumber'][0], '1')
+        self.assertEqual(ldap_account['mail'][0], self.queued_account.email)
+        data={'username': self.queued_account.username, 'password': 'queuedpass'}
+        response = self.client.post('/login/', data)
+        self.assertRedirects(response, '/')
+        self.assertEqual(User.objects.count(), 1)
+        response = self.client.get(self.activate_url)
+        self.assertMessage(response, 'Invalid URL', 40)
