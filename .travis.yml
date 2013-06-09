@@ -9,7 +9,7 @@ install:
 branches:
   only:
     - master
-script: coverage run python manage.py test --settings=okupy.tests.settings tests
+script: coverage run manage.py test --settings=okupy.tests.settings tests
 after_success:
   - coveralls
 notifications:
