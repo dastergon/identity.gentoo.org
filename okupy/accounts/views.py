@@ -11,7 +11,7 @@ from django.template import RequestContext
 from okupy.accounts.forms import LoginForm, SignupForm
 from okupy.accounts.models import Queue
 from okupy.common.encryption import random_string
-from okupy.common.exceptions import OkupyError, LoginError, SignupError
+from okupy.common.exceptions import OkupyError
 from okupy.common.ldapuser import OkupyLDAPUser
 from okupy.common.log import log_extra_data
 from passlib.hash import ldap_md5_crypt
@@ -35,7 +35,7 @@ def login(request):
                 username = login_form.cleaned_data['username']
                 password = login_form.cleaned_data['password']
             else:
-                raise LoginError
+                raise OkupyError('Login failed')
             """
             Perform authentication, if it retrieves a user object then
             it was successful. If it retrieves None then it failed to login
@@ -47,14 +47,14 @@ def login(request):
                 logger_mail.exception(error)
                 raise OkupyError("Can't contact the LDAP server or the database")
             if not user:
-                raise LoginError
+                raise OkupyError('Login failed')
             if user.is_active:
                 _login(request, user)
                 if not login_form.cleaned_data['remember']:
                     request.session.set_expiry(0)
                 return HttpResponseRedirect('/')
-        except (OkupyError, LoginError) as error:
-            messages.error(request, error.value)
+        except OkupyError, error:
+            messages.error(request, str(error))
     else:
         if request.user.is_authenticated():
             return HttpResponseRedirect('/')
@@ -72,12 +72,12 @@ def signup(request):
         if signup_form.is_valid():
             try:
                 if signup_form.cleaned_data['password_origin'] != signup_form.cleaned_data['password_verify']:
-                    raise SignupError("Passwords don't match")
+                    raise OkupyError("Passwords don't match")
                 anon_ldap_user = OkupyLDAPUser(settings.AUTH_LDAP_BIND_DN, settings.AUTH_LDAP_BIND_PASSWORD)
                 if anon_ldap_user.search_s(filterstr = signup_form.cleaned_data['username'], scope = 'onelevel'):
-                    raise SignupError('Username already exists')
+                    raise OkupyError('Username already exists')
                 if anon_ldap_user.search_s(attr = 'mail', filterstr = signup_form.cleaned_data['email'], scope = 'onelevel'):
-                    raise SignupError('Email already exists')
+                    raise OkupyError('Email already exists')
                 anon_ldap_user.unbind_s()
                 queued_user = Queue(
                     username = signup_form.cleaned_data['username'],
@@ -90,7 +90,7 @@ def signup(request):
                 try:
                     queued_user.save()
                 except IntegrityError:
-                    raise SignupError('Account is already pending activation')
+                    raise OkupyError('Account is already pending activation')
                 except Exception as error:
                     logger.critical(error, extra=log_extra_data(request))
                     logger_mail.exception(error)
@@ -103,8 +103,8 @@ def signup(request):
                 )
                 messages.info(request, "You will shortly receive an activation mail")
                 return HttpResponseRedirect('/login/')
-            except (OkupyError, SignupError) as error:
-                messages.error(request, error.value)
+            except OkupyError, error:
+                messages.error(request, str(error))
     else:
         signup_form = SignupForm()
     return render_to_response('signup.html', {
@@ -154,6 +154,6 @@ def activate(request, token):
         # remove queued account from DB
         queued_user.delete()
         messages.success(request, "Your account has been activated successfully")
-    except OkupyError as error:
-        messages.error(request, error.value)
+    except OkupyError, error:
+        messages.error(request, str(error))
     return HttpResponseRedirect('/login/')
