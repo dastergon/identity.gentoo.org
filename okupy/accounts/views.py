@@ -50,8 +50,7 @@ def login(request):
                 raise OkupyError('Login failed')
             if user.is_active:
                 _login(request, user)
-                if not login_form.cleaned_data['remember']:
-                    request.session.set_expiry(0)
+                request.session.set_expiry(900)
                 return HttpResponseRedirect('/')
         except OkupyError, error:
             messages.error(request, str(error))

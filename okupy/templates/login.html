@@ -1,10 +1,6 @@
 <form action="." method="POST">{% csrf_token %}
     {% for field in login_form %}
-        {% if field.label == "Remember me" %}
-            {{ field }}
-        {% else %}
-            {{ field.label_tag }}{{ field }}<br />
-        {% endif %}
+        {{ field.label_tag }}{{ field }}<br />
     {% endfor %}
     <input class="button" type="submit" value="Login" name="login" />
 </form>
