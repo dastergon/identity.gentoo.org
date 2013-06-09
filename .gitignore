@@ -7,7 +7,9 @@ okupy/settings/local_settings.py
 okupy/settings/development.py
 /media
 /static
-okupy.egg-info
+/build
+/dist
+/okupy.egg-info
 .coverage
 .coveralls.yml
-htmlcov
+/htmlcov
