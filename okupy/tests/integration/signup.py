@@ -165,7 +165,7 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
 
     @mock.patch("django.db.backends.util.CursorWrapper", cursor_wrapper)
     def test_activate_no_database(self):
-        response = self.client.post(self.activate_url, self.form_data)
+        response = self.client.post(self.activate_url)
         self.assertMessage(response, "Can't contact the database", 40)
         self.assertEqual(len(mail.outbox), 1)
         self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
