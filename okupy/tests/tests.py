@@ -34,5 +34,6 @@ example_directory = {
 }
 
 # run tests modules
+from integration.index import *
 from integration.login import *
 from integration.signup import *
