@@ -98,6 +98,11 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
 
+    def test_already_authenticated_user_redirects_to_index(self):
+        response = self.client.post('/login/', self.account)
+        response = self.client.get('/login/')
+        self.assertRedirects(response, '/')
+
 class LoginTestsOneAccountInDB(OkupyTestCase):
     fixtures = ['alice']
 
