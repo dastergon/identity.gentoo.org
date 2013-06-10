@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from setuptools import setup, find_packages
 import okupy
 import os
@@ -35,6 +36,7 @@ setup(
     install_requires=[
         'django>=1.5',
         'django-auth-ldap>=1.1.4',
+        'edpwd>=0.0.1',
         'passlib>=1.6.1',
         'python-ldap>=2.4.10',
     ],
@@ -46,6 +48,5 @@ setup(
     ],
     extras_require={
         'mysql': ['mysql-python>=1.2.3'],
-        'crypto': ['pycrypto>=2.6'],
     },
 )

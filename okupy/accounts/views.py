@@ -8,9 +8,9 @@ from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from edpwd import random_string
 from okupy.accounts.forms import LoginForm, SignupForm
 from okupy.accounts.models import Queue
-from okupy.common.encryption import random_string
 from okupy.common.exceptions import OkupyError
 from okupy.common.ldapuser import OkupyLDAPUser
 from okupy.common.log import log_extra_data
