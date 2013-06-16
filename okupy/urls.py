@@ -6,4 +6,6 @@ urlpatterns = patterns('',
     (r'^login/$', login),
     (r'^signup/$', signup),
     (r'^activate/(?P<token>[a-zA-Z0-9]+)/$', activate),
+
+    (r'^openid/', include('okupy.openid.urls'))
 )
