@@ -9,11 +9,29 @@
 
 		<link rel='stylesheet' type='text/css'
 			href='{% static 'openid/openid.css' %}' />
+
+		{% block head %}{% endblock %}
 	</head>
 	<body>
 		<h1>identity.gentoo.org</h1>
 
 		<div id='content'>
+			{% block login %}
+			<div class='login'>
+				{% if user.is_authenticated %}
+
+					You are signed in as <em>{{ user.username }}</em>.
+					<a href='{% url 'openid.logout' %}'>Sign out</a>.
+
+				{% else %}
+
+					You are not signed in currently. Feel free to
+					<a href='{% url 'openid.login' %}'>sign in</a>.
+
+				{% endif %}
+			</div>
+			{% endblock %}
+
 			{% block content %}{% endblock %}
 		</div>
 	</body>

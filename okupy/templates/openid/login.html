@@ -2,6 +2,9 @@
 
 {% block title %}Sign in :: identity.gentoo.org{% endblock %}
 
+{# hide login info #}
+{% block login %}{% endblock %}
+
 {% block content %}
 	<div class='wnd'>
 		<h2>Note</h2>
@@ -13,16 +16,42 @@
 
 		<p>
 			After successful login, you will be redirected to the account
-			settings page.
+			settings page. No information will be sent to a third-party
+			server.
 		</p>
 	</div>
+
+	{% if form.errors %}
+		{# XXX: do we want more fine-grained errors? it's either #}
+		{# 'login failed', empty username or empty password. #}
+
+		<div class='wnd error'>
+			<h2>Error</h2>
+
+			<p>
+				The authentication has failed. Please ensure that you
+				entered a correct username and password.
+			<p>
+
+			<p>
+				Please note that the password field is case-sensitive. 
+			</p>
+		</div>
+	{% endif %}
 
 	<div class='wnd'>
 		<h2>Sign in</h2>
 
-		<form method='post' action='{% url 'openid.views.login' %}'>
+		<form method='post' action='{% url 'openid.login' %}'>
 			{% csrf_token %}
-			<input type='hidden' name='next' value='{{ next }}' />
+			<input type='hidden' name='next' value='{% spaceless %}
+				{% if next %}
+					{{ next }}
+				{% else %}
+					{# XXX: change this to account info page when ready #}
+					{% url 'openid.index' %}
+				{% endif %}
+			{% endspaceless %}' />
 
 			{# XXX: get rid of tables #}
 			<table>
