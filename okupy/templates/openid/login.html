@@ -1,0 +1,50 @@
+{% extends "openid/template.html" %}
+
+{% block title %}Sign in :: identity.gentoo.org{% endblock %}
+
+{% block content %}
+	<div class='wnd'>
+		<h2>Note</h2>
+
+		<p>
+			This session is <em>not</em> a part of an OpenID authentication
+			request.
+		<p>
+
+		<p>
+			After successful login, you will be redirected to the account
+			settings page.
+		</p>
+	</div>
+
+	<div class='wnd'>
+		<h2>Sign in</h2>
+
+		<form method='post' action='{% url 'openid.views.login' %}'>
+			{% csrf_token %}
+			<input type='hidden' name='next' value='{{ next }}' />
+
+			{# XXX: get rid of tables #}
+			<table>
+				<tr>
+					<td>{{ form.username.label_tag }}</td>
+					<td>{{ form.username }}</td>
+				</tr>
+
+				<tr>
+					<td>{{ form.password.label_tag }}</td>
+					<td>{{ form.password }}</td>
+				</tr>
+
+				<tr>
+					<td></td>
+					<td class='submit'>
+						<input type='submit' value='Sign in' />
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+{% endblock %}
+
+{# vim:ft=htmldjango: #}

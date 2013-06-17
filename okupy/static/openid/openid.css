@@ -1,0 +1,55 @@
+html {
+	background: #fff;
+}
+
+#content {
+	margin: 1em auto;
+	max-width: 32em;
+}
+
+h1 {
+	margin: 0 .5em;
+	text-align: right;
+	font-style: italic;
+
+	color: #ccc;
+}
+
+.wnd {
+	margin: 5em 0;
+
+	border: .1em solid #000;
+	border-radius: .5em;
+
+	background: #fafafa;
+}
+
+.wnd h2 {
+	font-size: 100%;
+
+	background: #888;
+	color: #fff;
+
+	margin: 0;
+	padding: 0 1em;
+	border-bottom: .1em solid #000;
+}
+
+.wnd p, .wnd ul, .wnd ol, .wnd dl {
+	margin: 1em;
+}
+
+.wnd table {
+	width: 100%;
+
+	margin: 1em;
+}
+
+p, ol, ul, dl, table {
+	text-align: justify;
+	line-height: 130%;
+}
+
+td {
+	padding: 0;
+}
