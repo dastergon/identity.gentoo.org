@@ -57,6 +57,13 @@ p, ol, ul, dl, table {
 	line-height: 130%;
 }
 
+pre {
+	margin: 1em;
+	line-height: 130%;
+	white-space: pre-wrap;
+	overflow: auto;
+}
+
 td {
 	padding: 0;
 }

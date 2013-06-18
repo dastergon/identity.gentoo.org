@@ -5,10 +5,16 @@ from urlparse import urljoin
 from django.conf import settings
 from django.contrib import auth
 from django.core.urlresolvers import reverse
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
 import django.contrib.auth.views as auth_views
+
+# XXX: temporary solution
+from openid.store.filestore import FileOpenIDStore
+from openid.server.server import Server, ProtocolError, EncodingError, \
+        CheckIDRequest
 
 def login(request):
     return auth_views.login(request,
@@ -39,6 +45,36 @@ def endpoint(request):
     else:
         req = request.GET
 
-    print req
+    store = FileOpenIDStore('/tmp/igo-openid')
+    srv = Server(store, endpoint_url)
 
-    return render(request, 'openid/endpoint.html')
+    try:
+        oreq = srv.decodeRequest(req)
+    except ProtocolError as e:
+        return render(request, 'openid/endpoint.html',
+                {
+                    'error': str(e)
+                })
+
+    if oreq is None:
+        return render(request, 'openid/endpoint.html')
+
+    if isinstance(oreq, CheckIDRequest):
+        oresp = oreq.answer(False)
+    else:
+        oresp = srv.handleRequest(oreq)
+
+    try:
+        eresp = srv.encodeResponse(oresp)
+    except EncodingError as e:
+        # XXX: do we want some different heading for it?
+        return render(request, 'openid/endpoint.html',
+                {
+                    'error': str(e)
+                })
+
+    dresp = HttpResponse(eresp.body, status = eresp.code)
+    for h, v in eresp.headers.items():
+        dresp[h] = v
+
+    return dresp
