@@ -16,6 +16,8 @@ from openid.store.filestore import FileOpenIDStore
 from openid.server.server import Server, ProtocolError, EncodingError, \
         CheckIDRequest
 
+from .openid_store import DjangoDBOpenIDStore
+
 def login(request):
     return auth_views.login(request,
             template_name = 'openid/login.html')
@@ -45,7 +47,7 @@ def endpoint(request):
     else:
         req = request.GET
 
-    store = FileOpenIDStore('/tmp/igo-openid')
+    store = DjangoDBOpenIDStore()
     srv = Server(store, endpoint_url)
 
     try:
