@@ -13,6 +13,7 @@ from . import models as db_models
 class DjangoDBOpenIDStore(OpenIDStore):
     def storeAssociation(self, server_uri, assoc):
         issued_dt = datetime.datetime.utcfromtimestamp(assoc.issued)
+        issued_dt = timezone.make_aware(issued_dt, timezone.utc)
         expire_delta = datetime.timedelta(seconds = assoc.lifetime)
 
         a = db_models.Association(
@@ -66,14 +67,16 @@ class DjangoDBOpenIDStore(OpenIDStore):
         return True
 
     def useNonce(self, server_uri, ts, salt):
+        nonce_dt = datetime.datetime.utcfromtimestamp(ts)
+        nonce_dt = timezone.make_aware(nonce_dt, timezone.utc)
         # copy-paste from python-openid's sqlstore
-        if abs(ts - time.time()) > nonce.SKEW:
+        if abs(nonce_dt - timezone.now()) > nonce.SKEW:
             return False
 
         objs = db_models.Nonce.objects
         n, created = objs.get_or_create(
                 server_uri = server_uri,
-                ts = datetime.datetime.utcfromtimestamp(ts),
+                ts = nonce_dt,
                 salt = salt)
 
         # if it was created, it is unique and everything's fine.
