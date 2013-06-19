@@ -30,13 +30,13 @@ def logout(request):
 def index(request):
     return render(request, 'openid/index.html')
 
-def endpoint_url():
-    return urljoin(settings.OPENID_REFERENCE_URL_PREFIX, reverse(endpoint))
+def endpoint_url(request):
+    return request.build_absolute_uri(reverse(endpoint))
 
 def test_user(request):
     return render(request, 'openid/user.html',
             {
-                'endpoint': endpoint_url()
+                'endpoint': endpoint_url(request)
             })
 
 def render_openid_response(request, oresp, srv):
@@ -63,7 +63,7 @@ def endpoint(request):
         req = request.GET
 
     store = DjangoDBOpenIDStore()
-    srv = Server(store, endpoint_url())
+    srv = Server(store, endpoint_url(request))
 
     try:
         oreq = srv.decodeRequest(req)
@@ -112,7 +112,7 @@ def auth_site(request):
                     }, status = 400)
 
         store = DjangoDBOpenIDStore()
-        srv = Server(store, endpoint_url())
+        srv = Server(store, endpoint_url(request))
         del request.session['openid_request']
         return render_openid_response(request, oresp, srv)
 
