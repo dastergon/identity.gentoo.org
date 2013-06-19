@@ -9,6 +9,7 @@ openid_urlpatterns = patterns('',
     url(r'^login/$', views.login, name='openid.login'),
     url(r'^logout/$', views.logout, name='openid.logout'),
     url(r'^endpoint/$', views.endpoint, name='openid.endpoint'),
+    url(r'^auth-site/$', views.auth_site, name='openid.auth_site'),
     # temporary view used to test openid
     url(r'^~test/$', views.test_user),
 )

@@ -50,7 +50,7 @@ h1 {
 	margin: 1em;
 }
 
-p, ol, ul, dl, table {
+p, ol, ul, dl, table, form {
 	margin: 1em;
 
 	text-align: justify;
@@ -66,4 +66,13 @@ pre {
 
 td {
 	padding: 0;
+}
+
+#trust {
+	text-align: center;
+}
+
+#trust input {
+	margin: .5em 1em;
+	width: 20%;
 }
