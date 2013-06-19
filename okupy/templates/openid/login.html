@@ -9,16 +9,33 @@
 	<div class='wnd'>
 		<h2>Note</h2>
 
-		<p>
-			This session is <em>not</em> a part of an OpenID authentication
-			request.
-		<p>
+		{% if request.session.openid_request %}
 
-		<p>
-			After successful login, you will be redirected to the account
-			settings page. No information will be sent to a third-party
-			server.
-		</p>
+			<p>
+				This session is a part of an OpenID authentication request
+				to {{ request.session.openid_request.trust_root }}.
+			</p>
+
+			<p>
+				After successful login, any preset trust rules <em>may</em>
+				be applied, resulting in immediate acceptance of the request
+				and redirect to the submitter.
+			</p>
+
+		{% else %}
+
+			<p>
+				This session is <em>not</em> a part of an OpenID authentication
+				request.
+			<p>
+
+			<p>
+				After successful login, you will be redirected to the account
+				settings page. No information will be sent to a third-party
+				server.
+			</p>
+
+		{% endif %}
 	</div>
 
 	{% if form.errors %}
