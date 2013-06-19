@@ -2,11 +2,13 @@
 
 import base64, calendar, datetime, time
 
-from . import models as db_models
+from django.utils import timezone
 
 from openid.store.interface import OpenIDStore
 from openid.association import Association
 from openid.store import nonce
+
+from . import models as db_models
 
 class DjangoDBOpenIDStore(OpenIDStore):
     def storeAssociation(self, server_uri, assoc):
@@ -40,7 +42,7 @@ class DjangoDBOpenIDStore(OpenIDStore):
             return None
 
         # expired?
-        if datetime.datetime.utcnow() >= a.expires:
+        if timezone.now() >= a.expires:
             # if latest is expired, all older are expired as well
             # so clean them all up
             objs.delete()
@@ -80,12 +82,12 @@ class DjangoDBOpenIDStore(OpenIDStore):
 
     def cleanupNonces(self):
         skew_td = datetime.timedelta(seconds = nonce.SKEW)
-        expire_dt = datetime.datetime.utcnow() - skew_td
+        expire_dt = timezone.now() - skew_td
 
         db_models.Nonce.objects.filter(ts__lt = expire_dt).delete()
         return 0
 
     def cleanupAssociations(self):
         db_models.Association.objects.filter(
-                expires__lt = datetime.datetime.utcnow()).delete()
+                expires__lt = timezone.now()).delete()
         return 0
