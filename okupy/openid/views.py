@@ -20,6 +20,18 @@ from openid.server.server import Server, ProtocolError, EncodingError, \
 from .openid_store import DjangoDBOpenIDStore
 
 def login(request):
+    if request.POST and 'cancel' in request.POST:
+        try:
+            oreq = request.session['openid_request']
+        except KeyError:
+            # 'Cancel' without request? err...
+            # cheat it to display the form again
+            request.method = 'GET'
+        else:
+            oresp = oreq.answer(False)
+            del request.session['openid_request']
+            return render_openid_response(request, oresp)
+
     return auth_views.login(request,
             template_name = 'openid/login.html')
 
@@ -39,7 +51,11 @@ def test_user(request):
                 'endpoint': endpoint_url(request)
             })
 
-def render_openid_response(request, oresp, srv):
+def render_openid_response(request, oresp, srv = None):
+    if srv is None:
+        store = DjangoDBOpenIDStore()
+        srv = Server(store, endpoint_url(request))
+
     try:
         eresp = srv.encodeResponse(oresp)
     except EncodingError as e:
@@ -111,10 +127,8 @@ def auth_site(request):
                         'error': 'Invalid request submitted.'
                     }, status = 400)
 
-        store = DjangoDBOpenIDStore()
-        srv = Server(store, endpoint_url(request))
         del request.session['openid_request']
-        return render_openid_response(request, oresp, srv)
+        return render_openid_response(request, oresp)
 
     return render(request, 'openid/auth-site.html',
             {

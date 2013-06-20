@@ -86,6 +86,9 @@
                     <td></td>
                     <td class='submit'>
                         <input type='submit' value='Sign in' />
+                        {% if request.session.openid_request %}
+                            <input type='submit' name='cancel' value='Cancel' />
+                        {% endif %}
                     </td>
                 </tr>
             </table>
