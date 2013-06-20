@@ -3,40 +3,40 @@
 {% block title %}Authenticate site :: identity.gentoo.org{% endblock %}
 
 {% block content %}
-	{% if error %}
-		<div class='wnd error'>
-			<h2>Error</h2>
+    {% if error %}
+        <div class='wnd error'>
+            <h2>Error</h2>
 
-			<p>{{ error }}</p>
-		</div>
-	{% else %}
-		<div class='wnd'>
-			<h2>Authenticate site</h2>
+            <p>{{ error }}</p>
+        </div>
+    {% else %}
+        <div class='wnd'>
+            <h2>Authenticate site</h2>
 
-			<p>
-				Would you like to allow the following site to use your
-				listed identity?
-			</p>
+            <p>
+                Would you like to allow the following site to use your
+                listed identity?
+            </p>
 
-			<dl>
-				<dt>Trust root</dt>
-				<dd>{{ request.trust_root }}</dd>
+            <dl>
+                <dt>Trust root</dt>
+                <dd>{{ request.trust_root }}</dd>
 
-				<dt>Claimed identity</dt>
-				<dd>{{ request.claimed_id }}</dd>
+                <dt>Claimed identity</dt>
+                <dd>{{ request.claimed_id }}</dd>
 
-				<dt>Identity</dt>
-				<dd>{{ request.identity }}</dd>
-			</dl>
+                <dt>Identity</dt>
+                <dd>{{ request.identity }}</dd>
+            </dl>
 
-			<form id="trust" action="" method="POST">
-				{% csrf_token %}
+            <form id="trust" action="" method="POST">
+                {% csrf_token %}
 
-				<input type='submit' name='accept' value='Yes' />
-				<input type='submit' name='reject' value='No' />
-			</form>
-		</div>
-	{% endif %}
+                <input type='submit' name='accept' value='Yes' />
+                <input type='submit' name='reject' value='No' />
+            </form>
+        </div>
+    {% endif %}
 {% endblock %}
 
-{# vim:ft=htmldjango: #}
+{# vim:se ft=htmldjango et ts=4 sw=4 sts=4 : #}

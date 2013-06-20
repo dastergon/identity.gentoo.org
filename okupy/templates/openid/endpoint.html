@@ -3,19 +3,19 @@
 {% block title %}OpenID endpoint :: identity.gentoo.org{% endblock %}
 
 {% block content %}
-	{% if error %}
-		<div class='wnd error'>
-			<h2>OpenID protocol error</h2>
+    {% if error %}
+        <div class='wnd error'>
+            <h2>OpenID protocol error</h2>
 
-			<pre>{{ error }}</pre>
-		</div>
-	{% else %}
-		<div class='wnd'>
-			<h2>OpenID endpoint</h2>
+            <pre>{{ error }}</pre>
+        </div>
+    {% else %}
+        <div class='wnd'>
+            <h2>OpenID endpoint</h2>
 
-			<p>This URI serves as an OpenID endpoint.</p>
-		</div>
-	{% endif %}
+            <p>This URI serves as an OpenID endpoint.</p>
+        </div>
+    {% endif %}
 {% endblock %}
 
-{# vim:ft=htmldjango: #}
+{# vim:se ft=htmldjango et ts=4 sw=4 sts=4 : #}
