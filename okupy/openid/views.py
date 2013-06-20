@@ -1,5 +1,6 @@
 # vim:fileencoding=utf8:et:ts=4:sw=4:sts=4
 
+import re
 from urlparse import urljoin
 
 from django.conf import settings
@@ -10,6 +11,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
 import django.contrib.auth.views as auth_views
 
 # XXX: temporary solution
@@ -23,20 +25,36 @@ import openid.yadis.discover, openid.fetchers
 from .openid_store import DjangoDBOpenIDStore
 
 def login(request):
+    oreq = request.session.get('openid_request', None)
     if request.POST and 'cancel' in request.POST:
-        try:
-            oreq = request.session['openid_request']
-        except KeyError:
-            # 'Cancel' without request? err...
-            # cheat it to display the form again
-            request.method = 'GET'
-        else:
+        if oreq is not None:
             oresp = oreq.answer(False)
             del request.session['openid_request']
             return render_openid_response(request, oresp)
+        else:
+            # cheat it to display the form again
+            request.method = 'GET'
+
+    f = AuthenticationForm
+    # set initial data if appropriate.
+    if isinstance(oreq, CheckIDRequest):
+        ref_uri = request.build_absolute_uri(reverse(user_page, args=('USERNAME',)))
+        ref_uri = re.compile(re.escape(ref_uri).replace('USERNAME', r'(\w+)'))
+        m = ref_uri.match(oreq.identity)
+        if m:
+            class PreInitAuthForm(object):
+                def __init__(self, username):
+                    self.initial = {'username': username}
+
+                def __call__(self, *args, **kwargs):
+                    kwargs['initial'] = self.initial
+                    return AuthenticationForm(*args, **kwargs)
+
+            f = PreInitAuthForm(m.group(1))
 
     return auth_views.login(request,
-            template_name = 'openid/login.html')
+            template_name = 'openid/login.html',
+            authentication_form = f)
 
 def logout(request):
     auth.logout(request)
@@ -48,10 +66,10 @@ def index(request):
 def endpoint_url(request):
     return request.build_absolute_uri(reverse(endpoint))
 
-def test_user(request):
+def user_page(request, username):
     return render(request, 'openid/user.html',
             {
-                'endpoint': endpoint_url(request)
+                'endpoint': endpoint_url(request),
             })
 
 def render_openid_response(request, oresp, srv = None):
