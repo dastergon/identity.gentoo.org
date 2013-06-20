@@ -22,11 +22,17 @@
                 <dt>Trust root</dt>
                 <dd>{{ request.trust_root }}</dd>
 
+                <dt>Return-To URL</dt>
+                <dd>{{ request.return_to }}</dd>
+
                 <dt>Claimed identity</dt>
                 <dd>{{ request.claimed_id }}</dd>
 
                 <dt>Identity</dt>
                 <dd>{{ request.identity }}</dd>
+
+                <dt>Return-To validity</dt>
+                <dd>{{ return_to_valid }}</dd>
             </dl>
 
             <form id="trust" action="" method="POST">
