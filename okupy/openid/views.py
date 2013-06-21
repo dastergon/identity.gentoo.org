@@ -139,7 +139,8 @@ def auth_site(request):
 
     if request.POST:
         if 'accept' in request.POST:
-            oresp = oreq.answer(True)
+            oresp = oreq.answer(True,
+                    identity=request.build_absolute_uri(reverse(user_page, args=(request.user.username,))))
         elif 'reject' in request.POST:
             oresp = oreq.answer(False)
         else:
