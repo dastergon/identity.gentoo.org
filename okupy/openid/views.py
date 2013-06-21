@@ -152,19 +152,16 @@ def auth_site(request):
         del request.session['openid_request']
         return render_openid_response(request, oresp)
 
-    if not oreq.trustRootValid():
-        tr_valid = 'Return-To invalid (not under trust root)'
-    else:
-        try:
-            # XXX: cache it
-            if oreq.returnToVerified():
-                tr_valid = 'Return-To valid and trusted'
-            else:
-                tr_valid = 'Return-To untrusted'
-        except openid.yadis.discover.DiscoveryFailure:
-            tr_valid = 'Unable to verify trust (Yadis unsupported)'
-        except openid.fetchers.HTTPFetchingError:
-            tr_valid = 'Unable to verify trust (HTTP error)'
+    try:
+        # XXX: cache it
+        if oreq.returnToVerified():
+            tr_valid = 'Return-To valid and trusted'
+        else:
+            tr_valid = 'Return-To untrusted'
+    except openid.yadis.discover.DiscoveryFailure:
+        tr_valid = 'Unable to verify trust (Yadis unsupported)'
+    except openid.fetchers.HTTPFetchingError:
+        tr_valid = 'Unable to verify trust (HTTP error)'
 
     return render(request, 'openid/auth-site.html',
             {
