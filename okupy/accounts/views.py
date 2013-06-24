@@ -5,8 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import login as _login, authenticate
 from django.core.mail import send_mail
 from django.db import IntegrityError
-from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import redirect, render
 from django.template import RequestContext
 from edpwd import random_string
 from okupy.accounts.forms import LoginForm, SignupForm
@@ -22,7 +21,7 @@ logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
 
 def index(request):
-    return render_to_response('index.html', {}, context_instance = RequestContext(request))
+    return render(request, 'index.html', {})
 
 def login(request):
     """ The login page """
@@ -51,17 +50,17 @@ def login(request):
             if user.is_active:
                 _login(request, user)
                 request.session.set_expiry(900)
-                return HttpResponseRedirect('/')
+                return redirect(index)
         except OkupyError, error:
             messages.error(request, str(error))
     else:
         if request.user.is_authenticated():
-            return HttpResponseRedirect('/')
+            return redirect(index)
         else:
             login_form = LoginForm()
-    return render_to_response('login.html', {
+    return render(request, 'login.html', {
         'login_form': login_form,
-    }, context_instance = RequestContext(request))
+    })
 
 def signup(request):
     """ The signup page """
@@ -101,14 +100,14 @@ def signup(request):
                     [signup_form.cleaned_data['email']]
                 )
                 messages.info(request, "You will shortly receive an activation mail")
-                return HttpResponseRedirect('/login/')
+                return redirect(login)
             except OkupyError, error:
                 messages.error(request, str(error))
     else:
         signup_form = SignupForm()
-    return render_to_response('signup.html', {
+    return render(request, 'signup.html', {
         'signup_form': signup_form,
-    }, context_instance = RequestContext(request))
+    })
 
 def activate(request, token):
     """
@@ -155,4 +154,4 @@ def activate(request, token):
         messages.success(request, "Your account has been activated successfully")
     except OkupyError, error:
         messages.error(request, str(error))
-    return HttpResponseRedirect('/login/')
+    return redirect(login)

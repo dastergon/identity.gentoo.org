@@ -10,7 +10,7 @@ setup(
     license='AGPLv3',
     author='identity.gentoo.org development team',
     author_email='identity@gentoo.org',
-    url='http://identity.gentoo.org',
+    url='http://github.com/gentoo/identity.gentoo.org',
     description='Django LDAP webUI and OpenID provider for the Gentoo Linux project',
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     keywords='django, ldap, gentoo',
