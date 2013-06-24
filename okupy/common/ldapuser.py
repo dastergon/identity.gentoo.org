@@ -10,10 +10,9 @@ logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
 
 class OkupyLDAPConnection(object):
-    def _get_ldap(self):
+    @property
+    def ldap(self):
         return _LDAPConfig.get_ldap(None)
-
-    ldap = property(_get_ldap)
 
     def _get_connection(self):
         self._connection = self.ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
