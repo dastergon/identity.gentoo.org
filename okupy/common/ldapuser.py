@@ -17,7 +17,7 @@ class OkupyLDAPConnection(object):
     def _get_connection(self):
         self._connection = self.ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
 
-        for opt, value in settings.AUTH_LDAP_CONNECTION_OPTIONS.iteritems():
+        for opt, value in settings.AUTH_LDAP_CONNECTION_OPTIONS.items():
             self._connection.set_option(opt, value)
 
         if settings.AUTH_LDAP_START_TLS:
