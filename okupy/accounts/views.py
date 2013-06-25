@@ -155,3 +155,11 @@ def activate(request, token):
     except OkupyError, error:
         messages.error(request, str(error))
     return redirect(login)
+
+def formerdevlist(request):
+    return render(request, 'former-devlist.html', {})
+
+def foundationlist(request):
+    return render(request, 'foundation-members.html', {})
+
+
