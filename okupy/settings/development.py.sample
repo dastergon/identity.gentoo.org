@@ -116,7 +116,8 @@ INSTALLED_APPS = (
 )
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = '/tmp/okupy/mail'i
+EMAIL_FILE_PATH = '/tmp/okupy/mail'
+
 #Compressor settings
 COMPRESS_ENABLED = False
 COMPRESS_PARSER = 'compressor.parser.HtmlParser'
