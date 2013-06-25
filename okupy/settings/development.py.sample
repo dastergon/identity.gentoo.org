@@ -72,6 +72,7 @@ STATICFILES_DIRS = (
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
+    'compressor.finders.CompressorFinder',
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
@@ -102,6 +103,7 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
+    'compressor',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -114,4 +116,7 @@ INSTALLED_APPS = (
 )
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = '/tmp/okupy/mail'
+EMAIL_FILE_PATH = '/tmp/okupy/mail'i
+#Compressor settings
+COMPRESS_ENABLED = False
+COMPRESS_PARSER = 'compressor.parser.HtmlParser'

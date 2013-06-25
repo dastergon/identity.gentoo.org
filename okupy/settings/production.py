@@ -71,6 +71,7 @@ STATICFILES_DIRS = (
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
+    'compressor.finders.CompressorFinder',
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
@@ -101,6 +102,7 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
+    'compressor',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -109,3 +111,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'okupy.accounts',
 )
+
+#Compressor Settings
+COMPRESS_ENABLED = True
+COMPRESS_PARSER = 'compressor.parser.HtmlParser'
