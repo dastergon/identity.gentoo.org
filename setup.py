@@ -36,6 +36,7 @@ setup(
     install_requires=[
         'django>=1.5',
         'django-auth-ldap>=1.1.4',
+        'django-compressor>=1.3',
         'edpwd>=0.0.1',
         'passlib>=1.6.1',
         'python-ldap>=2.4.10',
