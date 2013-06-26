@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from setuptools import setup, find_packages
 import okupy
@@ -10,7 +11,7 @@ setup(
     license='AGPLv3',
     author='identity.gentoo.org development team',
     author_email='identity@gentoo.org',
-    url='http://identity.gentoo.org',
+    url='http://github.com/gentoo/identity.gentoo.org',
     description='Django LDAP webUI and OpenID provider for the Gentoo Linux project',
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     keywords='django, ldap, gentoo',
@@ -30,12 +31,13 @@ setup(
         'Topic :: Software Development',
     ],
     dependency_links=[
-        # temporarily use tampakrap's fork until our patches get accepted
-        'https://bitbucket.org/tampakrap/django-auth-ldap/get/mockldap_v2.tar.gz#egg=django-auth-ldap-1.1.4.0.1',
+        # use tampakrap's fork, contains additional patches needed for the tests
+        'https://bitbucket.org/tampakrap/django-auth-ldap/get/1.1.4.0.1.tar.gz#egg=django-auth-ldap-1.1.4.0.1',
     ],
     install_requires=[
         'django>=1.5',
         'django-auth-ldap>=1.1.4',
+        'django-compressor>=1.3',
         'edpwd>=0.0.1',
         'passlib>=1.6.1',
         'python-ldap>=2.4.10',

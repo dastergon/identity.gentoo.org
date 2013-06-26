@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 # Django settings for okupy project.
 
@@ -131,6 +131,7 @@ STATICFILES_DIRS = (
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
+    'compressor.finders.CompressorFinder',
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
@@ -161,6 +162,7 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
+    'compressor',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -247,3 +249,7 @@ AUTHENTICATION_BACKENDS = (
 
 EMAIL_SUBJECT_PREFIX = '[%s]: ' % INSTANCE_NAME
 SERVER_EMAIL = 'no-reply@example.com'
+
+#Compressor Settings
+COMPRESS_ENABLED = False
+COMPRESS_PARSER = 'compressor.parser.HtmlParser'

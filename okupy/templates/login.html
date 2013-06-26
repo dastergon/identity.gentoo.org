@@ -1,11 +1,34 @@
-<form action="." method="POST">{% csrf_token %}
-    {% for field in login_form %}
-        {{ field.label_tag }}{{ field }}<br />
-    {% endfor %}
-    <input class="button" type="submit" value="Login" name="login" />
-</form>
-<a href="/recover">Forgot your password?</a>
+{% extends "base.html" %}
+
+{% block content %}
+<div class='alert' style='margin-top:20px; margin-bottom:0'>
+    Gentoo Identity is currently available as an alpha version for selected users only.
+</div>
 <br />
-{% for message in messages %}
-    {{ message }}
-{% endfor %}
+<div class="hero-unit">
+    <h1>Gentoo Identity</h1>
+    <h3 style="padding-left:20px;">Welcome to the home of the Gentoo Identity.</h3><br />
+    <p>Gentoo Identity is the central place to manage your information in Gentoo Community.</p>
+</div>
+<p>
+<div class="row">
+    <div class="span12">
+        <h2>Login</h2>
+        <br />
+        <form action="." method="POST">{% csrf_token %}
+            {% for field in login_form %}
+                {{ field.label_tag }}{{ field }}<br />
+            {% endfor %}
+            <input class="button" type="submit" value="Login" name="login" />
+        </form>
+        <a href="/recover">Forgot your password?</a>
+        <br />
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+    </div>
+</div>
+</p>
+{% endblock %}
+
+{# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}

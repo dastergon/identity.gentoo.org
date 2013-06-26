@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 # Settings for production environment
 
@@ -65,11 +65,13 @@ STATICFILES_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     settings.PROJECT_ROOT + '/okupy/static',
+    '/var/www/gentoo-identity-bootstrap',
 )
 
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
+    'compressor.finders.CompressorFinder',
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
@@ -100,6 +102,7 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
+    'compressor',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -109,3 +112,7 @@ INSTALLED_APPS = (
     'okupy.accounts',
     'okupy.openid',
 )
+
+#Compressor Settings
+COMPRESS_ENABLED = True
+COMPRESS_PARSER = 'compressor.parser.HtmlParser'

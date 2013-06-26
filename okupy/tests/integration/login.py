@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from django.conf import settings
 from django_auth_ldap.config import _LDAPConfig
@@ -7,8 +7,10 @@ from django.contrib.auth.models import User
 from django.core import mail
 from django.db import DatabaseError
 from django.test.client import Client
-from okupy.common.testcase import OkupyTestCase
-from okupy.tests.tests import example_directory
+
+from ...common.testcase import OkupyTestCase
+from ..tests import example_directory
+
 import mock
 
 class LoginTestsEmptyDB(OkupyTestCase):

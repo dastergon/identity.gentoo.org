@@ -1,24 +1,25 @@
-# -*- coding: utf-8 -*-
+# vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from django.conf import settings
 from django_auth_ldap.config import _LDAPConfig
-from okupy.common.exceptions import OkupyError
-from okupy.common.log import log_extra_data
+
+from .exceptions import OkupyError
+from .log import log_extra_data
+
 import logging
 
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
 
 class OkupyLDAPConnection(object):
-    def _get_ldap(self):
+    @property
+    def ldap(self):
         return _LDAPConfig.get_ldap(None)
-
-    ldap = property(_get_ldap)
 
     def _get_connection(self):
         self._connection = self.ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
 
-        for opt, value in settings.AUTH_LDAP_CONNECTION_OPTIONS.iteritems():
+        for opt, value in settings.AUTH_LDAP_CONNECTION_OPTIONS.items():
             self._connection.set_option(opt, value)
 
         if settings.AUTH_LDAP_START_TLS:

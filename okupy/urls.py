@@ -1,13 +1,10 @@
+# vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 from django.conf.urls import patterns, include, url
-from okupy.accounts.views import login, index, signup, activate
 
+from .accounts.urls import accounts_urlpatterns
 from .openid.urls import openid_urlpatterns
 
 urlpatterns = patterns('',
-    (r'^$', index),
-    (r'^login/$', login),
-    (r'^signup/$', signup),
-    (r'^activate/(?P<token>[a-zA-Z0-9]+)/$', activate),
-
-    (r'^openid/', include(openid_urlpatterns))
+    (r'^', include(accounts_urlpatterns)),
+    (r'^openid/', include(openid_urlpatterns)),
 )
