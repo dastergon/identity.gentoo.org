@@ -4,12 +4,16 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login as _login, authenticate
 from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
 from django.db import IntegrityError
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.template import RequestContext
+from django.views.decorators.csrf import csrf_exempt
 
 from .forms import LoginForm, SignupForm
 from .models import Queue
+from .openid_store import DjangoDBOpenIDStore
 
 from ..common.exceptions import OkupyError
 from ..common.ldapuser import OkupyLDAPUser
@@ -19,6 +23,11 @@ from edpwd import random_string
 from passlib.hash import ldap_md5_crypt
 import ldap.modlist as modlist
 import logging
+
+# for exceptions
+from openid.server.server import (Server, ProtocolError, EncodingError,
+        CheckIDRequest)
+import openid.yadis.discover, openid.fetchers
 
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
@@ -165,4 +174,66 @@ def formerdevlist(request):
 def foundationlist(request):
     return render(request, 'foundation-members.html', {})
 
+# OpenID-specific
 
+def endpoint_url(request):
+    return request.build_absolute_uri(reverse(openid_endpoint))
+
+def get_openid_server(request):
+    store = DjangoDBOpenIDStore()
+    return Server(store, endpoint_url(request))
+
+def render_openid_response(request, oresp, srv = None):
+    if srv is None:
+        srv = get_openid_server(request)
+
+    try:
+        eresp = srv.encodeResponse(oresp)
+    except EncodingError as e:
+        # XXX: do we want some different heading for it?
+        return render(request, 'openid_endpoint.html',
+                {
+                    'error': str(e)
+                }, status = 500)
+
+    dresp = HttpResponse(eresp.body, status = eresp.code)
+    for h, v in eresp.headers.items():
+        dresp[h] = v
+
+    return dresp
+
+@csrf_exempt
+def openid_endpoint(request):
+    if request.method == 'POST':
+        req = request.POST
+    else:
+        req = request.GET
+
+    srv = get_openid_server(request)
+
+    try:
+        oreq = srv.decodeRequest(req)
+    except ProtocolError as e:
+        # XXX: we are supposed to send some error to the caller
+        return render(request, 'openid_endpoint.html',
+                {
+                    'error': str(e)
+                }, status = 400)
+
+    if oreq is None:
+        return render(request, 'openid_endpoint.html')
+
+    if isinstance(oreq, CheckIDRequest):
+        # immediate requests not supported yet, so immediately
+        # reject them.
+        if oreq.immediate:
+            oresp = oreq.answer(False)
+        else:
+            # XXX: to be migrated
+            oresp = oreq.answer(False)
+#            request.session['openid_request'] = oreq
+#            return redirect(auth_site)
+    else:
+        oresp = srv.handleRequest(oreq)
+
+    return render_openid_response(request, oresp, srv)
