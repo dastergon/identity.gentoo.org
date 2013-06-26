@@ -1,7 +1,8 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from django.test.client import Client
-from okupy.common.testcase import OkupyTestCase
+
+from ...common.testcase import OkupyTestCase
 
 class IndexTests(OkupyTestCase):
     def setUp(self):

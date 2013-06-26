@@ -2,8 +2,10 @@
 
 from django.conf import settings
 from django_auth_ldap.config import _LDAPConfig
-from okupy.common.exceptions import OkupyError
-from okupy.common.log import log_extra_data
+
+from .exceptions import OkupyError
+from .log import log_extra_data
+
 import logging
 
 logger = logging.getLogger('okupy')

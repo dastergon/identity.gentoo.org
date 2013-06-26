@@ -7,9 +7,11 @@ from django.contrib.auth.models import User
 from django.core import mail
 from django.db import DatabaseError
 from django.test.client import Client
-from okupy.accounts.models import Queue
-from okupy.common.testcase import OkupyTestCase
-from okupy.tests.tests import example_directory
+
+from ...accounts.models import Queue
+from ...common.testcase import OkupyTestCase
+from ..tests import example_directory
+
 import mock
 
 class SignupTestsEmptyDB(OkupyTestCase):

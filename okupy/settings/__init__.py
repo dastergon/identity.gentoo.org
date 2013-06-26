@@ -9,17 +9,17 @@ import os
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__)) + '/../..'
 
 try:
-    from local_settings import *
+    from .local_settings import *
 except ImportError:
     raise Exception('No local_settings.py found, please copy local_settings.py.sample and edit it accordingly')
 
 if DEVELOPMENT:
     try:
-        from development import *
+        from .development import *
     except ImportError:
         raise Exception('No development.py found, please copy development.py.sample and edit it accordingly if needed')
 else:
-    from production import *
+    from .production import *
 
 MANAGERS = ADMINS
 
