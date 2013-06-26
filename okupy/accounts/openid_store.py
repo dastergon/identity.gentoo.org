@@ -1,4 +1,4 @@
-# vim:fileencoding=utf8:et:ts=4:sw=4:sts=4
+# vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 import base64, calendar, datetime, time
 
@@ -16,7 +16,7 @@ class DjangoDBOpenIDStore(OpenIDStore):
         issued_dt = timezone.make_aware(issued_dt, timezone.utc)
         expire_delta = datetime.timedelta(seconds = assoc.lifetime)
 
-        a = db_models.Association(
+        a = db_models.OpenID_Association(
                 server_uri = server_uri,
                 handle = assoc.handle,
                 secret = base64.b64encode(assoc.secret),
@@ -26,7 +26,7 @@ class DjangoDBOpenIDStore(OpenIDStore):
         a.save()
 
     def _db_getAssocs(self, server_uri, handle = None):
-        objs = db_models.Association.objects
+        objs = db_models.OpenID_Association.objects
         objs = objs.filter(server_uri = server_uri)
         if handle is not None:
             objs = objs.filter(handle = handle)
@@ -39,7 +39,7 @@ class DjangoDBOpenIDStore(OpenIDStore):
         objs = self._db_getAssocs(server_uri, handle)
         try:
             a = objs.latest('issued')
-        except db_models.Association.DoesNotExist:
+        except db_models.OpenID_Association.DoesNotExist:
             return None
 
         # expired?
@@ -73,7 +73,7 @@ class DjangoDBOpenIDStore(OpenIDStore):
         if abs(nonce_dt - timezone.now()) > nonce.SKEW:
             return False
 
-        objs = db_models.Nonce.objects
+        objs = db_models.OpenID_Nonce.objects
         n, created = objs.get_or_create(
                 server_uri = server_uri,
                 ts = nonce_dt,
@@ -87,10 +87,10 @@ class DjangoDBOpenIDStore(OpenIDStore):
         skew_td = datetime.timedelta(seconds = nonce.SKEW)
         expire_dt = timezone.now() - skew_td
 
-        db_models.Nonce.objects.filter(ts__lt = expire_dt).delete()
+        db_models.OpenID_Nonce.objects.filter(ts__lt = expire_dt).delete()
         return 0
 
     def cleanupAssociations(self):
-        db_models.Association.objects.filter(
+        db_models.OpenID_Association.objects.filter(
                 expires__lt = timezone.now()).delete()
         return 0
