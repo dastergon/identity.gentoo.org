@@ -7,12 +7,15 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.shortcuts import redirect, render
 from django.template import RequestContext
+
+from .forms import LoginForm, SignupForm
+from .models import Queue
+
+from ..common.exceptions import OkupyError
+from ..common.ldapuser import OkupyLDAPUser
+from ..common.log import log_extra_data
+
 from edpwd import random_string
-from okupy.accounts.forms import LoginForm, SignupForm
-from okupy.accounts.models import Queue
-from okupy.common.exceptions import OkupyError
-from okupy.common.ldapuser import OkupyLDAPUser
-from okupy.common.log import log_extra_data
 from passlib.hash import ldap_md5_crypt
 import ldap.modlist as modlist
 import logging
