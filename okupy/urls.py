@@ -6,5 +6,4 @@ from .openid.urls import openid_urlpatterns
 
 urlpatterns = patterns('',
     (r'^', include(accounts_urlpatterns)),
-    (r'^openid/', include(openid_urlpatterns)),
 )

@@ -99,9 +99,9 @@ LOGGING = {
     }
 }
 
-LOGIN_URL = '/openid/login/'
-LOGIN_REDIRECT_URL = '/openid/'
-LOGOUT_URL = '/openid/logout/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_URL = '/logout/'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Custom authentication backend
