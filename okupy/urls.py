@@ -1,4 +1,4 @@
-# vim:fileencoding=utf8:et:ts=4:sts=4:tw=4:ft=python
+# vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 from django.conf.urls import patterns, include, url
 from okupy.accounts.views import login, index, signup, activate, formerdevlist, foundationlist
 
