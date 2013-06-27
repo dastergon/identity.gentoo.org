@@ -8,12 +8,6 @@ from django.conf import settings
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
-# Instance name, used in:
-# * prefix of the notification mails: "[${INSTANCE_NAME}] ${TITLE}"
-# * log dir name: /var/log/${INSTANCE_NAME}
-# * console logs: ${INSTANCE_NAME} ${IP} ${ERROR}
-INSTANCE_NAME = 'okupy'
-
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
@@ -41,7 +35,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = '/var/www/identity.gentoo.org/htdocs/media/'
+MEDIA_ROOT = '/var/www/' + settings.INSTANCE_NAME + '/htdocs/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -52,7 +46,7 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = '/var/www/identity.gentoo.org/htdocs/static/'
+STATIC_ROOT = '/var/www/' + settings.INSTANCE_NAME + '/htdocs/static/'
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
