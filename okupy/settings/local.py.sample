@@ -11,6 +11,14 @@ ADMINS = (
 # Select "True" for development environment, "False" for production environment
 DEVELOPMENT = True
 
+# Instance name, used in:
+# * log dir name: /var/log/okupy/${INSTANCE_NAME}
+# * console logs: ${INSTANCE_NAME} ${IP} ${ERROR}
+# * prefix of the notification mails: "[${INSTANCE_NAME}] ${TITLE}"
+# * (production only): {MEDIA,STATIC}_ROOT: /var/www/${INSTANCE_NAME}/htdocs/{media,static}
+# Examples: okupy, okupy-dev, identity.gentoo.org
+INSTANCE_NAME = 'okupy-dev'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -53,7 +61,6 @@ AUTH_LDAP_ADMIN_BIND_PASSWORD = ''
 
 AUTH_LDAP_USER_ATTR = 'uid'
 AUTH_LDAP_USER_BASE_DN = 'ou=people,o=test'
-AUTH_LDAP_USER_DN_TEMPLATE = AUTH_LDAP_USER_ATTR + '=%(user)s,' + AUTH_LDAP_USER_BASE_DN
 
 AUTH_LDAP_PERMIT_EMPTY_PASSWORD = False
 

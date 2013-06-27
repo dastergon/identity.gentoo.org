@@ -9,12 +9,6 @@ from django.conf import settings
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
-# Instance name, used in:
-# * prefix of the notification mails: "[${INSTANCE_NAME}] ${TITLE}"
-# * log dir name: /var/log/${INSTANCE_NAME}
-# * console logs: ${INSTANCE_NAME} ${IP} ${ERROR}
-INSTANCE_NAME = 'okupy-dev'
-
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
