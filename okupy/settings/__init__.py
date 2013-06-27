@@ -104,6 +104,8 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_URL = '/logout/'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+AUTH_LDAP_USER_DN_TEMPLATE = AUTH_LDAP_USER_ATTR + '=%(user)s,' + AUTH_LDAP_USER_BASE_DN
+
 # Custom authentication backend
 AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
