@@ -3,7 +3,7 @@
 *.kdev4
 *.kate-swp
 *.db
-okupy/settings/local_settings.py
+okupy/settings/local.py
 okupy/settings/development.py
 /media
 /static

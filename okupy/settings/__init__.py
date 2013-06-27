@@ -9,15 +9,15 @@ import os
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__)) + '/../..'
 
 try:
-    from .local_settings import *
+    from .local import *
 except ImportError:
-    raise Exception('No local_settings.py found, please copy local_settings.py.sample and edit it accordingly')
+    raise Exception('No settings/local.py found, please copy settings/local.py.sample and edit it accordingly')
 
 if DEVELOPMENT:
     try:
         from .development import *
     except ImportError:
-        raise Exception('No development.py found, please copy development.py.sample and edit it accordingly if needed')
+        raise Exception('No settings/development.py found, please copy settings/development.py.sample and edit it accordingly if needed')
 else:
     from .production import *
 
@@ -111,5 +111,5 @@ AUTHENTICATION_BACKENDS = (
 )
 
 # email sending variables regarding server authentication
-# and configuration should be specified in local_settings
+# and configuration should be specified in settings/local.py
 EMAIL_SUBJECT_PREFIX = '[%s]: ' % INSTANCE_NAME
