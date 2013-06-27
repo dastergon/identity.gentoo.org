@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login as _login, authenticate
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.shortcuts import redirect, render
@@ -23,6 +24,7 @@ import logging
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
 
+@login_required
 def index(request):
     return render(request, 'index.html', {})
 
