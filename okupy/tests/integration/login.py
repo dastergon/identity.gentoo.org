@@ -1,12 +1,11 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from django.conf import settings
-from django_auth_ldap.config import _LDAPConfig
-from django_auth_ldap.tests import MockLDAP
 from django.contrib.auth.models import User
 from django.core import mail
 from django.db import DatabaseError
 from django.test.client import Client
+from mockldap import MockLdap
 
 from ...common.testcase import OkupyTestCase
 from ..tests import example_directory
@@ -17,14 +16,18 @@ class LoginTestsEmptyDB(OkupyTestCase):
     cursor_wrapper = mock.Mock()
     cursor_wrapper.side_effect = DatabaseError
 
+    @classmethod
+    def setUpClass(cls):
+        cls.mockldap = MockLdap(example_directory)
+
     def setUp(self):
         self.client = Client()
-        self._mock_ldap = MockLDAP(example_directory)
-        self.ldap = _LDAPConfig.ldap = self._mock_ldap
         self.account = {'username': 'alice', 'password': 'ldaptest'}
+        self.mockldap.start()
+        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
     def tearDown(self):
-        self._mock_ldap.reset()
+        self.mockldap.stop()
 
     def test_template(self):
         response = self.client.get('/login/')
@@ -76,10 +79,11 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertEqual(user.email, '')
 
     def test_no_ldap(self):
-        _LDAPConfig.ldap = None
+        self.mockldap.stop()
         response = self.client.post('/login/', self.account)
         self.assertMessage(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 0)
+        self.mockldap.start()
 
     def test_weird_account(self):
         account = {'username': 'dreßler', 'password': 'password'}
@@ -117,21 +121,26 @@ class LoginTestsEmptyDB(OkupyTestCase):
 class LoginTestsOneAccountInDB(OkupyTestCase):
     fixtures = ['alice']
 
+    @classmethod
+    def setUpClass(cls):
+        cls.mockldap = MockLdap(example_directory)
+
     def setUp(self):
         self.client = Client()
-        self._mock_ldap = MockLDAP(example_directory)
-        self.ldap = _LDAPConfig.ldap = self._mock_ldap
         self.account1 = {'username': 'alice', 'password': 'ldaptest'}
         self.account2 = {'username': 'bob', 'password': 'ldapmoretest'}
+        self.mockldap.start()
+        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
     def tearDown(self):
-        self._mock_ldap.reset()
+        self.mockldap.stop()
 
     def test_dont_authenticate_from_db_when_ldap_is_down(self):
-        _LDAPConfig.ldap = None
+        self.mockldap.stop()
         response = self.client.post('/login/', self.account1)
         self.assertMessage(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 1)
+        self.mockldap.start()
 
     def test_authenticate_account_that_is_already_in_db(self):
         response = self.client.post('/login/', self.account1)

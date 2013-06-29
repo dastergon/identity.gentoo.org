@@ -1,9 +1,8 @@
 django>=1.5
-# use tampakrap's fork, contains additional patches needed for the tests
-#django-auth-ldap>=1.1.4
-hg+https://bitbucket.org/tampakrap/django-auth-ldap@1.1.4.0.1#egg=django-auth-ldap-1.1.4.0.1
+django-auth-ldap>=1.1.4
 django-compressor>=1.3
 edpwd>=0.0.1
 mock>=1.0.1
+hg+https://bitbucket.org/psagers/mockldap#egg=mockldap
 passlib>=1.6.1
 python-ldap>=2.4.10

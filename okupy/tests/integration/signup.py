@@ -1,12 +1,11 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from django.conf import settings
-from django_auth_ldap.config import _LDAPConfig
-from django_auth_ldap.tests import MockLDAP
 from django.contrib.auth.models import User
 from django.core import mail
 from django.db import DatabaseError
 from django.test.client import Client
+from mockldap import MockLdap
 
 from ...accounts.models import Queue
 from ...common.testcase import OkupyTestCase
@@ -61,10 +60,12 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
     cursor_wrapper = mock.Mock()
     cursor_wrapper.side_effect = DatabaseError
 
+    @classmethod
+    def setUpClass(cls):
+        cls.mockldap = MockLdap(example_directory)
+
     def setUp(self):
         self.client = Client()
-        self._mock_ldap = MockLDAP(example_directory)
-        self.ldap = _LDAPConfig.ldap = self._mock_ldap
         self.queued_account = Queue.objects.get(pk=1)
         self.activate_url = '/activate/%s/' % self.queued_account.token
         self.form_data = {
@@ -75,16 +76,18 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
             'password_origin': 'testpassword',
             'password_verify': 'testpassword',
         }
+        self.mockldap.start()
+        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
     def tearDown(self):
-        self._mock_ldap.reset()
+        self.mockldap.stop()
 
     def test_add_queued_account_to_ldap(self):
         response = self.client.get(self.activate_url)
         self.assertRedirects(response, '/login/')
         self.assertMessage(response, 'Your account has been activated successfully', 25)
         self.assertEqual(Queue.objects.count(), 0)
-        ldap_account = self._mock_ldap.directory['uid=%s,ou=people,o=test' % self.queued_account.username]
+        ldap_account = self.ldapobject.directory['uid=%s,ou=people,o=test' % self.queued_account.username]
         self.assertEqual(ldap_account['uid'][0], self.queued_account.username)
         self.assertEqual(ldap_account['givenName'][0], self.queued_account.first_name)
         self.assertEqual(ldap_account['sn'][0], self.queued_account.last_name)
@@ -99,21 +102,23 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertMessage(response, 'Invalid URL', 40)
 
     def test_signup_no_ldap(self):
-        _LDAPConfig.ldap = None
+        self.mockldap.stop()
         response = self.client.post('/signup/', self.form_data)
         self.assertMessage(response, "Can't contact LDAP server", 40)
         self.assertEqual(Queue.objects.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, '%sERROR: {\'desc\': "Can\'t contact LDAP server"}' % settings.EMAIL_SUBJECT_PREFIX)
+        self.mockldap.start()
 
     def test_activate_no_ldap(self):
-        _LDAPConfig.ldap = None
+        self.mockldap.stop()
         response = self.client.get(self.activate_url)
         self.assertRedirects(response, '/login/')
         self.assertMessage(response, "Can't contact LDAP server", 40)
         self.assertEqual(Queue.objects.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, '%sERROR: {\'desc\': "Can\'t contact LDAP server"}' % settings.EMAIL_SUBJECT_PREFIX)
+        self.mockldap.start()
 
     def test_wrong_activation_link(self):
         response = self.client.get('/activate/invalidurl/')
@@ -173,13 +178,12 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
 
     def test_add_first_user_empty_ldap_directory(self):
-        self._mock_ldap = MockLDAP([])
-        self.ldap = _LDAPConfig.ldap = self._mock_ldap
+        self.ldapobject.directory = {}
         response = self.client.post(self.activate_url)
         self.assertRedirects(response, '/login/')
         self.assertMessage(response, 'Your account has been activated successfully', 25)
         self.assertEqual(Queue.objects.count(), 0)
-        ldap_account = self._mock_ldap.directory['uid=%s,ou=people,o=test' % self.queued_account.username]
+        ldap_account = self.ldapobject.directory['uid=%s,ou=people,o=test' % self.queued_account.username]
         self.assertEqual(ldap_account['uid'][0], self.queued_account.username)
         self.assertEqual(ldap_account['givenName'][0], self.queued_account.first_name)
         self.assertEqual(ldap_account['sn'][0], self.queued_account.last_name)
