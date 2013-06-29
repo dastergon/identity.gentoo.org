@@ -2,7 +2,7 @@
 from django.conf.urls import patterns, url
 
 from .views import (login, index, signup, activate, formerdevlist,
-        foundationlist, openid_endpoint, user_page)
+        foundationlist, openid_endpoint, user_page, openid_auth_site)
 
 accounts_urlpatterns = patterns('',
     url(r'^$', index),
@@ -13,4 +13,5 @@ accounts_urlpatterns = patterns('',
     url(r'^activate/(?P<token>[a-zA-Z0-9]+)/$', activate),
     url(r'^endpoint/$', openid_endpoint),
     url(r'^id/(.*)/$', user_page),
+    url(r'^auth-site/$', openid_auth_site),
 )

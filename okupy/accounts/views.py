@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login as _login, authenticate
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
@@ -229,10 +230,8 @@ def openid_endpoint(request):
         if oreq.immediate:
             oresp = oreq.answer(False)
         else:
-            # XXX: to be migrated
-            oresp = oreq.answer(False)
-#            request.session['openid_request'] = oreq
-#            return redirect(auth_site)
+            request.session['openid_request'] = oreq
+            return redirect(openid_auth_site)
     else:
         oresp = srv.handleRequest(oreq)
 
@@ -242,3 +241,46 @@ def user_page(request, username):
     return render(request, 'user-page.html', {
         'endpoint_uri': endpoint_url(request)
     })
+
+@login_required
+def openid_auth_site(request):
+    try:
+        oreq = request.session['openid_request']
+    except KeyError:
+        return render(request, 'openid-auth-site.html',
+                {
+                    'error': 'No OpenID request associated. The request may have expired.'
+                }, status = 400)
+
+    if request.POST:
+        if 'accept' in request.POST:
+            oresp = oreq.answer(True,
+                    identity=request.build_absolute_uri(
+                        reverse(user_page, args=(request.user.username,))))
+        elif 'reject' in request.POST:
+            oresp = oreq.answer(False)
+        else:
+            return render(request, 'openid-auth-site.html',
+                    {
+                        'error': 'Invalid request submitted.'
+                    }, status = 400)
+
+        del request.session['openid_request']
+        return render_openid_response(request, oresp)
+
+    try:
+        # XXX: cache it
+        if oreq.returnToVerified():
+            tr_valid = 'Return-To valid and trusted'
+        else:
+            tr_valid = 'Return-To untrusted'
+    except openid.yadis.discover.DiscoveryFailure:
+        tr_valid = 'Unable to verify trust (Yadis unsupported)'
+    except openid.fetchers.HTTPFetchingError:
+        tr_valid = 'Unable to verify trust (HTTP error)'
+
+    return render(request, 'openid-auth-site.html',
+            {
+                'openid_request': oreq,
+                'return_to_valid': tr_valid,
+            })
