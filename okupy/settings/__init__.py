@@ -39,11 +39,11 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'okupy': {
+        'verbose': {
             'format': '%(instance_name)s: %(levelname)s %(id_name)s %(client_ip)s Message: %(message)s File: %(module)s Function: %(funcName)s Line: %(lineno)d',
         },
-        'django_auth_ldap': {
-            'format': 'django-auth-ldap: %(levelname)s Message: %(message)s',
+        'simple': {
+            'format': '$(instance_name)s: %(levelname)s Message: %(message)s File: %(module)s Function: %(funcName)s Line: %(lineno)d',
         },
     },
     'filters': {
@@ -58,26 +58,26 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True,
         },
+        'console_v': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'syslog_v': {
+            'level': 'INFO',
+            'class': 'logging.handlers.SysLogHandler',
+            'formatter': 'verbose',
+            'address': '/dev/log',
+        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'okupy',
+            'formatter': 'simple',
         },
         'syslog': {
             'level': 'INFO',
             'class': 'logging.handlers.SysLogHandler',
-            'formatter': 'okupy',
-            'address': '/dev/log',
-        },
-        'dlaconsole': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'django_auth_ldap',
-        },
-        'dlasyslog': {
-            'level': 'INFO',
-            'class': 'logging.handlers.SysLogHandler',
-            'formatter': 'django_auth_ldap',
+            'formatter': 'simple',
             'address': '/dev/log',
         },
 
@@ -89,11 +89,15 @@ LOGGING = {
             'propagate': True,
         },
         'okupy': {
+            'handlers': ['console_v' if DEBUG else 'syslog_v'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        },
+        'okupy_simple': {
             'handlers': ['console' if DEBUG else 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
         'django_auth_ldap': {
-            'handlers': ['dlaconsole' if DEBUG else 'dlasyslog'],
+            'handlers': ['console' if DEBUG else 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
     }
