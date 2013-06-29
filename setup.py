@@ -16,7 +16,6 @@ setup(
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     keywords='django, ldap, gentoo',
     packages=find_packages(),
-    data_files=[('', ['LICENSE', 'manage.py', 'README.md'])],
     include_package_data=True,
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -37,7 +36,7 @@ setup(
         'django>=1.5',
         'django-auth-ldap>=1.1.4',
         'django-compressor>=1.3',
-        'edpwd>=0.0.1',
+        'edpwd>=0.0.7',
         'passlib>=1.6.1',
         'python-ldap>=2.4.10',
     ],
