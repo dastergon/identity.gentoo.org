@@ -237,3 +237,8 @@ def openid_endpoint(request):
         oresp = srv.handleRequest(oreq)
 
     return render_openid_response(request, oresp, srv)
+
+def user_page(request, username):
+    return render(request, 'user-page.html', {
+        'endpoint_uri': endpoint_url(request)
+    })

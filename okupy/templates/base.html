@@ -9,6 +9,7 @@
         <meta name="description" content="" />
         <meta name="author" content="" />
         <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,400italic,700,700italic,600" rel="stylesheet" />
+        {% block extra_head %}{% endblock %}
         {% compress css %}
         <link href="{% static "css/bootstrap.css" %}"  rel="stylesheet" charset="utf-8"/>
         <link href="{% static "css/bootstrap-responsive.css" %}" rel="stylesheet" charset="utf-8"/>
