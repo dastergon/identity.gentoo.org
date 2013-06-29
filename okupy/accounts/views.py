@@ -2,7 +2,7 @@
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login as _login, authenticate
+from django.contrib.auth import login as _login, logout as _logout, authenticate
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.shortcuts import redirect, render
@@ -64,6 +64,11 @@ def login(request):
     return render(request, 'login.html', {
         'login_form': login_form,
     })
+
+def logout(request):
+    """ The logout page """
+    _logout(request)
+    return redirect(login)
 
 def signup(request):
     """ The signup page """

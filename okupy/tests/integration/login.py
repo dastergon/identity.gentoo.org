@@ -105,6 +105,15 @@ class LoginTestsEmptyDB(OkupyTestCase):
         response = self.client.get('/login/')
         self.assertRedirects(response, '/')
 
+    def test_logout_for_logged_in_user(self):
+        response = self.client.post('/login/', self.account)
+        response = self.client.get('/logout/')
+        self.assertRedirects(response, '/login/')
+
+    def test_logout_for_anonymous_user(self):
+        response = self.client.get('/logout/')
+        self.assertRedirects(response, '/login/')
+
 class LoginTestsOneAccountInDB(OkupyTestCase):
     fixtures = ['alice']
 
