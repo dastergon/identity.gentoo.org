@@ -63,12 +63,12 @@ def login(request):
             if user.is_active:
                 _login(request, user)
                 request.session.set_expiry(900)
-                return redirect(index)
+                return redirect(request.GET.get('next', index))
         except OkupyError, error:
             messages.error(request, str(error))
     else:
         if request.user.is_authenticated():
-            return redirect(index)
+            return redirect(request.GET.get('next', index))
         else:
             login_form = LoginForm()
     return render(request, 'login.html', {
