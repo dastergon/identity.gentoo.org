@@ -16,7 +16,6 @@ setup(
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     keywords='django, ldap, gentoo',
     packages=find_packages(),
-    data_files=[('', ['LICENSE', 'manage.py', 'README.md'])],
     include_package_data=True,
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -31,14 +30,13 @@ setup(
         'Topic :: Software Development',
     ],
     dependency_links=[
-        # use tampakrap's fork, contains additional patches needed for the tests
-        'https://bitbucket.org/tampakrap/django-auth-ldap/get/1.1.4.0.1.tar.gz#egg=django-auth-ldap-1.1.4.0.1',
+        'https://bitbucket.org/psagers/mockldap/get/default.tar.gz#egg=mockldap',
     ],
     install_requires=[
         'django>=1.5',
         'django-auth-ldap>=1.1.4',
         'django-compressor>=1.3',
-        'edpwd>=0.0.1',
+        'edpwd>=0.0.7',
         'passlib>=1.6.1',
         'python-ldap>=2.4.10',
     ],
@@ -46,6 +44,7 @@ setup(
         'setuptools>=0.6c11',
     ],
     tests_require=[
+        'mockldap',
         'mock>=1.0.1',
     ],
     extras_require={

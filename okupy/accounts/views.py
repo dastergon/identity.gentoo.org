@@ -13,11 +13,11 @@ from .forms import LoginForm, SignupForm
 from .models import Queue
 
 from ..common.exceptions import OkupyError
-from ..common.ldapuser import OkupyLDAPUser
 from ..common.log import log_extra_data
 
 from edpwd import random_string
 from passlib.hash import ldap_md5_crypt
+import ldap
 import ldap.modlist as modlist
 import logging
 
@@ -81,10 +81,20 @@ def signup(request):
             try:
                 if signup_form.cleaned_data['password_origin'] != signup_form.cleaned_data['password_verify']:
                     raise OkupyError("Passwords don't match")
-                anon_ldap_user = OkupyLDAPUser(settings.AUTH_LDAP_BIND_DN, settings.AUTH_LDAP_BIND_PASSWORD)
-                if anon_ldap_user.search_s(filterstr = signup_form.cleaned_data['username'], scope = 'onelevel'):
+                try:
+                    anon_ldap_user = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
+                    anon_ldap_user.simple_bind_s(settings.AUTH_LDAP_BIND_DN, settings.AUTH_LDAP_BIND_PASSWORD)
+                except Exception as error:
+                    logger.critical(error, extra=log_extra_data(request))
+                    logger_mail.exception(error)
+                    raise OkupyError("Can't contact LDAP server")
+                if anon_ldap_user.search_s(
+                        settings.AUTH_LDAP_USER_BASE_DN, ldap.SCOPE_ONELEVEL,
+                        filterstr = '(uid=%s)' % signup_form.cleaned_data['username']):
                     raise OkupyError('Username already exists')
-                if anon_ldap_user.search_s(attr = 'mail', filterstr = signup_form.cleaned_data['email'], scope = 'onelevel'):
+                if anon_ldap_user.search_s(
+                        settings.AUTH_LDAP_USER_BASE_DN, ldap.SCOPE_ONELEVEL,
+                        filterstr = '(mail=%s)' % signup_form.cleaned_data['email']):
                     raise OkupyError('Email already exists')
                 anon_ldap_user.unbind_s()
                 queued_user = Queue(
@@ -136,7 +146,13 @@ def activate(request, token):
             logger_mail.exception(error)
             raise OkupyError("Can't contact the database")
         # add account to ldap
-        admin_ldap_user = OkupyLDAPUser(settings.AUTH_LDAP_ADMIN_BIND_DN, settings.AUTH_LDAP_ADMIN_BIND_PASSWORD)
+        try:
+            admin_ldap_user = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
+            admin_ldap_user.simple_bind_s(settings.AUTH_LDAP_ADMIN_BIND_DN, settings.AUTH_LDAP_ADMIN_BIND_PASSWORD)
+        except Exception as error:
+            logger.critical(error, extra=log_extra_data(request))
+            logger_mail.exception(error)
+            raise OkupyError("Can't contact LDAP server")
         new_user = {
             'uid': [str(queued_user.username)],
             'userPassword': [ldap_md5_crypt.encrypt(queued_user.password)],
@@ -150,7 +166,10 @@ def activate(request, token):
             new_user['cn'] = ['%s %s' % (queued_user.first_name, queued_user.last_name)]
         if 'posixAccount' in new_user['objectClass']:
             try:
-                max_uidnumber = admin_ldap_user.search_s(attr='uidNumber', scope='onelevel', attrlist=['uidNumber'])[-1][1]['uidNumber'][0]
+                max_uidnumber = admin_ldap_user.search_s(
+                    settings.AUTH_LDAP_USER_BASE_DN, ldap.SCOPE_ONELEVEL,
+                    '(uidNumber=*)', ['uidNumber']
+                )[-1][1]['uidNumber'][0]
             except IndexError:
                 max_uidnumber = 0
             new_user['uidNumber'] = [str(int(max_uidnumber) + 1)]
@@ -171,5 +190,3 @@ def formerdevlist(request):
 
 def foundationlist(request):
     return render(request, 'foundation-members.html', {})
-
-
