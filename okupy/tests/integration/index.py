@@ -1,20 +1,24 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
+from django.conf import settings
 from django.test.client import Client
-from django_auth_ldap.config import _LDAPConfig
-from django_auth_ldap.tests import MockLDAP
+from mockldap import MockLdap
 
 from ...common.testcase import OkupyTestCase
 from ..tests import example_directory
 
 class IndexTests(OkupyTestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mockldap = MockLdap(example_directory)
+
     def setUp(self):
         self.client = Client()
-        self._mock_ldap = MockLDAP(example_directory)
-        self.ldap = _LDAPConfig.ldap = self._mock_ldap
+        self.mockldap.start()
+        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
     def tearDown(self):
-        self._mock_ldap.reset()
+        self.mockldap.stop()
 
     def test_redirect_to_login_for_anonymous(self):
         response = self.client.get('/')
