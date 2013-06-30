@@ -6,3 +6,4 @@ mock>=1.0.1
 hg+https://bitbucket.org/psagers/mockldap#egg=mockldap
 passlib>=1.6.1
 python-ldap>=2.4.10
+python-openid>=2.2.5

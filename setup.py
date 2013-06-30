@@ -39,6 +39,7 @@ setup(
         'edpwd>=0.0.7',
         'passlib>=1.6.1',
         'python-ldap>=2.4.10',
+        'python-openid>=2.2.5',
     ],
     setup_requires=[
         'setuptools>=0.6c11',

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block extra_head %}
+    <link rel="openid.server" href="{{ endpoint_uri }}" />
+    <link rel="openid2.provider" href="{{ endpoint_uri }}" />
+{% endblock %}
+{% block content %}
+<div class="hero-unit">
+    <h1>User page</h1>
+</div>
+<p>
+<div class="row">
+    <div class="span12">
+        <p>In the future, here the user profile will be.</p>
+    </div>
+</div>
+</p>
+{% endblock %}
+
+{# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}

@@ -5,12 +5,16 @@ from django.contrib import messages
 from django.contrib.auth import login as _login, logout as _logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
 from django.db import IntegrityError
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.template import RequestContext
+from django.views.decorators.csrf import csrf_exempt
 
 from .forms import LoginForm, SignupForm
 from .models import Queue
+from .openid_store import DjangoDBOpenIDStore
 
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
@@ -20,6 +24,11 @@ from passlib.hash import ldap_md5_crypt
 import ldap
 import ldap.modlist as modlist
 import logging
+
+from openid.server.server import (Server, ProtocolError, EncodingError,
+        CheckIDRequest)
+# for exceptions
+import openid.yadis.discover, openid.fetchers
 
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
@@ -32,39 +41,58 @@ def login(request):
     """ The login page """
     login_form = None
     user = None
+    oreq = request.session.get('openid_request', None)
+
+    if request.method == "POST" and 'cancel' in request.POST:
+        if oreq is not None:
+            oresp = oreq.answer(False)
+            del request.session['openid_request']
+            return render_openid_response(request, oresp)
+        else:
+            # cheat it to display the form again
+            request.method = 'GET'
+
     if request.method == "POST":
-        login_form = LoginForm(request.POST)
-        try:
-            if login_form.is_valid():
-                username = login_form.cleaned_data['username']
-                password = login_form.cleaned_data['password']
-            else:
-                raise OkupyError('Login failed')
-            """
-            Perform authentication, if it retrieves a user object then
-            it was successful. If it retrieves None then it failed to login
-            """
+        if 'cancel' in request.POST:
+            if oreq is not None:
+                oresp = oreq.answer(False)
+                del request.session['openid_request']
+                return render_openid_response(request, oresp)
+        else:
+            login_form = LoginForm(request.POST)
             try:
-                user = authenticate(username = username, password = password)
-            except Exception as error:
-                logger.critical(error, extra=log_extra_data(request))
-                logger_mail.exception(error)
-                raise OkupyError("Can't contact the LDAP server or the database")
-            if not user:
-                raise OkupyError('Login failed')
-            if user.is_active:
-                _login(request, user)
-                request.session.set_expiry(900)
-                return redirect(index)
-        except OkupyError, error:
-            messages.error(request, str(error))
+                if login_form.is_valid():
+                    username = login_form.cleaned_data['username']
+                    password = login_form.cleaned_data['password']
+                else:
+                    raise OkupyError('Login failed')
+                """
+                Perform authentication, if it retrieves a user object then
+                it was successful. If it retrieves None then it failed to login
+                """
+                try:
+                    user = authenticate(username = username, password = password)
+                except Exception as error:
+                    logger.critical(error, extra=log_extra_data(request))
+                    logger_mail.exception(error)
+                    raise OkupyError("Can't contact the LDAP server or the database")
+                if not user:
+                    raise OkupyError('Login failed')
+                if user.is_active:
+                    _login(request, user)
+                    request.session.set_expiry(900)
+                    return redirect(request.GET.get('next', index))
+            except OkupyError, error:
+                messages.error(request, str(error))
     else:
         if request.user.is_authenticated():
-            return redirect(index)
+            return redirect(request.GET.get('next', index))
         else:
             login_form = LoginForm()
+
     return render(request, 'login.html', {
         'login_form': login_form,
+        'openid_request': oreq,
     })
 
 def logout(request):
@@ -190,3 +218,113 @@ def formerdevlist(request):
 
 def foundationlist(request):
     return render(request, 'foundation-members.html', {})
+
+# OpenID-specific
+
+def endpoint_url(request):
+    return request.build_absolute_uri(reverse(openid_endpoint))
+
+def get_openid_server(request):
+    store = DjangoDBOpenIDStore()
+    return Server(store, endpoint_url(request))
+
+def render_openid_response(request, oresp, srv = None):
+    if srv is None:
+        srv = get_openid_server(request)
+
+    try:
+        eresp = srv.encodeResponse(oresp)
+    except EncodingError as e:
+        # XXX: do we want some different heading for it?
+        return render(request, 'openid_endpoint.html',
+                {
+                    'error': str(e)
+                }, status = 500)
+
+    dresp = HttpResponse(eresp.body, status = eresp.code)
+    for h, v in eresp.headers.items():
+        dresp[h] = v
+
+    return dresp
+
+@csrf_exempt
+def openid_endpoint(request):
+    if request.method == 'POST':
+        req = request.POST
+    else:
+        req = request.GET
+
+    srv = get_openid_server(request)
+
+    try:
+        oreq = srv.decodeRequest(req)
+    except ProtocolError as e:
+        # XXX: we are supposed to send some error to the caller
+        return render(request, 'openid_endpoint.html',
+                {
+                    'error': str(e)
+                }, status = 400)
+
+    if oreq is None:
+        return render(request, 'openid_endpoint.html')
+
+    if isinstance(oreq, CheckIDRequest):
+        # immediate requests not supported yet, so immediately
+        # reject them.
+        if oreq.immediate:
+            oresp = oreq.answer(False)
+        else:
+            request.session['openid_request'] = oreq
+            return redirect(openid_auth_site)
+    else:
+        oresp = srv.handleRequest(oreq)
+
+    return render_openid_response(request, oresp, srv)
+
+def user_page(request, username):
+    return render(request, 'user-page.html', {
+        'endpoint_uri': endpoint_url(request)
+    })
+
+@login_required
+def openid_auth_site(request):
+    try:
+        oreq = request.session['openid_request']
+    except KeyError:
+        return render(request, 'openid-auth-site.html',
+                {
+                    'error': 'No OpenID request associated. The request may have expired.'
+                }, status = 400)
+
+    if request.POST:
+        if 'accept' in request.POST:
+            oresp = oreq.answer(True,
+                    identity=request.build_absolute_uri(
+                        reverse(user_page, args=(request.user.username,))))
+        elif 'reject' in request.POST:
+            oresp = oreq.answer(False)
+        else:
+            return render(request, 'openid-auth-site.html',
+                    {
+                        'error': 'Invalid request submitted.'
+                    }, status = 400)
+
+        del request.session['openid_request']
+        return render_openid_response(request, oresp)
+
+    try:
+        # XXX: cache it
+        if oreq.returnToVerified():
+            tr_valid = 'Return-To valid and trusted'
+        else:
+            tr_valid = 'Return-To untrusted'
+    except openid.yadis.discover.DiscoveryFailure:
+        tr_valid = 'Unable to verify trust (Yadis unsupported)'
+    except openid.fetchers.HTTPFetchingError:
+        tr_valid = 'Unable to verify trust (HTTP error)'
+
+    return render(request, 'openid-auth-site.html',
+            {
+                'openid_request': oreq,
+                'return_to_valid': tr_valid,
+            })

@@ -1,4 +1,5 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
+
 from django.db import models
 
 class Queue(models.Model):
@@ -8,3 +9,25 @@ class Queue(models.Model):
     last_name = models.CharField(max_length=100)
     email = models.EmailField(max_length=254, unique=True)
     token = models.CharField(max_length=40)
+
+# Models for OpenID data store
+
+class OpenID_Nonce(models.Model):
+    class Meta:
+        unique_together = ('server_uri', 'ts', 'salt')
+
+    server_uri = models.URLField(max_length = 2048)
+    ts = models.DateTimeField()
+    salt = models.CharField(max_length = 40)
+
+class OpenID_Association(models.Model):
+    class Meta:
+        unique_together = ('server_uri', 'handle')
+
+    server_uri = models.URLField(max_length = 2048)
+    handle = models.CharField(max_length = 255)
+    # XXX: BinaryField in newer versions of django
+    secret = models.CharField(max_length = 128)
+    issued = models.DateTimeField()
+    expires = models.DateTimeField()
+    assoc_type = models.CharField(max_length = 64)

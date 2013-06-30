@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero-unit">
+    <h1>Authenticate site</h1>
+</div>
+<p>
+<div class="row">
+    <div class="span12">
+        {% if error %}
+            <p>{{ error }}</p>
+        {% else %}
+            <p>
+                Would you like to allow the following site to use your
+                listed identity?
+            </p>
+
+            <dl>
+                <dt>Trust root</dt>
+                <dd>{{ openid_request.trust_root }}</dd>
+
+                <dt>Return-To URL</dt>
+                <dd>{{ openid_request.return_to }}</dd>
+
+                <dt>Claimed identity</dt>
+                <dd>{{ openid_request.claimed_id }}</dd>
+
+                <dt>Identity</dt>
+                <dd>{{ openid_request.identity }}</dd>
+
+                <dt>Return-To validity</dt>
+                <dd>{{ return_to_valid }}</dd>
+            </dl>
+
+            <form id="trust" action="" method="POST">
+                {% csrf_token %}
+
+                <input type='submit' name='accept' value='Yes' />
+                <input type='submit' name='reject' value='No' />
+            </form>
+        </div>
+    {% endif %}
+</div>
+</p>
+{% endblock %}
+
+{# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}
