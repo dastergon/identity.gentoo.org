@@ -9,7 +9,7 @@ from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from django.template import RequestContext
+#from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
 from .forms import LoginForm, SignupForm
@@ -35,7 +35,34 @@ logger_mail = logging.getLogger('mail_okupy')
 
 @login_required
 def index(request):
-    return render(request, 'index.html', {})
+    anon_ldap_user = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
+    results = anon_ldap_user.search_s(settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': request.user}, ldap.SCOPE_SUBTREE, '(uid=%s)' % (request.user) )
+    attrs = results[0][1]
+
+    ldap_personal_info = {
+        'Real Name': attrs['cn'][0],
+        'Nickname': attrs['uid'][0],
+        'Location': attrs['gentooLocation'][0],
+    }
+
+    ldap_contact_info = {
+        'Emails': attrs['mail'][0],
+        'IRC Nickname':attrs['gentooIM'][0],
+    }
+
+    ldap_gentoo_info = {
+        'Herds': attrs['herd'][0],
+        'Roles': attrs['gentooRoles'][0],
+        'Date Joined': attrs['gentooJoin'][0],
+        'Mentor': attrs['gentooMentor'][0],
+        'Recruitment Bug': attrs['gentooDevBug'][0],
+    }
+    anon_ldap_user.unbind_s()
+    return render(request, 'index.html', {
+        'ldap_personal_info': ldap_personal_info,
+        'ldap_contact_info': ldap_contact_info,
+        'ldap_gentoo_info': ldap_gentoo_info
+    })
 
 def login(request):
     """ The login page """
@@ -212,6 +239,10 @@ def activate(request, token):
     except OkupyError, error:
         messages.error(request, str(error))
     return redirect(login)
+
+
+def devlist(request):
+    return render(request, 'devlist.html', {})
 
 def formerdevlist(request):
     return render(request, 'former-devlist.html', {})
