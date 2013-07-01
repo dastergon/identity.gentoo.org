@@ -9,7 +9,6 @@ from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-#from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
 from .forms import LoginForm, SignupForm
