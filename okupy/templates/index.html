@@ -4,41 +4,41 @@
 <div id="pageRow" class="container">
     <div class="row">
         <div id="page" class="span10">
-            <div>
-                <div class="row-fluid">
-                    <div class="row-fluid">
-                        <p><div class="span12">
-                <h3>Personal Information</h3><br />
-                <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw0">
-                    {% for key,attr in ldap_personal_info.items %}
-                        <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
-                    {% endfor %}
-                </table>
+            <div class="row-fluid">
+                <p>
+                <div class="span9">
+                    <h3>Personal Information</h3><br />
+                    <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw0">
+                        {% for key,attr in ldap_personal_info.items %}
+                            <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
+                        {% endfor %}
+                    </table>
                 </p>
-            </div>
-        </div>
-                    <div class="row-fluid">
-                        <p><div class="span12">
-                <h3>Contact Information</h3><br />
-                <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw1">
-                    {% for key,attr in ldap_contact_info.items %}
-                        <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
-                    {% endfor %}
-                </table>
-                </p>
-            </div>
-        </div>
-        <div class="row-fluid">
-            <p><div class="span12">
-                <h3>Gentoo related Information</h3><br />
-                <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw1">
-                    {% for key,attr in ldap_gentoo_info.items %}
-                        <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
-                    {% endfor %}
-                </table></p>
-                        </div>
-                    </div>
                 </div>
+            </div>
+            <div class="row-fluid">
+                <p>
+                <div class="span9">
+                    <h3>Contact Information</h3><br />
+                    <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw1">
+                        {% for key,attr in ldap_contact_info.items %}
+                            <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                </p>
+            </div>
+            <div class="row-fluid">
+                <p>
+                <div class="span9">
+                    <h3>Gentoo related Information</h3><br />
+                    <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw1">
+                        {% for key,attr in ldap_gentoo_info.items %}
+                            <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                </p>
             </div>
         </div>
     </div>

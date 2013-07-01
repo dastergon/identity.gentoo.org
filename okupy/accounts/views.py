@@ -37,26 +37,30 @@ def index(request):
     anon_ldap_user = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
     results = anon_ldap_user.search_s(settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': request.user}, ldap.SCOPE_SUBTREE, '(uid=%s)' % (request.user) )
     attrs = results[0][1]
+    personal_attributes = { 'cn':'Real Name', 'uid':'Nickname', 'gentooLocation':'Location' }
+    contact_attributes = { 'mail':'Email', 'gentooIM':'IM Nickname' }
+    gentoo_attributes= { 'herd':'Herds', 'gentooRoles': 'Roles', 'gentooJoin':'Date Joined', 'gentooMentor':'Mentor', 'gentooDevBug':'Recruitment Bug', 'gentooRetired':'Retired'}
+    ldap_personal_info = {}
+    ldap_contact_info = {}
+    ldap_gentoo_info = {}
 
-    ldap_personal_info = {
-        'Real Name': attrs['cn'][0],
-        'Nickname': attrs['uid'][0],
-        'Location': attrs['gentooLocation'][0],
-    }
+    for k,v in personal_attributes.items():
+        attrs[k] = attrs.get(k,['Empty, when it should be'])
+        ldap_personal_info[v] = attrs[k][0]
 
-    ldap_contact_info = {
-        'Emails': attrs['mail'][0],
-        'IRC Nickname':attrs['gentooIM'][0],
-    }
+    for k,v in contact_attributes.items():
+        attrs[k] = attrs.get(k,[''])
+        ldap_contact_info[v] = attrs[k][0]
 
-    ldap_gentoo_info = {
-        'Herds': attrs['herd'][0],
-        'Roles': attrs['gentooRoles'][0],
-        'Date Joined': attrs['gentooJoin'][0],
-        'Mentor': attrs['gentooMentor'][0],
-        'Recruitment Bug': attrs['gentooDevBug'][0],
-    }
+    for k,v in gentoo_attributes.items():
+        if k== 'gentooRetired' and k not in attrs:
+            continue
+        else:
+            attrs[k] = attrs.get(k,[''])
+            ldap_gentoo_info[v] = attrs[k][0]
+
     anon_ldap_user.unbind_s()
+
     return render(request, 'index.html', {
         'ldap_personal_info': ldap_personal_info,
         'ldap_contact_info': ldap_contact_info,
