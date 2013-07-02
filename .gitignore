@@ -13,3 +13,5 @@ okupy/settings/development.py
 .coverage
 .coveralls.yml
 /htmlcov
+.ropeproject
+.virtualenv
