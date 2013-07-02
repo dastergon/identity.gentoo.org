@@ -3,7 +3,6 @@
 
 from setuptools import setup, find_packages
 import okupy
-import os
 
 setup(
     name='okupy',
@@ -13,7 +12,7 @@ setup(
     author_email='identity@gentoo.org',
     url='http://github.com/gentoo/identity.gentoo.org',
     description='Django LDAP webUI and OpenID provider for the Gentoo Linux project',
-    long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
+    long_description=open('README.md').read(),
     keywords='django, ldap, gentoo',
     packages=find_packages(),
     include_package_data=True,
