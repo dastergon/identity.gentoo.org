@@ -92,7 +92,7 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertEqual(ldap_account['givenName'][0], self.queued_account.first_name)
         self.assertEqual(ldap_account['sn'][0], self.queued_account.last_name)
         self.assertEqual(ldap_account['objectClass'], settings.AUTH_LDAP_USER_OBJECTCLASS)
-        self.assertEqual(ldap_account['uidNumber'][0], '1003')
+        self.assertEqual(ldap_account['uidNumber'][0], '1002')
         self.assertEqual(ldap_account['mail'][0], self.queued_account.email)
         data={'username': self.queued_account.username, 'password': 'queuedpass'}
         response = self.client.post('/login/', data)

@@ -20,16 +20,6 @@ example_directory = {
         "givenName": ["Robert"],
         "sn": ["Barker"],
         "mail": ["bob@test.com"],
-    },
-    u"uid=dreßler,ou=people,o=test".encode('utf-8'): {
-        "uid": [u"dreßler".encode('utf-8')],
-        "objectClass": ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"],
-        "userPassword": ['{CRYPT}$1$kQ3GmP3k$oKSdmDpdepvrni/JQQ4Ri.'],
-        "uidNumber": ["1002"],
-        "gidNumber": ["50"],
-        "givenName": ["Wolfgang"],
-        "sn": [u"Dreßler".encode('utf-8')],
-        "mail": ["dressler@test.com"],
     }
 }
 
