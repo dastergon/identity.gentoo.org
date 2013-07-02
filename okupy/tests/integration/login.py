@@ -85,18 +85,6 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertEqual(User.objects.count(), 0)
         self.mockldap.start()
 
-    def test_weird_account(self):
-        account = {'username': 'dreßler', 'password': 'password'}
-        response = self.client.post('/login/', account)
-        self.assertRedirects(response, '/')
-        user = User.objects.get(pk=1)
-        self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(user.username, u'dreßler')
-        self.assert_(not user.has_usable_password())
-        self.assertEqual(user.first_name, '')
-        self.assertEqual(user.last_name, '')
-        self.assertEqual(user.email, '')
-
     @mock.patch("django.db.backends.util.CursorWrapper", cursor_wrapper)
     def test_no_database(self):
         response = self.client.post('/login/', self.account)
