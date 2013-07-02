@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero-unit">
+    <h1>Developers List</h1>
+    <p>List of active Gentoo developers.</p>
+</div>
+<p>
+<div class="row">
+    <div class="span12">
+        <h2>Developer List</h2><br />
+        <table class="table table-striped sortable" >
+            <tr>
+                <td class="infohead"><b>Username</b></td>
+                <td class="infohead"><b>Name</b></td>
+                <td class="infohead"><b>GPG key</b></td>
+                <td class="infohead"><b>Location</b></td>
+                <td class="infohead"><b>Areas of responsibility</b></td>
+            </tr>
+            <tr>
+                <td style="color:#5c4f85;"><b>mgorny</b></td>
+                <td>Michał Górny</td>
+                <td>0xDF84256885283521</td>
+                <td><a href="devmap.xml?dev=mgorny">near Poznan, Poland</a></td>
+                <td class="tableinfo">-</td>
+            </tr>
+            <tr>
+                <td class="infohead" style="color:#5c4f85;"><b>tampakrap</b></td>
+                <td class="tableinfo">Theo Chatzimichos</td>
+                <td class="tableinfo">0x57DC0078</td>
+                <td class="tableinfo"><a href="devmap.xml?dev=tampakrap">Larissa, Greece</a></td>
+                <td class="tableinfo">Infrastructure</td>
+            </tr>
+            <tr>
+                <td class="infohead" style="color:#5c4f85;"><b>dastergon</b></td>
+                <td class="tableinfo">Pavlos Ratis</td>
+                <td class="tableinfo">0x3A051746</td>
+                <td class="tableinfo">Serres, Greece</td>
+                <td class="tableinfo">kde</td>
+            </tr>
+        </table>
+    </div>
+</div>
+</p>
+{% endblock %}
+
+{# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}

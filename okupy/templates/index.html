@@ -1,46 +1,48 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="hero-unit">
-    <h1>Developers List</h1>
-    <p>List of active Gentoo developers.</p>
-</div>
-<p>
-<div class="row">
-    <div class="span12">
-        <h2>Developer List</h2><br />
-        <table class="table table-striped sortable" >
-            <tr>
-                <td class="infohead"><b>Username</b></td>
-                <td class="infohead"><b>Name</b></td>
-                <td class="infohead"><b>GPG key</b></td>
-                <td class="infohead"><b>Location</b></td>
-                <td class="infohead"><b>Areas of responsibility</b></td>
-            </tr>
-            <tr>
-                <td style="color:#5c4f85;"><b>mgorny</b></td>
-                <td>Michał Górny</td>
-                <td>0xDF84256885283521</td>
-                <td><a href="devmap.xml?dev=mgorny">near Poznan, Poland</a></td>
-                <td class="tableinfo">-</td>
-            </tr>
-            <tr>
-                <td class="infohead" style="color:#5c4f85;"><b>tampakrap</b></td>
-                <td class="tableinfo">Theo Chatzimichos</td>
-                <td class="tableinfo">0x57DC0078</td>
-                <td class="tableinfo"><a href="devmap.xml?dev=tampakrap">Larissa, Greece</a></td>
-                <td class="tableinfo">Infrastructure</td>
-            </tr>
-            <tr>
-                <td class="infohead" style="color:#5c4f85;"><b>dastergon</b></td>
-                <td class="tableinfo">Pavlos Ratis</td>
-                <td class="tableinfo">0x3A051746</td>
-                <td class="tableinfo">Serres, Greece</td>
-                <td class="tableinfo">kde</td>
-            </tr>
-        </table>
+<div id="pageRow" class="container">
+    <div class="row">
+        <div id="page" class="span10">
+            <div class="row-fluid">
+                <p>
+                <div class="span9">
+                    <h3>Personal Information</h3><br />
+                    <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw0">
+                        {% for key,attr in ldap_personal_info.items %}
+                            <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
+                        {% endfor %}
+                    </table>
+                </p>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <p>
+                <div class="span9">
+                    <h3>Contact Information</h3><br />
+                    <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw1">
+                        {% for key,attr in ldap_contact_info.items %}
+                            <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                </p>
+            </div>
+            <div class="row-fluid">
+                <p>
+                <div class="span9">
+                    <h3>Gentoo related Information</h3><br />
+                    <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw1">
+                        {% for key,attr in ldap_gentoo_info.items %}
+                            <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                </p>
+            </div>
+        </div>
     </div>
 </div>
-</p>
 {% endblock %}
 
 {# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}

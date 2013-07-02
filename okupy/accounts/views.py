@@ -9,7 +9,6 @@ from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
 from .forms import LoginForm, SignupForm
@@ -35,7 +34,38 @@ logger_mail = logging.getLogger('mail_okupy')
 
 @login_required
 def index(request):
-    return render(request, 'index.html', {})
+    anon_ldap_user = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
+    results = anon_ldap_user.search_s(settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': request.user}, ldap.SCOPE_SUBTREE, '(uid=%s)' % (request.user) )
+    attrs = results[0][1]
+    personal_attributes = { 'cn':'Real Name', 'uid':'Nickname', 'gentooLocation':'Location' }
+    contact_attributes = { 'mail':'Email', 'gentooIM':'IM Nickname' }
+    gentoo_attributes= { 'herd':'Herds', 'gentooRoles': 'Roles', 'gentooJoin':'Date Joined', 'gentooMentor':'Mentor', 'gentooDevBug':'Recruitment Bug', 'gentooRetired':'Retired'}
+    ldap_personal_info = {}
+    ldap_contact_info = {}
+    ldap_gentoo_info = {}
+
+    for k,v in personal_attributes.items():
+        attrs[k] = attrs.get(k,['Empty, when it should be'])
+        ldap_personal_info[v] = attrs[k][0]
+
+    for k,v in contact_attributes.items():
+        attrs[k] = attrs.get(k,[''])
+        ldap_contact_info[v] = attrs[k][0]
+
+    for k,v in gentoo_attributes.items():
+        if k== 'gentooRetired' and k not in attrs:
+            continue
+        else:
+            attrs[k] = attrs.get(k,[''])
+            ldap_gentoo_info[v] = attrs[k][0]
+
+    anon_ldap_user.unbind_s()
+
+    return render(request, 'index.html', {
+        'ldap_personal_info': ldap_personal_info,
+        'ldap_contact_info': ldap_contact_info,
+        'ldap_gentoo_info': ldap_gentoo_info
+    })
 
 def login(request):
     """ The login page """
@@ -212,6 +242,10 @@ def activate(request, token):
     except OkupyError, error:
         messages.error(request, str(error))
     return redirect(login)
+
+
+def devlist(request):
+    return render(request, 'devlist.html', {})
 
 def formerdevlist(request):
     return render(request, 'former-devlist.html', {})
