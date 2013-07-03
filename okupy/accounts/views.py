@@ -11,23 +11,24 @@ from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
+
 from edpwd import random_string
-from passlib.hash import ldap_md5_crypt
 from openid.server.server import (Server, ProtocolError, EncodingError,
                                   CheckIDRequest)
-# for exceptions
+from passlib.hash import ldap_md5_crypt
+
+from .forms import LoginForm, SignupForm
+from .models import Queue
+from .openid_store import DjangoDBOpenIDStore
+from ..common.exceptions import OkupyError
+from ..common.log import log_extra_data
+
+# the following two are for exceptions
 import openid.yadis.discover
 import openid.fetchers
 import ldap
 import ldap.modlist as modlist
 import logging
-
-from .forms import LoginForm, SignupForm
-from .models import Queue
-from .openid_store import DjangoDBOpenIDStore
-
-from ..common.exceptions import OkupyError
-from ..common.log import log_extra_data
 
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
