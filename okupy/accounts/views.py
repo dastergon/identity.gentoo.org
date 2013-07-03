@@ -301,7 +301,7 @@ def render_openid_response(request, oresp, srv=None):
     try:
         eresp = srv.encodeResponse(oresp)
     except EncodingError as e:
-        # XXX: do we want some different heading for it?
+        # TODO: do we want some different heading for it?
         return render(request, 'openid_endpoint.html', {
             'error': str(e),
         }, status=500)
@@ -325,7 +325,7 @@ def openid_endpoint(request):
     try:
         oreq = srv.decodeRequest(req)
     except ProtocolError as e:
-        # XXX: we are supposed to send some error to the caller
+        # TODO: we are supposed to send some error to the caller
         return render(request, 'openid_endpoint.html', {
             'error': str(e),
         }, status=400)
@@ -378,7 +378,7 @@ def openid_auth_site(request):
         return render_openid_response(request, oresp)
 
     try:
-        # XXX: cache it
+        # TODO: cache it
         if oreq.returnToVerified():
             tr_valid = 'Return-To valid and trusted'
         else:
