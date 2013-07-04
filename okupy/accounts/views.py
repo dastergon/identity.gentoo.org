@@ -26,7 +26,7 @@ import ldap.modlist as modlist
 import logging
 
 from openid.server.server import (Server, ProtocolError, EncodingError,
-        CheckIDRequest)
+        CheckIDRequest, ENCODE_URL, ENCODE_KVFORM, ENCODE_HTML_FORM)
 # for exceptions
 import openid.yadis.discover, openid.fetchers
 
@@ -259,11 +259,17 @@ def openid_endpoint(request):
     try:
         oreq = srv.decodeRequest(req)
     except ProtocolError as e:
-        # XXX: we are supposed to send some error to the caller
-        return render(request, 'openid_endpoint.html',
-                {
-                    'error': str(e)
-                }, status = 400)
+        if e.whichEncoding() == ENCODE_URL:
+            return redirect(e.encodeToURL())
+        elif e.whichEncoding() == ENCODE_HTML_FORM:
+            return HttpResponse(e.toHTML())
+        elif e.whichEncoding() == ENCODE_KVFORM:
+            return HttpResponse(e.encodeToKVForm(), status = 400)
+        else:
+            return render(request, 'openid_endpoint.html',
+                    {
+                        'error': str(e)
+                    }, status = 400)
 
     if oreq is None:
         return render(request, 'openid_endpoint.html')
