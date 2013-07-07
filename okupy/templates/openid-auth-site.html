@@ -34,6 +34,19 @@
             <form id="trust" action="" method="POST">
                 {% csrf_token %}
 
+                <fieldset>
+                    <legend>User information</legend>
+
+                    {% for w in form %}
+                        {% if w.name in sreg %}
+                            <div>
+                                {{ w }} {{ w.label }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                </fieldset>
+
                 <input type='submit' name='accept' value='Yes' />
                 <input type='submit' name='reject' value='No' />
             </form>

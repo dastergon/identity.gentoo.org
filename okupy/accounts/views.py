@@ -12,7 +12,7 @@ from django.shortcuts import redirect, render
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
-from .forms import LoginForm, SignupForm
+from .forms import LoginForm, SignupForm, SiteAuthForm
 from .models import Queue
 from .openid_store import DjangoDBOpenIDStore
 
@@ -25,6 +25,7 @@ import ldap
 import ldap.modlist as modlist
 import logging
 
+from openid.extensions.sreg import SRegRequest
 from openid.server.server import (Server, ProtocolError, EncodingError,
         CheckIDRequest, ENCODE_URL, ENCODE_KVFORM, ENCODE_HTML_FORM)
 # for exceptions
@@ -302,7 +303,22 @@ def openid_auth_site(request):
                     'error': 'No OpenID request associated. The request may have expired.'
                 }, status = 400)
 
+    sreg = SRegRequest.fromOpenIDRequest(oreq)
+
     if request.POST:
+        form = SiteAuthForm(request.POST)
+
+        # can it be invalid somehow?
+        assert(form.is_valid())
+        attrs = form.save(commit = False)
+
+        # nullify fields that were not requested
+        for fn in form.cleaned_data:
+            if hasattr(attrs, fn) and fn not in sreg:
+                setattr(attrs, fn, None)
+
+        # TODO: actually send the data
+
         if 'accept' in request.POST:
             oresp = oreq.answer(True,
                     identity=request.build_absolute_uri(
@@ -329,8 +345,11 @@ def openid_auth_site(request):
     except openid.fetchers.HTTPFetchingError:
         tr_valid = 'Unable to verify trust (HTTP error)'
 
+    form = SiteAuthForm()
     return render(request, 'openid-auth-site.html',
             {
                 'openid_request': oreq,
                 'return_to_valid': tr_valid,
+                'form': form,
+                'sreg': sreg,
             })
