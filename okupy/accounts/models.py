@@ -2,6 +2,7 @@
 
 from django.db import models
 
+
 class Queue(models.Model):
     username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=30)
@@ -12,22 +13,24 @@ class Queue(models.Model):
 
 # Models for OpenID data store
 
+
 class OpenID_Nonce(models.Model):
+    server_uri = models.URLField(max_length=2048)
+    ts = models.DateTimeField()
+    salt = models.CharField(max_length=40)
+
     class Meta:
         unique_together = ('server_uri', 'ts', 'salt')
 
-    server_uri = models.URLField(max_length = 2048)
-    ts = models.DateTimeField()
-    salt = models.CharField(max_length = 40)
 
 class OpenID_Association(models.Model):
-    class Meta:
-        unique_together = ('server_uri', 'handle')
-
-    server_uri = models.URLField(max_length = 2048)
-    handle = models.CharField(max_length = 255)
-    # XXX: BinaryField in newer versions of django
-    secret = models.CharField(max_length = 128)
+    server_uri = models.URLField(max_length=2048)
+    handle = models.CharField(max_length=255)
+    # TODO: BinaryField in newer versions of django
+    secret = models.CharField(max_length=128)
     issued = models.DateTimeField()
     expires = models.DateTimeField()
-    assoc_type = models.CharField(max_length = 64)
+    assoc_type = models.CharField(max_length=64)
+
+    class Meta:
+        unique_together = ('server_uri', 'handle')

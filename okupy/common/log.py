@@ -2,11 +2,12 @@
 
 from django.conf import settings
 
-def log_extra_data(additional = None):
+
+def log_extra_data(additional=None):
     '''
     Extra data needed by the custom formatter
-    * If the additional argument is a string or unicode, then its value is printed
-    in the log.
+    * If the additional argument is a string or unicode, then its value is
+    printed in the log.
     * If the additional argument is the request, then from the request it
     prints the client IP and username if applicable.
     '''

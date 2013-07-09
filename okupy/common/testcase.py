@@ -3,7 +3,9 @@
 from django.test import TestCase
 from django.contrib.messages.storage.cookie import CookieStorage
 
+
 class OkupyTestCase(TestCase):
+
     def _get_matches(self, response, text):
         """ Get messages that match the given text """
         messages = self._get_messages(response)
@@ -19,7 +21,8 @@ class OkupyTestCase(TestCase):
             messages = response.context['messages']
         except (TypeError, KeyError):
             try:
-                messages = CookieStorage(response)._decode(response.cookies['messages'].value)
+                messages = CookieStorage(response)._decode(
+                    response.cookies['messages'].value)
             except KeyError:
                 return
         return messages
@@ -35,7 +38,7 @@ class OkupyTestCase(TestCase):
             actual_num = 0
         if actual_num != expect_num:
             self.fail('Message count was %d, expected %d' %
-                (actual_num, expect_num))
+                     (actual_num, expect_num))
 
     def assertMessage(self, response, text, level=None):
         """
@@ -46,18 +49,19 @@ class OkupyTestCase(TestCase):
             msg = matches[0]
             if level is not None and msg.level != level:
                 self.fail('There was one matching message but with different '
-                    'level: %s != %s' % (msg.level, level))
+                          'level: %s != %s' % (msg.level, level))
         elif len(matches) == 0:
-            messages_str = ", ".join('"%s"' % m for m in self._get_messages(response))
+            messages_str = ", ".join(
+                '"%s"' % m for m in self._get_messages(response))
             self.fail('No message contained text "%s", messages were: %s' %
-                (text, messages_str))
+                     (text, messages_str))
         else:
             self.fail('Multiple messages contained text "%s": %s' %
-                (text, ", ".join(('"%s"' % m) for m in matches)))
+                     (text, ", ".join(('"%s"' % m) for m in matches)))
 
     def assertNotMessage(self, response, text):
         """ Assert that no message contains the given text. """
         matches = self._get_matches(response, text)
         if len(matches) > 0:
             self.fail('Message(s) contained text "%s": %s' %
-                (text, ", ".join(('"%s"' % m) for m in matches)))
+                     (text, ", ".join(('"%s"' % m) for m in matches)))
