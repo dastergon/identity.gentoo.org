@@ -80,7 +80,6 @@ LOGGING = {
             'formatter': 'simple',
             'address': '/dev/log',
         },
-
     },
     'loggers': {
         'mail_okupy': {
