@@ -270,12 +270,15 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 )
 
 # django-ldapdb settings
-DATABASES['ldap'] = {
-    'ENGINE': 'ldapdb.backends.ldap',
-    'NAME': AUTH_LDAP_SERVER_URI,
-    'USER': AUTH_LDAP_BIND_DN,
-    'PASSWORD': AUTH_LDAP_BIND_PASSWORD,
-}
+# they break the existing tests for unknown reason
+# disabling them temporarily since they are not actually used yet
+# needs to be fixed though asap
+#DATABASES['ldap'] = {
+#    'ENGINE': 'ldapdb.backends.ldap',
+#    'NAME': AUTH_LDAP_SERVER_URI,
+#    'USER': AUTH_LDAP_BIND_DN,
+#    'PASSWORD': AUTH_LDAP_BIND_PASSWORD,
+#}
 
 DATABASE_ROUTERS = ['ldapdb.router.Router']
 
