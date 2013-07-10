@@ -66,20 +66,8 @@ AUTH_LDAP_PERMIT_EMPTY_PASSWORD = False
 
 AUTH_LDAP_START_TLS = False
 
-#AUTH_LDAP_GROUP_SEARCH
-#AUTH_LDAP_GROUP_TYPE
-#AUTH_LDAP_REQUIRE_GROUP
-#AUTH_LDAP_DENY_GROUP
-#AUTH_LDAP_CACHE_GROUPS
-#AUTH_LDAP_GROUP_CACHE_TIMEOUT
-#AUTH_LDAP_FIND_GROUP_PERMS
-
-#AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    #'is_active': '',
-    #'is_staff': '',
-    #'is_superuser': '',
-#}
-
-#AUTH_LDAP_PROFILE_FLAGS_BY_GROUP = {}
-
-AUTH_LDAP_USER_OBJECTCLASS = ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"]
+# objectClasses that are used by any user
+AUTH_LDAP_USER_OBJECTCLASS = ['top', 'person', 'organizationalPerson',
+                              'inetOrgPerson', 'posixAccount', 'shadowAccount']
+# additional objectClasses that are used by developers
+AUTH_LDAP_DEV_OBJECTCLASS = ['developerAccount']
