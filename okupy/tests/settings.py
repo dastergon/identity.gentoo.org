@@ -12,6 +12,15 @@ ADMINS = (
     ('admin', 'admin@example.com'),
 )
 
+# Instance name, used in:
+# * log dir name: /var/log/okupy/${INSTANCE_NAME}
+# * console logs: ${INSTANCE_NAME} ${IP} ${ERROR}
+# * prefix of the notification mails: "[${INSTANCE_NAME}] ${TITLE}"
+# * (production only): {MEDIA,STATIC}_ROOT:
+# /var/www/${INSTANCE_NAME}/htdocs/{media,static}
+# Examples: okupy, okupy-dev, identity.gentoo.org
+INSTANCE_NAME = 'okupy-test'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -41,39 +50,20 @@ AUTH_LDAP_ADMIN_BIND_PASSWORD = ''
 
 AUTH_LDAP_USER_ATTR = 'uid'
 AUTH_LDAP_USER_BASE_DN = 'ou=people,o=test'
-AUTH_LDAP_USER_DN_TEMPLATE = AUTH_LDAP_USER_ATTR + '=%(user)s,' + AUTH_LDAP_USER_BASE_DN
 
 AUTH_LDAP_PERMIT_EMPTY_PASSWORD = False
 
 AUTH_LDAP_START_TLS = False
 
-#AUTH_LDAP_GROUP_SEARCH
-#AUTH_LDAP_GROUP_TYPE
-#AUTH_LDAP_REQUIRE_GROUP
-#AUTH_LDAP_DENY_GROUP
-#AUTH_LDAP_CACHE_GROUPS
-#AUTH_LDAP_GROUP_CACHE_TIMEOUT
-#AUTH_LDAP_FIND_GROUP_PERMS
-
-#AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    #'is_active': '',
-    #'is_staff': '',
-    #'is_superuser': '',
-#}
-
-#AUTH_LDAP_PROFILE_FLAGS_BY_GROUP = {}
-
-AUTH_LDAP_USER_OBJECTCLASS = ["person", "organizationalPerson", "inetOrgPerson", "posixAccount"]
+# objectClasses that are used by any user
+AUTH_LDAP_USER_OBJECTCLASS = ['top', 'person', 'organizationalPerson',
+                              'inetOrgPerson', 'posixAccount', 'shadowAccount']
+# additional objectClasses that are used by developers
+AUTH_LDAP_DEV_OBJECTCLASS = ['developerAccount']
 
 # DEBUG Options: Select "True" for development use, "False" for production use
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-
-# Instance name, used in:
-# * prefix of the notification mails: "[${INSTANCE_NAME}] ${TITLE}"
-# * log dir name: /var/log/${INSTANCE_NAME}
-# * console logs: ${INSTANCE_NAME} ${IP} ${ERROR}
-INSTANCE_NAME = 'okupy-test'
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -173,6 +163,10 @@ INSTALLED_APPS = (
     'okupy.tests'
 )
 
+#Compressor settings
+COMPRESS_ENABLED = False
+COMPRESS_PARSER = 'compressor.parser.HtmlParser'
+
 MANAGERS = ADMINS
 
 SITE_ID = 1
@@ -191,11 +185,11 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'okupy': {
+        'verbose': {
             'format': '%(instance_name)s: %(levelname)s %(id_name)s %(client_ip)s Message: %(message)s File: %(module)s Function: %(funcName)s Line: %(lineno)d',
         },
-        'django_auth_ldap': {
-            'format': 'django-auth-ldap: %(levelname)s Message: %(message)s',
+        'simple': {
+            'format': '$(instance_name)s: %(levelname)s Message: %(message)s File: %(module)s Function: %(funcName)s Line: %(lineno)d',
         },
     },
     'filters': {
@@ -210,18 +204,28 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True,
         },
+        'console_v': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'syslog_v': {
+            'level': 'INFO',
+            'class': 'logging.handlers.SysLogHandler',
+            'formatter': 'verbose',
+            'address': '/dev/log',
+        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'okupy',
+            'formatter': 'simple',
         },
         'syslog': {
             'level': 'INFO',
             'class': 'logging.handlers.SysLogHandler',
-            'formatter': 'okupy',
+            'formatter': 'simple',
             'address': '/dev/log',
         },
-
     },
     'loggers': {
         'mail_okupy': {
@@ -230,6 +234,14 @@ LOGGING = {
             'propagate': True,
         },
         'okupy': {
+            'handlers': ['console_v' if DEBUG else 'syslog_v'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        },
+        'okupy_simple': {
+            'handlers': ['console' if DEBUG else 'syslog'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        },
+        'django_auth_ldap': {
             'handlers': ['console' if DEBUG else 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
@@ -241,15 +253,28 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_URL = '/logout/'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+AUTH_LDAP_USER_DN_TEMPLATE = AUTH_LDAP_USER_ATTR + '=%(user)s,' + AUTH_LDAP_USER_BASE_DN
+
 # Custom authentication backend
 AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
+# email sending variables regarding server authentication
+# and configuration should be specified in settings/local.py
 EMAIL_SUBJECT_PREFIX = '[%s]: ' % INSTANCE_NAME
-SERVER_EMAIL = 'no-reply@example.com'
 
-#Compressor Settings
-COMPRESS_ENABLED = False
-COMPRESS_PARSER = 'compressor.parser.HtmlParser'
+TEMPLATE_CONTEXT_PROCESSORS += (
+    'django.core.context_processors.request',
+)
+
+# django-ldapdb settings
+DATABASES['ldap'] = {
+    'ENGINE': 'ldapdb.backends.ldap',
+    'NAME': AUTH_LDAP_SERVER_URI,
+    'USER': AUTH_LDAP_BIND_DN,
+    'PASSWORD': AUTH_LDAP_BIND_PASSWORD,
+}
+
+DATABASE_ROUTERS = ['ldapdb.router.Router']
