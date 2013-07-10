@@ -123,3 +123,13 @@ EMAIL_SUBJECT_PREFIX = '[%s]: ' % INSTANCE_NAME
 TEMPLATE_CONTEXT_PROCESSORS += (
     'django.core.context_processors.request',
 )
+
+# django-ldapdb settings
+DATABASES['ldap'] = {
+    'ENGINE': 'ldapdb.backends.ldap',
+    'NAME': AUTH_LDAP_SERVER_URI,
+    'USER': AUTH_LDAP_BIND_DN,
+    'PASSWORD': AUTH_LDAP_BIND_PASSWORD,
+}
+
+DATABASE_ROUTERS = ['ldapdb.router.Router']

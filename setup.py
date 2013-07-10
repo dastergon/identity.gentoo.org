@@ -30,11 +30,13 @@ setup(
     ],
     dependency_links=[
         'https://bitbucket.org/psagers/mockldap/get/default.tar.gz#egg=mockldap',
+        'https://github.com/jlaine/django-ldapdb/archive/master.tar.gz#egg=django-ldapdb',
     ],
     install_requires=[
         'django>=1.5',
         'django-auth-ldap>=1.1.4',
         'django-compressor>=1.3',
+        'django-ldapdb',
         'edpwd>=0.0.7',
         'passlib>=1.6.1',
         'python-ldap>=2.4.10',
