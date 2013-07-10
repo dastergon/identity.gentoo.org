@@ -286,8 +286,7 @@ DIRECTORY = {
     "uid=alice,ou=people,o=test": {
         "uid": ["alice"],
         "userPassword": ['{CRYPT}$1$lO/RU6zz$2fJCOwurxBtCqdImkoLQo1'],
-        "objectClass": ["person", "organizationalPerson", "inetOrgPerson",
-                        "posixAccount"],
+        "objectClass": AUTH_LDAP_USER_OBJECTCLASS + AUTH_LDAP_DEV_OBJECTCLASS,
         "uidNumber": ["1000"],
         "gidNumber": ["1000"],
         "givenName": ["Alice"],
@@ -297,8 +296,7 @@ DIRECTORY = {
     "uid=bob,ou=people,o=test": {
         "uid": ["bob"],
         "userPassword": ['{CRYPT}$1$eFSQMJY6$8y.WUL/ONeEarVXqeCIbH.'],
-        "objectClass": ["person", "organizationalPerson", "inetOrgPerson",
-                        "posixAccount"],
+        "objectClass": AUTH_LDAP_USER_OBJECTCLASS,
         "uidNumber": ["1001"],
         "gidNumber": ["50"],
         "givenName": ["Robert"],
