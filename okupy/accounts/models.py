@@ -21,6 +21,8 @@ class LDAPUser(ldapdb.models.Model):
     base_dn = settings.AUTH_LDAP_USER_BASE_DN
     object_classes = settings.AUTH_LDAP_USER_OBJECTCLASS + \
         settings.AUTH_LDAP_DEV_OBJECTCLASS
+    # top
+    object_class = ListField(db_column='objectClass')
     # person
     last_name = CharField(db_column='sn')
     full_name = CharField(db_column='cn')
