@@ -5,12 +5,11 @@ from django.test.client import Client
 from mockldap import MockLdap
 
 from ...common.testcase import OkupyTestCase
-from ..tests import example_directory
 
 class IndexTests(OkupyTestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mockldap = MockLdap(example_directory)
+        cls.mockldap = MockLdap(settings.DIRECTORY)
 
     def setUp(self):
         self.client = Client()

@@ -1,6 +1,9 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
-import base64, calendar, datetime, time
+import base64
+import calendar
+import datetime
+import time
 
 from django.utils import timezone
 
@@ -10,30 +13,32 @@ from openid.store import nonce
 
 from . import models as db_models
 
+
 class DjangoDBOpenIDStore(OpenIDStore):
+
     def storeAssociation(self, server_uri, assoc):
         issued_dt = datetime.datetime.utcfromtimestamp(assoc.issued)
         issued_dt = timezone.make_aware(issued_dt, timezone.utc)
-        expire_delta = datetime.timedelta(seconds = assoc.lifetime)
+        expire_delta = datetime.timedelta(seconds=assoc.lifetime)
 
         a = db_models.OpenID_Association(
-                server_uri = server_uri,
-                handle = assoc.handle,
-                secret = base64.b64encode(assoc.secret),
-                issued = issued_dt,
-                expires = issued_dt + expire_delta,
-                assoc_type = assoc.assoc_type)
+            server_uri=server_uri,
+            handle=assoc.handle,
+            secret=base64.b64encode(assoc.secret),
+            issued=issued_dt,
+            expires=issued_dt + expire_delta,
+            assoc_type=assoc.assoc_type)
         a.save()
 
-    def _db_getAssocs(self, server_uri, handle = None):
+    def _db_getAssocs(self, server_uri, handle=None):
         objs = db_models.OpenID_Association.objects
-        objs = objs.filter(server_uri = server_uri)
+        objs = objs.filter(server_uri=server_uri)
         if handle is not None:
-            objs = objs.filter(handle = handle)
+            objs = objs.filter(handle=handle)
 
         return objs
 
-    def getAssociation(self, server_uri, handle = None):
+    def getAssociation(self, server_uri, handle=None):
         assert(server_uri is not None)
 
         objs = self._db_getAssocs(server_uri, handle)
@@ -50,11 +55,11 @@ class DjangoDBOpenIDStore(OpenIDStore):
             return None
 
         return Association(
-                a.handle,
-                base64.b64decode(a.secret),
-                calendar.timegm(a.issued.utctimetuple()),
-                int((a.expires - a.issued).total_seconds()),
-                a.assoc_type)
+            a.handle,
+            base64.b64decode(a.secret),
+            calendar.timegm(a.issued.utctimetuple()),
+            int((a.expires - a.issued).total_seconds()),
+            a.assoc_type)
 
     def removeAssociation(self, server_uri, handle):
         assert(server_uri is not None)
@@ -75,22 +80,22 @@ class DjangoDBOpenIDStore(OpenIDStore):
 
         objs = db_models.OpenID_Nonce.objects
         n, created = objs.get_or_create(
-                server_uri = server_uri,
-                ts = nonce_dt,
-                salt = salt)
+            server_uri=server_uri,
+            ts=nonce_dt,
+            salt=salt)
 
         # if it was created, it is unique and everything's fine.
         # if we found one existing, it is duplicate and we return False.
         return created
 
     def cleanupNonces(self):
-        skew_td = datetime.timedelta(seconds = nonce.SKEW)
+        skew_td = datetime.timedelta(seconds=nonce.SKEW)
         expire_dt = timezone.now() - skew_td
 
-        db_models.OpenID_Nonce.objects.filter(ts__lt = expire_dt).delete()
+        db_models.OpenID_Nonce.objects.filter(ts__lt=expire_dt).delete()
         return 0
 
     def cleanupAssociations(self):
         db_models.OpenID_Association.objects.filter(
-                expires__lt = timezone.now()).delete()
+            expires__lt=timezone.now()).delete()
         return 0

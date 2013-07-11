@@ -80,7 +80,6 @@ LOGGING = {
             'formatter': 'simple',
             'address': '/dev/log',
         },
-
     },
     'loggers': {
         'mail_okupy': {
@@ -123,3 +122,15 @@ EMAIL_SUBJECT_PREFIX = '[%s]: ' % INSTANCE_NAME
 TEMPLATE_CONTEXT_PROCESSORS += (
     'django.core.context_processors.request',
 )
+
+# django-ldapdb settings
+DATABASES['ldap'] = {
+    'ENGINE': 'ldapdb.backends.ldap',
+    'NAME': AUTH_LDAP_SERVER_URI,
+    'USER': AUTH_LDAP_BIND_DN,
+    'PASSWORD': AUTH_LDAP_BIND_PASSWORD,
+    'CONNECTION_OPTIONS': AUTH_LDAP_CONNECTION_OPTIONS,
+    'TLS': AUTH_LDAP_START_TLS,
+}
+
+DATABASE_ROUTERS = ['ldapdb.router.Router']

@@ -3,7 +3,6 @@
 
 from setuptools import setup, find_packages
 import okupy
-import os
 
 setup(
     name='okupy',
@@ -13,7 +12,7 @@ setup(
     author_email='identity@gentoo.org',
     url='http://github.com/gentoo/identity.gentoo.org',
     description='Django LDAP webUI and OpenID provider for the Gentoo Linux project',
-    long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
+    long_description=open('README.md').read(),
     keywords='django, ldap, gentoo',
     packages=find_packages(),
     include_package_data=True,
@@ -31,11 +30,13 @@ setup(
     ],
     dependency_links=[
         'https://bitbucket.org/psagers/mockldap/get/default.tar.gz#egg=mockldap',
+        'https://github.com/tampakrap/django-ldapdb/archive/okupy.tar.gz#egg=django-ldapdb',
     ],
     install_requires=[
         'django>=1.5',
         'django-auth-ldap>=1.1.4',
         'django-compressor>=1.3',
+        'django-ldapdb',
         'edpwd>=0.0.7',
         'passlib>=1.6.1',
         'python-ldap>=2.4.10',
