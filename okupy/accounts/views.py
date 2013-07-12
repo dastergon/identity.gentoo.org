@@ -13,12 +13,14 @@ from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
 from edpwd import random_string
+from openid.extensions.sreg import SRegRequest, SRegResponse
 from openid.server.server import (Server, ProtocolError, EncodingError,
-                                  CheckIDRequest)
+                                  CheckIDRequest, ENCODE_URL,
+                                  ENCODE_KVFORM, ENCODE_HTML_FORM)
 from passlib.hash import ldap_md5_crypt
 
-from .forms import LoginForm, SignupForm
-from .models import Queue
+from .forms import LoginForm, SignupForm, SiteAuthForm
+from .models import LDAPUser, Queue
 from .openid_store import DjangoDBOpenIDStore
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
@@ -325,10 +327,16 @@ def openid_endpoint(request):
     try:
         oreq = srv.decodeRequest(req)
     except ProtocolError as e:
-        # TODO: we are supposed to send some error to the caller
-        return render(request, 'openid_endpoint.html', {
-            'error': str(e),
-        }, status=400)
+        if e.whichEncoding() == ENCODE_URL:
+            return redirect(e.encodeToURL())
+        elif e.whichEncoding() == ENCODE_HTML_FORM:
+            return HttpResponse(e.toHTML())
+        elif e.whichEncoding() == ENCODE_KVFORM:
+            return HttpResponse(e.encodeToKVForm(), status=400)
+        else:
+            return render(request, 'openid_endpoint.html', {
+                'error': str(e)
+            }, status=400)
 
     if oreq is None:
         return render(request, 'openid_endpoint.html')
@@ -363,10 +371,40 @@ def openid_auth_site(request):
             expired.',
         }, status=400)
 
+    sreg = SRegRequest.fromOpenIDRequest(oreq)
+    if sreg.wereFieldsRequested():
+        ldap_user = LDAPUser.objects.get(username = request.user.username)
+        sreg_data = {
+            'nickname': ldap_user.username,
+            'email': ldap_user.email[0],
+            'fullname': ldap_user.full_name,
+        }
+    else:
+        sreg_data = None
+
     if request.POST:
+        form = SiteAuthForm(request.POST)
+
+        # can it be invalid somehow?
+        assert(form.is_valid())
+        attrs = form.save(commit=False)
+
+        # nullify fields that were not requested
+        for fn in form.cleaned_data:
+            if hasattr(attrs, fn) and fn not in sreg:
+                setattr(attrs, fn, None)
+
         if 'accept' in request.POST:
+            # prepare sreg response
+            for fn, send in form.cleaned_data.items():
+                if not send and fn in sreg_data:
+                    del sreg_data[fn]
+
             oresp = oreq.answer(True, identity=request.build_absolute_uri(
                 reverse(user_page, args=(request.user.username,))))
+
+            sreg_resp = SRegResponse.extractResponse(sreg, sreg_data)
+            oresp.addExtension(sreg_resp)
         elif 'reject' in request.POST:
             oresp = oreq.answer(False)
         else:
@@ -388,7 +426,11 @@ def openid_auth_site(request):
     except openid.fetchers.HTTPFetchingError:
         tr_valid = 'Unable to verify trust (HTTP error)'
 
+    form = SiteAuthForm()
     return render(request, 'openid-auth-site.html', {
         'openid_request': oreq,
         'return_to_valid': tr_valid,
+        'form': form,
+        'sreg': sreg,
+        'sreg_data': sreg_data,
     })

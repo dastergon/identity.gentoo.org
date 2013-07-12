@@ -88,3 +88,19 @@ class OpenID_Association(models.Model):
 
     class Meta:
         unique_together = ('server_uri', 'handle')
+
+
+class OpenID_Attributes(models.Model):
+    """ An attribute choice for submission to the site requesting auth.
+    """
+
+    nickname = models.NullBooleanField('Nickname', default=True)
+    email = models.NullBooleanField('E-mail address', default=True)
+    fullname = models.NullBooleanField('Full name', default=True)
+    # XXX: OpenID allows disabling invidual components
+    dob = models.NullBooleanField('Date of birth', default=True)
+    gender = models.NullBooleanField('Gender', default=True)
+    postcode = models.NullBooleanField('Postal code', default=True)
+    country = models.NullBooleanField('Country', default=True)
+    language = models.NullBooleanField('Language', default=True)
+    timezone = models.NullBooleanField('Time zone', default=True)

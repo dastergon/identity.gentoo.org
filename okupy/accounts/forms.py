@@ -2,6 +2,8 @@
 
 from django import forms
 
+from .models import OpenID_Attributes
+
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=100, label='Username:')
@@ -18,3 +20,21 @@ class SignupForm(forms.Form):
         max_length=30, widget=forms.PasswordInput(), label='Password:')
     password_verify = forms.CharField(
         max_length=30, widget=forms.PasswordInput(), label='Verify Password:')
+
+
+# OpenID forms.
+
+class SiteAuthForm(forms.ModelForm):
+    class Meta:
+        model = OpenID_Attributes
+        widgets = {
+            'nickname': forms.CheckboxInput,
+            'email': forms.CheckboxInput,
+            'fullname': forms.CheckboxInput,
+            'dob': forms.CheckboxInput,
+            'gender': forms.CheckboxInput,
+            'postcode': forms.CheckboxInput,
+            'country': forms.CheckboxInput,
+            'language': forms.CheckboxInput,
+            'timezone': forms.CheckboxInput,
+        }
