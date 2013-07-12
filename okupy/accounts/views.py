@@ -10,6 +10,7 @@ from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.utils.html import format_html
 from django.views.decorators.csrf import csrf_exempt
 
 from edpwd import random_string
@@ -373,10 +374,10 @@ def openid_auth_site(request):
 
     sreg = SRegRequest.fromOpenIDRequest(oreq)
     if sreg.wereFieldsRequested():
-        ldap_user = LDAPUser.objects.get(username = request.user.username)
+        ldap_user = LDAPUser.objects.get(username=request.user.username)
         sreg_data = {
             'nickname': ldap_user.username,
-            'email': ldap_user.email[0],
+            'email': ldap_user.email,
             'fullname': ldap_user.full_name,
         }
     else:
@@ -384,7 +385,6 @@ def openid_auth_site(request):
 
     if request.POST:
         form = SiteAuthForm(request.POST)
-
         # can it be invalid somehow?
         assert(form.is_valid())
         attrs = form.save(commit=False)
@@ -397,8 +397,12 @@ def openid_auth_site(request):
         if 'accept' in request.POST:
             # prepare sreg response
             for fn, send in form.cleaned_data.items():
-                if not send and fn in sreg_data:
+                if fn not in sreg_data:
+                    pass
+                elif not send:
                     del sreg_data[fn]
+                elif isinstance(sreg_data[fn], list):
+                    sreg_data[fn] = form.cleaned_data['which_%s' % fn]
 
             oresp = oreq.answer(True, identity=request.build_absolute_uri(
                 reverse(user_page, args=(request.user.username,))))
@@ -415,6 +419,21 @@ def openid_auth_site(request):
         del request.session['openid_request']
         return render_openid_response(request, oresp)
 
+    form = SiteAuthForm()
+    sreg_form = {}
+    # Fill in lists for choices
+    for f in sreg.allRequestedFields():
+        if isinstance(sreg_data[f], list):
+            form.fields['which_%s' % f].widget.choices = [
+                (x, x) for x in sreg_data[f]
+            ]
+            sreg_form[f] = form['which_%s' % f]
+        else:
+            sreg_form[f] = format_html("<input type='text'"
+                                       + " readonly='readonly'"
+                                       + " value='{0}' />",
+                                       sreg_data[f])
+
     try:
         # TODO: cache it
         if oreq.returnToVerified():
@@ -426,11 +445,10 @@ def openid_auth_site(request):
     except openid.fetchers.HTTPFetchingError:
         tr_valid = 'Unable to verify trust (HTTP error)'
 
-    form = SiteAuthForm()
     return render(request, 'openid-auth-site.html', {
         'openid_request': oreq,
         'return_to_valid': tr_valid,
         'form': form,
         'sreg': sreg,
-        'sreg_data': sreg_data,
+        'sreg_form': sreg_form,
     })

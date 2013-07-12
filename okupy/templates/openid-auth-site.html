@@ -42,12 +42,10 @@
                             <tr>
                                 {% if w.name in sreg %}
                                     <td>{{ w }} {{ w.label }}</td>
-                                    {% for k, v in sreg_data.items %}
+                                    {% for k, v in sreg_form.items %}
                                         {% if k == w.name %}
                                             <td>
-                                                <input type='text'
-                                                    readonly='readonly'
-                                                    value='{{ v }}' />
+                                                {{ v }}
                                             </td>
                                         {% endif %}
                                     {% endfor %}

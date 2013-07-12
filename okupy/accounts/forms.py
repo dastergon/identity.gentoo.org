@@ -37,4 +37,6 @@ class SiteAuthForm(forms.ModelForm):
             'country': forms.CheckboxInput,
             'language': forms.CheckboxInput,
             'timezone': forms.CheckboxInput,
+
+            'which_email': forms.Select,
         }
