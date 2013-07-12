@@ -402,7 +402,9 @@ def openid_auth_site(request):
                 elif not send:
                     del sreg_data[fn]
                 elif isinstance(sreg_data[fn], list):
-                    sreg_data[fn] = form.cleaned_data['which_%s' % fn]
+                    val = form.cleaned_data['which_%s' % fn]
+                    assert(val in sreg_data[fn])
+                    sreg_data[fn] = val
 
             oresp = oreq.answer(True, identity=request.build_absolute_uri(
                 reverse(user_page, args=(request.user.username,))))
