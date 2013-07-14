@@ -2,7 +2,8 @@
 
 from django.conf import settings
 from django.db import models
-from ldapdb.models.fields import CharField, IntegerField, ListField
+from ldapdb.models.fields import (CharField, IntegerField, ListField,
+                                  FloatField, ACLField)
 import ldapdb.models
 
 
@@ -19,8 +20,7 @@ class LDAPUser(ldapdb.models.Model):
     """ Class representing an LDAP user entry """
     # LDAP metadata
     base_dn = settings.AUTH_LDAP_USER_BASE_DN
-    object_classes = settings.AUTH_LDAP_USER_OBJECTCLASS + \
-        settings.AUTH_LDAP_DEV_OBJECTCLASS
+    object_classes = settings.AUTH_LDAP_USER_OBJECTCLASS
     # top
     object_class = ListField(db_column='objectClass')
     # person
@@ -47,17 +47,35 @@ class LDAPUser(ldapdb.models.Model):
     gentoo_join_date = ListField(db_column='gentooJoin')
     gentoo_retire_date = ListField(db_column='gentooRetire')
     developer_bug = ListField(db_column='gentooDevBug')
-    gpg_fingerprint = ListField(db_column='gentooGPGFingerprint')
-    gpg_key = ListField(db_column='gentooGPGKey')
-    latitude = IntegerField(db_column='gentooLatitude')
-    longitude = IntegerField(db_column='gentooLongitude')
     location = CharField(db_column='gentooLocation')
     mentor = ListField(db_column='gentooMentor')
     im = ListField(db_column='gentooIM')
+    gpg_fingerprint = ListField(db_column='gpgfingerprint')
+    gpg_key = ListField(db_column='gpgKey')
+    latitude = FloatField(db_column='lat')
+    longitude = FloatField(db_column='lon')
     # gentooDevGroup
     roles = CharField(db_column='gentooRoles')
     alias = ListField(db_column='gentooAlias')
     spf = ListField(db_column='gentooSPF')
+    # additional ACL fields based on gentooACL
+    is_user = ACLField(db_column='gentooACL')
+    is_developer = ACLField(db_column='gentooACL')
+    is_foundation = ACLField(db_column='gentooACL')
+    is_staff = ACLField(db_column='gentooACL')
+    is_docs = ACLField(db_column='gentooACL')
+    is_council = ACLField(db_column='gentooACL')
+    is_trustee = ACLField(db_column='gentooACL')
+    is_overlays = ACLField(db_column='gentooACL')
+    is_planet = ACLField(db_column='gentooACL')
+    is_wiki = ACLField(db_column='gentooACL')
+    is_forums = ACLField(db_column='gentooACL')
+    is_security = ACLField(db_column='gentooACL')
+    is_recruiter = ACLField(db_column='gentooACL')
+    is_undertaker = ACLField(db_column='gentooACL')
+    is_pr = ACLField(db_column='gentooACL')
+    is_infra = ACLField(db_column='gentooACL')
+    is_retired = ACLField(db_column='gentooACL')
 
     def __str__(self):
         return self.username
