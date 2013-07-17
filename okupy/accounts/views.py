@@ -425,7 +425,9 @@ def openid_auth_site(request):
     sreg_form = {}
     # Fill in lists for choices
     for f in sreg.allRequestedFields():
-        if isinstance(sreg_data[f], list):
+        if f not in sreg_data:
+            pass
+        elif isinstance(sreg_data[f], list):
             form.fields['which_%s' % f].widget.choices = [
                 (x, x) for x in sreg_data[f]
             ]
