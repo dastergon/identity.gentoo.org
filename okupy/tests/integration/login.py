@@ -14,6 +14,7 @@ import mock
 class LoginTestsEmptyDB(OkupyTestCase):
     cursor_wrapper = mock.Mock()
     cursor_wrapper.side_effect = DatabaseError
+    account = {'username': 'alice', 'password': 'ldaptest'}
 
     @classmethod
     def setUpClass(cls):
@@ -21,7 +22,6 @@ class LoginTestsEmptyDB(OkupyTestCase):
 
     def setUp(self):
         self.client = Client()
-        self.account = {'username': 'alice', 'password': 'ldaptest'}
         self.mockldap.start()
         self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
@@ -30,8 +30,6 @@ class LoginTestsEmptyDB(OkupyTestCase):
 
     def test_template(self):
         response = self.client.get('/login/')
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed('login.html')
         self.assertIn('login_form', response.context)
         self.assertIn('messages', response.context)
 
