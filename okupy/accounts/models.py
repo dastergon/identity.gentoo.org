@@ -123,4 +123,4 @@ class OpenID_Attributes(models.Model):
     language = models.NullBooleanField('Language', default=True)
     timezone = models.NullBooleanField('Time zone', default=True)
 
-    which_email = models.CharField(max_length=254)
+    which_email = models.CharField(max_length=254, null=True, blank=True)

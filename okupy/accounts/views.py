@@ -381,7 +381,7 @@ def openid_auth_site(request):
             'fullname': ldap_user.full_name,
         }
     else:
-        sreg_data = None
+        sreg_data = {}
 
     if request.POST:
         form = SiteAuthForm(request.POST)
