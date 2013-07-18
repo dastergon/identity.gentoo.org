@@ -123,7 +123,7 @@ def login(request):
                 if user.is_active:
                     _login(request, user)
                     request.session.set_expiry(900)
-                    return redirect(request.GET.get('next', index))
+                    return redirect(request.POST.get('next', index))
             except OkupyError as error:
                 messages.error(request, str(error))
     else:
@@ -135,6 +135,7 @@ def login(request):
     return render(request, 'login.html', {
         'login_form': login_form,
         'openid_request': oreq,
+        'next': request.GET.get('next', index),
     })
 
 
