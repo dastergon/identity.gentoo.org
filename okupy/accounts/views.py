@@ -407,6 +407,7 @@ def openid_auth_site(request):
         }
     else:
         sreg_data = {}
+    sreg_fields = sreg_data.keys()
 
     if request.POST:
         form = SiteAuthForm(request.POST)
