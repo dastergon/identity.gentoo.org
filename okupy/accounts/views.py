@@ -456,4 +456,5 @@ def openid_auth_site(request):
         'form': form,
         'sreg': sreg,
         'sreg_form': sreg_form,
+        'policy_url': sreg.policy_url,
     })
