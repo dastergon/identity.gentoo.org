@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.db import models
 from ldapdb.models.fields import (CharField, IntegerField, ListField,
-                                  FloatField, ACLField)
+                                  FloatField, ACLField, DateField)
 import ldapdb.models
 
 
@@ -43,7 +43,7 @@ class LDAPUser(ldapdb.models.Model):
     ssh_key = ListField(db_column='sshPublicKey')
     # gentooGroup
     ACL = ListField(db_column='gentooACL')
-    birthday = CharField(db_column='birthday')
+    birthday = DateField(db_column='birthday')
     gentoo_join_date = ListField(db_column='gentooJoin')
     gentoo_retire_date = ListField(db_column='gentooRetire')
     developer_bug = ListField(db_column='gentooDevBug')
