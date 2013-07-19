@@ -14,6 +14,7 @@ from django.utils.html import format_html
 from django.views.decorators.csrf import csrf_exempt
 
 from edpwd import random_string
+from openid.extensions.ax import FetchRequest, FetchResponse
 from openid.extensions.sreg import SRegRequest, SRegResponse
 from openid.server.server import (Server, ProtocolError, EncodingError,
                                   CheckIDRequest, ENCODE_URL,
@@ -363,6 +364,21 @@ def user_page(request, username):
     })
 
 
+openid_ax_attribute_mapping = {
+    # http://web.archive.org/web/20110714025426/http://www.axschema.org/types/
+    'http://axschema.org/namePerson/friendly': 'nickname',
+    'http://axschema.org/contact/email': 'email',
+    'http://axschema.org/namePerson': 'fullname',
+    'http://axschema.org/birthDate': 'dob',
+    'http://axschema.org/person/gender': 'gender',
+    'http://axschema.org/contact/postalCode/home': 'postcode',
+    'http://axschema.org/contact/country/home': 'country',
+    'http://axschema.org/pref/language': 'language',
+    'http://axschema.org/pref/timezone': 'timezone',
+
+    # TODO: provide further attributes
+}
+
 @login_required
 def openid_auth_site(request):
     try:
@@ -374,7 +390,15 @@ def openid_auth_site(request):
         }, status=400)
 
     sreg = SRegRequest.fromOpenIDRequest(oreq)
-    if sreg.wereFieldsRequested():
+    ax = FetchRequest.fromOpenIDRequest(oreq)
+
+    sreg_fields = set(sreg.allRequestedFields())
+    for uri in ax.requested_attributes:
+        k = openid_ax_attribute_mapping.get(uri)
+        if k:
+            sreg_fields.add(k)
+
+    if sreg_fields:
         ldap_user = LDAPUser.objects.get(username=request.user.username)
         sreg_data = {
             'nickname': ldap_user.username,
@@ -392,7 +416,7 @@ def openid_auth_site(request):
 
         # nullify fields that were not requested
         for fn in form.cleaned_data:
-            if hasattr(attrs, fn) and fn not in sreg:
+            if hasattr(attrs, fn) and fn not in sreg_fields:
                 setattr(attrs, fn, None)
 
         if 'accept' in request.POST:
@@ -411,7 +435,15 @@ def openid_auth_site(request):
                 reverse(user_page, args=(request.user.username,))))
 
             sreg_resp = SRegResponse.extractResponse(sreg, sreg_data)
+            ax_resp = FetchResponse(ax)
+
+            for uri in ax.requested_attributes:
+                k = openid_ax_attribute_mapping.get(uri)
+                if k and k in sreg_data:
+                    ax_resp.addValue(uri, sreg_data[k])
+
             oresp.addExtension(sreg_resp)
+            oresp.addExtension(ax_resp)
         elif 'reject' in request.POST:
             oresp = oreq.answer(False)
         else:
@@ -425,7 +457,7 @@ def openid_auth_site(request):
     form = SiteAuthForm()
     sreg_form = {}
     # Fill in lists for choices
-    for f in sreg.allRequestedFields():
+    for f in sreg_fields:
         if f not in sreg_data:
             pass
         elif isinstance(sreg_data[f], list):
@@ -454,7 +486,7 @@ def openid_auth_site(request):
         'openid_request': oreq,
         'return_to_valid': tr_valid,
         'form': form,
-        'sreg': sreg.allRequestedFields(),
+        'sreg': sreg_fields,
         'sreg_form': sreg_form,
         'policy_url': sreg.policy_url,
     })
