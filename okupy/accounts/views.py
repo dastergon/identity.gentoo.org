@@ -404,7 +404,12 @@ def openid_auth_site(request):
             'nickname': ldap_user.username,
             'email': ldap_user.email,
             'fullname': ldap_user.full_name,
+            'dob': ldap_user.birthday,
         }
+
+        for k in list(sreg_data):
+            if not sreg_data[k]:
+                del sreg_data[k]
     else:
         sreg_data = {}
     sreg_fields = sreg_data.keys()
