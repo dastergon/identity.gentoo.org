@@ -393,10 +393,11 @@ def openid_auth_site(request):
     ax = FetchRequest.fromOpenIDRequest(oreq)
 
     sreg_fields = set(sreg.allRequestedFields())
-    for uri in ax.requested_attributes:
-        k = openid_ax_attribute_mapping.get(uri)
-        if k:
-            sreg_fields.add(k)
+    if ax:
+        for uri in ax.requested_attributes:
+            k = openid_ax_attribute_mapping.get(uri)
+            if k:
+                sreg_fields.add(k)
 
     if sreg_fields:
         ldap_user = LDAPUser.objects.get(username=request.user.username)
@@ -441,15 +442,15 @@ def openid_auth_site(request):
                 reverse(user_page, args=(request.user.username,))))
 
             sreg_resp = SRegResponse.extractResponse(sreg, sreg_data)
-            ax_resp = FetchResponse(ax)
-
-            for uri in ax.requested_attributes:
-                k = openid_ax_attribute_mapping.get(uri)
-                if k and k in sreg_data:
-                    ax_resp.addValue(uri, sreg_data[k])
-
             oresp.addExtension(sreg_resp)
-            oresp.addExtension(ax_resp)
+
+            if ax:
+                ax_resp = FetchResponse(ax)
+                for uri in ax.requested_attributes:
+                    k = openid_ax_attribute_mapping.get(uri)
+                    if k and k in sreg_data:
+                        ax_resp.addValue(uri, sreg_data[k])
+                oresp.addExtension(ax_resp)
         elif 'reject' in request.POST:
             oresp = oreq.answer(False)
         else:
