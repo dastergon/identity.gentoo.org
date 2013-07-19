@@ -454,7 +454,7 @@ def openid_auth_site(request):
         'openid_request': oreq,
         'return_to_valid': tr_valid,
         'form': form,
-        'sreg': sreg,
+        'sreg': sreg.allRequestedFields(),
         'sreg_form': sreg_form,
         'policy_url': sreg.policy_url,
     })

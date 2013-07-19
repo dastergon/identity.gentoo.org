@@ -34,7 +34,7 @@
             <form id="trust" action="" method="POST">
                 {% csrf_token %}
 
-                {% if sreg.wereFieldsRequested %}
+                {% if sreg %}
                     <fieldset>
                         <legend>User information</legend>
 
