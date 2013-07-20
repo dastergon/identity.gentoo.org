@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
+from django.forms.models import model_to_dict
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
@@ -424,19 +425,29 @@ def openid_auth_site(request):
         )
     except OpenID_Attributes.DoesNotExist:
         saved_pref = None
+        auto_auth = False
+    else:
+        auto_auth = saved_pref.always_auth
 
-    if request.POST:
-        form = SiteAuthForm(request.POST, instance=saved_pref)
+    if auto_auth or request.POST:
+        if auto_auth:
+            # TODO: can we do this nicer?
+            form_inp = model_to_dict(saved_pref)
+        else:
+            form_inp = request.POST
+        form = SiteAuthForm(form_inp, instance=saved_pref)
         # can it be invalid somehow?
         assert(form.is_valid())
         attrs = form.save(commit=False)
 
         # nullify fields that were not requested
         for fn in form.cleaned_data:
-            if hasattr(attrs, fn) and fn not in sreg_fields:
+            if fn in ('always_auth',):
+                pass
+            elif hasattr(attrs, fn) and fn not in sreg_fields:
                 setattr(attrs, fn, None)
 
-        if 'accept' in request.POST:
+        if auto_auth or 'accept' in request.POST:
             # prepare sreg response
             for fn, send in form.cleaned_data.items():
                 if fn not in sreg_data:
@@ -448,10 +459,12 @@ def openid_auth_site(request):
                     assert(val in sreg_data[fn])
                     sreg_data[fn] = val
 
-            # save prefs in the db
-            attrs.uid = ldap_user.uid
-            attrs.trust_root = oreq.trust_root
-            attrs.save()
+            if not auto_auth:
+                # save prefs in the db
+                # (if auto_auth, then nothing changed)
+                attrs.uid = ldap_user.uid
+                attrs.trust_root = oreq.trust_root
+                attrs.save()
 
             oresp = oreq.answer(True, identity=request.build_absolute_uri(
                 reverse(user_page, args=(request.user.username,))))

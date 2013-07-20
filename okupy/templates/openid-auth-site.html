@@ -63,6 +63,10 @@
                     </fieldset>
                 {% endif %}
 
+                <div>
+                    {{ form.always_auth }} {{ form.always_auth.label_tag }}
+                </div>
+
                 <input type='submit' name='accept' value='Yes' />
                 <input type='submit' name='reject' value='No' />
             </form>
