@@ -124,3 +124,9 @@ class OpenID_Attributes(models.Model):
     timezone = models.NullBooleanField('Time zone', default=True)
 
     which_email = models.CharField(max_length=254, null=True, blank=True)
+
+    trust_root = models.CharField(max_length=2048)
+    uid = models.IntegerField()
+
+    class Meta:
+        unique_together = ('trust_root', 'uid')

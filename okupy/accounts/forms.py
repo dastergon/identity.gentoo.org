@@ -27,6 +27,7 @@ class SignupForm(forms.Form):
 class SiteAuthForm(forms.ModelForm):
     class Meta:
         model = OpenID_Attributes
+        exclude = ('trust_root', 'uid')
         widgets = {
             'nickname': forms.CheckboxInput,
             'email': forms.CheckboxInput,

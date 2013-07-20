@@ -22,7 +22,7 @@ from openid.server.server import (Server, ProtocolError, EncodingError,
 from passlib.hash import ldap_md5_crypt
 
 from .forms import LoginForm, SignupForm, SiteAuthForm
-from .models import LDAPUser, Queue
+from .models import LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
@@ -379,6 +379,7 @@ openid_ax_attribute_mapping = {
     # TODO: provide further attributes
 }
 
+
 @login_required
 def openid_auth_site(request):
     try:
@@ -399,8 +400,8 @@ def openid_auth_site(request):
             if k:
                 sreg_fields.add(k)
 
+    ldap_user = LDAPUser.objects.get(username=request.user.username)
     if sreg_fields:
-        ldap_user = LDAPUser.objects.get(username=request.user.username)
         sreg_data = {
             'nickname': ldap_user.username,
             'email': ldap_user.email,
@@ -415,8 +416,17 @@ def openid_auth_site(request):
         sreg_data = {}
     sreg_fields = sreg_data.keys()
 
+    # Read preferences from the db.
+    try:
+        saved_pref = OpenID_Attributes.objects.get(
+            uid=ldap_user.uid,
+            trust_root=oreq.trust_root,
+        )
+    except OpenID_Attributes.DoesNotExist:
+        saved_pref = None
+
     if request.POST:
-        form = SiteAuthForm(request.POST)
+        form = SiteAuthForm(request.POST, instance=saved_pref)
         # can it be invalid somehow?
         assert(form.is_valid())
         attrs = form.save(commit=False)
@@ -437,6 +447,11 @@ def openid_auth_site(request):
                     val = form.cleaned_data['which_%s' % fn]
                     assert(val in sreg_data[fn])
                     sreg_data[fn] = val
+
+            # save prefs in the db
+            attrs.uid = ldap_user.uid
+            attrs.trust_root = oreq.trust_root
+            attrs.save()
 
             oresp = oreq.answer(True, identity=request.build_absolute_uri(
                 reverse(user_page, args=(request.user.username,))))
@@ -461,7 +476,7 @@ def openid_auth_site(request):
         del request.session['openid_request']
         return render_openid_response(request, oresp)
 
-    form = SiteAuthForm()
+    form = SiteAuthForm(instance=saved_pref)
     sreg_form = {}
     # Fill in lists for choices
     for f in sreg_fields:
