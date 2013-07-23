@@ -13,21 +13,20 @@ from ...common.testcase import OkupyTestCase
 import mock
 
 class SignupTestsEmptyDB(OkupyTestCase):
+    form_data = {
+        'username': 'testusername',
+        'first_name': 'testfirstname',
+        'last_name': 'testlastname',
+        'email': 'test@test.com',
+        'password_origin': 'testpassword',
+        'password_verify': 'testpassword',
+    }
+
     def setUp(self):
         self.client = Client()
-        self.form_data = {
-            'username': 'testusername',
-            'first_name': 'testfirstname',
-            'last_name': 'testlastname',
-            'email': 'test@test.com',
-            'password_origin': 'testpassword',
-            'password_verify': 'testpassword',
-        }
 
     def test_template(self):
         response = self.client.get('/signup/')
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed('signup.html')
         self.assertIn('signup_form', response.context)
         self.assertIn('messages', response.context)
 
@@ -42,14 +41,16 @@ class SignupTestsEmptyDB(OkupyTestCase):
         self.assertEqual(Queue.objects.count(), 0)
 
     def test_passwords_dont_match(self):
-        self.form_data['password_verify'] = 'testpassword2'
-        response = self.client.post('/signup/', self.form_data)
+        form_data = self.form_data.copy()
+        form_data['password_verify'] = 'testpassword2'
+        response = self.client.post('/signup/', form_data)
         self.assertMessage(response, "Passwords don't match", 40)
         self.assertEqual(Queue.objects.count(), 0)
 
     def test_invalid_email(self):
-        self.form_data['email'] = 'test'
-        response = self.client.post('/signup/', self.form_data)
+        form_data = self.form_data.copy()
+        form_data['email'] = 'test'
+        response = self.client.post('/signup/', form_data)
         self.assertFormError(response, 'signup_form', 'email', [u'Enter a valid email address.'])
         self.assertEqual(Queue.objects.count(), 0)
 
@@ -59,6 +60,15 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
     cursor_wrapper = mock.Mock()
     cursor_wrapper.side_effect = DatabaseError
 
+    form_data = {
+        'username': 'testusername',
+        'first_name': 'testfirstname',
+        'last_name': 'testlastname',
+        'email': 'test@test.com',
+        'password_origin': 'testpassword',
+        'password_verify': 'testpassword',
+    }
+
     @classmethod
     def setUpClass(cls):
         cls.mockldap = MockLdap(settings.DIRECTORY)
@@ -67,14 +77,6 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.client = Client()
         self.queued_account = Queue.objects.get(pk=1)
         self.activate_url = '/activate/%s/' % self.queued_account.token
-        self.form_data = {
-            'username': 'testusername',
-            'first_name': 'testfirstname',
-            'last_name': 'testlastname',
-            'email': 'test@test.com',
-            'password_origin': 'testpassword',
-            'password_verify': 'testpassword',
-        }
         self.mockldap.start()
         self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
@@ -93,7 +95,7 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertEqual(ldap_account['objectClass'], settings.AUTH_LDAP_USER_OBJECTCLASS)
         self.assertEqual(ldap_account['uidNumber'][0], '1002')
         self.assertEqual(ldap_account['mail'][0], self.queued_account.email)
-        data={'username': self.queued_account.username, 'password': 'queuedpass'}
+        data = {'username': self.queued_account.username, 'password': 'queuedpass'}
         response = self.client.post('/login/', data)
         self.assertRedirects(response, '/')
         self.assertEqual(User.objects.count(), 1)
@@ -126,24 +128,28 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertEqual(Queue.objects.count(), 1)
 
     def test_username_already_exists_in_ldap(self):
-        self.form_data['username'] = 'alice'
-        response = self.client.post('/signup/', self.form_data)
+        form_data = self.form_data.copy()
+        form_data['username'] = 'alice'
+        response = self.client.post('/signup/', form_data)
         self.assertMessage(response, 'Username already exists', 40)
 
     def test_email_already_exists_in_ldap(self):
-        self.form_data['email'] = 'alice@test.com'
-        response = self.client.post('/signup/', self.form_data)
+        form_data = self.form_data.copy()
+        form_data['email'] = 'alice@test.com'
+        response = self.client.post('/signup/', form_data)
         self.assertMessage(response, 'Email already exists', 40)
 
     def test_username_already_pending_activation(self):
-        self.form_data['username'] = 'queueduser'
-        response = self.client.post('/signup/', self.form_data)
+        form_data = self.form_data.copy()
+        form_data['username'] = 'queueduser'
+        response = self.client.post('/signup/', form_data)
         self.assertMessage(response, 'Account is already pending activation', 40)
         self.assertEqual(Queue.objects.count(), 1)
 
     def test_email_already_pending_activation(self):
-        self.form_data['email'] = 'queueduser@test.com'
-        response = self.client.post('/signup/', self.form_data)
+        form_data = self.form_data.copy()
+        form_data['email'] = 'queueduser@test.com'
+        response = self.client.post('/signup/', form_data)
         self.assertMessage(response, 'Account is already pending activation', 40)
         self.assertEqual(Queue.objects.count(), 1)
 

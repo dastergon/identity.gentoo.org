@@ -14,6 +14,7 @@ import mock
 class LoginTestsEmptyDB(OkupyTestCase):
     cursor_wrapper = mock.Mock()
     cursor_wrapper.side_effect = DatabaseError
+    account = {'username': 'alice', 'password': 'ldaptest'}
 
     @classmethod
     def setUpClass(cls):
@@ -21,7 +22,6 @@ class LoginTestsEmptyDB(OkupyTestCase):
 
     def setUp(self):
         self.client = Client()
-        self.account = {'username': 'alice', 'password': 'ldaptest'}
         self.mockldap.start()
         self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
@@ -30,8 +30,6 @@ class LoginTestsEmptyDB(OkupyTestCase):
 
     def test_template(self):
         response = self.client.get('/login/')
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed('login.html')
         self.assertIn('login_form', response.context)
         self.assertIn('messages', response.context)
 
@@ -43,7 +41,8 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertEqual(User.objects.count(), 0)
 
     def test_correct_user_leading_space_in_username(self):
-        account = {'username': ' alice', 'password': 'ldaptest'}
+        account = self.account.copy()
+        account['username'] = ' %s' % self.account['username']
         response = self.client.post('/login/', account)
         self.assertRedirects(response, '/')
         user = User.objects.get(pk=1)
@@ -52,7 +51,8 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assert_(not user.has_usable_password())
 
     def test_correct_user_trailing_space_in_username(self):
-        account = {'username': 'alice ', 'password': 'ldaptest'}
+        account = self.account.copy()
+        account['username'] = '%s ' % self.account['username']
         response = self.client.post('/login/', account)
         self.assertRedirects(response, '/')
         user = User.objects.get(pk=1)
@@ -108,14 +108,15 @@ class LoginTestsEmptyDB(OkupyTestCase):
 class LoginTestsOneAccountInDB(OkupyTestCase):
     fixtures = ['alice']
 
+    account1 = {'username': 'alice', 'password': 'ldaptest'}
+    account2 = {'username': 'bob', 'password': 'ldapmoretest'}
+
     @classmethod
     def setUpClass(cls):
         cls.mockldap = MockLdap(settings.DIRECTORY)
 
     def setUp(self):
         self.client = Client()
-        self.account1 = {'username': 'alice', 'password': 'ldaptest'}
-        self.account2 = {'username': 'bob', 'password': 'ldapmoretest'}
         self.mockldap.start()
         self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
