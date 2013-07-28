@@ -28,6 +28,7 @@ from ..common.log import log_extra_data
 # the following two are for exceptions
 import openid.yadis.discover
 import openid.fetchers
+
 import ldap
 import ldap.modlist as modlist
 import logging
@@ -38,42 +39,9 @@ logger_mail = logging.getLogger('mail_okupy')
 
 @login_required
 def index(request):
-    anon_ldap_user = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
-    results = anon_ldap_user.search_s(settings.AUTH_LDAP_USER_DN_TEMPLATE % {
-        'user': request.user}, ldap.SCOPE_SUBTREE, '(uid=%s)' % (request.user))
-    attrs = results[0][1]
-    personal_attributes = {
-        'cn': 'Real Name', 'uid': 'Nickname', 'gentooLocation': 'Location'}
-    contact_attributes = {'mail': 'Email', 'gentooIM': 'IM Nickname'}
-    gentoo_attributes = {
-        'herd': 'Herds', 'gentooRoles': 'Roles', 'gentooJoin': 'Date Joined',
-        'gentooMentor': 'Mentor', 'gentooDevBug': 'Recruitment Bug',
-        'gentooRetired': 'Retired'}
-    ldap_personal_info = {}
-    ldap_contact_info = {}
-    ldap_gentoo_info = {}
-
-    for k, v in personal_attributes.items():
-        attrs[k] = attrs.get(k, ['Empty, when it should be'])
-        ldap_personal_info[v] = attrs[k][0]
-
-    for k, v in contact_attributes.items():
-        attrs[k] = attrs.get(k, [''])
-        ldap_contact_info[v] = attrs[k][0]
-
-    for k, v in gentoo_attributes.items():
-        if k == 'gentooRetired' and k not in attrs:
-            continue
-        else:
-            attrs[k] = attrs.get(k, [''])
-            ldap_gentoo_info[v] = attrs[k][0]
-
-    anon_ldap_user.unbind_s()
-
+    ldap_user = LDAPUser.objects.filter(username=request.user)
     return render(request, 'index.html', {
-        'ldap_personal_info': ldap_personal_info,
-        'ldap_contact_info': ldap_contact_info,
-        'ldap_gentoo_info': ldap_gentoo_info
+        'ldap_user': ldap_user
     })
 
 
@@ -274,15 +242,23 @@ def activate(request, token):
 
 
 def devlist(request):
-    return render(request, 'devlist.html', {})
+    ldap_devlist = LDAPUser.objects.filter(is_developer=True)
+    return render(request, 'devlist.html', {
+        'ldap_devlist': ldap_devlist
+    })
 
 
 def formerdevlist(request):
-    return render(request, 'former-devlist.html', {})
+    ldap_formerdevs = LDAPUser.objects.filter(is_retired=True)
+    return render(request, 'former-devlist.html', {
+        'ldap_formerdevs': ldap_formerdevs
+    })
 
 
 def foundationlist(request):
-    return render(request, 'foundation-members.html', {})
+    ldap_foundationlist = LDAPUser.objects.filter(is_foundation=True)
+    return render(request, 'foundation-members.html', {
+        'ldap_foundationlist': ldap_foundationlist})
 
 # OpenID-specific
 
@@ -373,7 +349,7 @@ def openid_auth_site(request):
 
     sreg = SRegRequest.fromOpenIDRequest(oreq)
     if sreg.wereFieldsRequested():
-        ldap_user = LDAPUser.objects.get(username = request.user.username)
+        ldap_user = LDAPUser.objects.get(username=request.user.username)
         sreg_data = {
             'nickname': ldap_user.username,
             'email': ldap_user.email[0],

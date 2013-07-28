@@ -1,40 +1,29 @@
 {% extends "base.html" %}
 
 {% block content %}
-      <div class="hero-unit">
-        <h1>Gentoo Foundation Members List</h1>
-        <p>List of active Foundation members.</p>
-      </div>
-      <p>
-        <div class="row">
-        <div class="span12">
-          <h2>Developer List</h2><br />
-          <table class="table table-striped sortable" >
-          <tr>
+<div class="hero-unit">
+    <h1>Gentoo Foundation Members List</h1>
+    <p>List of active Foundation members.</p>
+</div>
+<div class="row">
+    <div class="span10">
+        <h2>Foundation Members</h2><br />
+        <table class="table table-striped sortable" >
+        <tr>
             <td class="infohead"><b>Username</b></td>
             <td class="infohead"><b>Name</b></td>
-            <td class="infohead"><b>GPG key</b></td>
-           </tr>
-          <tr>
-            <td style="color:#5c4f85;"><b>mgorny</b></td>
-            <td>Michał Górny</td>
-            <td>0xDF84256885283521</td>
-            <td class="tableinfo">-</td>
-          </tr>
-          <tr>
-            <td class="infohead" style="color:#5c4f85;"><b>tampakrap</b></td>
-            <td class="tableinfo">Theo Chatzimichos</td>
-            <td class="tableinfo">0x57DC0078</td>
-          </tr>
-          <tr>
-            <td class="infohead" style="color:#5c4f85;"><b>dastergon</b></td>
-            <td class="tableinfo">Pavlos Ratis</td>
-            <td class="tableinfo">0x3A051746</td>
-          </tr>
-          </table>
-        </div>
-        </div>
-    </p>
+            <td class="infohead"><b>Location</b></td>
+        </tr>
+        {% for user in ldap_foundationlist %}
+            <tr>
+                <td style="color:#5c4f85;"><b>{{ user.username }}</b></td>
+                <td>{{ user.full_name }}</td>
+                <td><a href="http://maps.google.com/maps?q={{ user.location }}">{{ user.location }}</a></td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+</div>
 {% endblock %}
 
 {# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}
