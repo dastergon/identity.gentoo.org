@@ -8,11 +8,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
+from django.forms.models import model_to_dict
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.utils.html import format_html
 from django.views.decorators.csrf import csrf_exempt
 
 from edpwd import random_string
+from openid.extensions.ax import FetchRequest, FetchResponse
 from openid.extensions.sreg import SRegRequest, SRegResponse
 from openid.server.server import (Server, ProtocolError, EncodingError,
                                   CheckIDRequest, ENCODE_URL,
@@ -20,7 +23,7 @@ from openid.server.server import (Server, ProtocolError, EncodingError,
 from passlib.hash import ldap_md5_crypt
 
 from .forms import LoginForm, SignupForm, SiteAuthForm
-from .models import LDAPUser, Queue
+from .models import LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
@@ -122,7 +125,7 @@ def login(request):
                 if user.is_active:
                     _login(request, user)
                     request.session.set_expiry(900)
-                    return redirect(request.GET.get('next', index))
+                    return redirect(request.POST.get('next', index))
             except OkupyError as error:
                 messages.error(request, str(error))
     else:
@@ -134,6 +137,7 @@ def login(request):
     return render(request, 'login.html', {
         'login_form': login_form,
         'openid_request': oreq,
+        'next': request.GET.get('next', index),
     })
 
 
@@ -361,6 +365,22 @@ def user_page(request, username):
     })
 
 
+openid_ax_attribute_mapping = {
+    # http://web.archive.org/web/20110714025426/http://www.axschema.org/types/
+    'http://axschema.org/namePerson/friendly': 'nickname',
+    'http://axschema.org/contact/email': 'email',
+    'http://axschema.org/namePerson': 'fullname',
+    'http://axschema.org/birthDate': 'dob',
+    'http://axschema.org/person/gender': 'gender',
+    'http://axschema.org/contact/postalCode/home': 'postcode',
+    'http://axschema.org/contact/country/home': 'country',
+    'http://axschema.org/pref/language': 'language',
+    'http://axschema.org/pref/timezone': 'timezone',
+
+    # TODO: provide further attributes
+}
+
+
 @login_required
 def openid_auth_site(request):
     try:
@@ -372,39 +392,93 @@ def openid_auth_site(request):
         }, status=400)
 
     sreg = SRegRequest.fromOpenIDRequest(oreq)
-    if sreg.wereFieldsRequested():
-        ldap_user = LDAPUser.objects.get(username = request.user.username)
+    ax = FetchRequest.fromOpenIDRequest(oreq)
+
+    sreg_fields = set(sreg.allRequestedFields())
+    if ax:
+        for uri in ax.requested_attributes:
+            k = openid_ax_attribute_mapping.get(uri)
+            if k:
+                sreg_fields.add(k)
+
+    ldap_user = LDAPUser.objects.get(username=request.user.username)
+    if sreg_fields:
         sreg_data = {
             'nickname': ldap_user.username,
-            'email': ldap_user.email[0],
+            'email': ldap_user.email,
             'fullname': ldap_user.full_name,
+            'dob': ldap_user.birthday,
         }
+
+        for k in list(sreg_data):
+            if not sreg_data[k]:
+                del sreg_data[k]
     else:
-        sreg_data = None
+        sreg_data = {}
+    sreg_fields = sreg_data.keys()
 
-    if request.POST:
-        form = SiteAuthForm(request.POST)
+    # Read preferences from the db.
+    try:
+        saved_pref = OpenID_Attributes.objects.get(
+            uid=ldap_user.uid,
+            trust_root=oreq.trust_root,
+        )
+    except OpenID_Attributes.DoesNotExist:
+        saved_pref = None
+        auto_auth = False
+    else:
+        auto_auth = saved_pref.always_auth
 
+    if auto_auth or request.POST:
+        if auto_auth:
+            # TODO: can we do this nicer?
+            form_inp = model_to_dict(saved_pref)
+        else:
+            form_inp = request.POST
+        form = SiteAuthForm(form_inp, instance=saved_pref)
         # can it be invalid somehow?
         assert(form.is_valid())
         attrs = form.save(commit=False)
 
         # nullify fields that were not requested
         for fn in form.cleaned_data:
-            if hasattr(attrs, fn) and fn not in sreg:
+            if fn in ('always_auth',):
+                pass
+            elif hasattr(attrs, fn) and fn not in sreg_fields:
                 setattr(attrs, fn, None)
 
-        if 'accept' in request.POST:
+        if auto_auth or 'accept' in request.POST:
             # prepare sreg response
             for fn, send in form.cleaned_data.items():
-                if not send and fn in sreg_data:
+                if fn not in sreg_data:
+                    pass
+                elif not send:
                     del sreg_data[fn]
+                elif isinstance(sreg_data[fn], list):
+                    val = form.cleaned_data['which_%s' % fn]
+                    assert(val in sreg_data[fn])
+                    sreg_data[fn] = val
+
+            if not auto_auth:
+                # save prefs in the db
+                # (if auto_auth, then nothing changed)
+                attrs.uid = ldap_user.uid
+                attrs.trust_root = oreq.trust_root
+                attrs.save()
 
             oresp = oreq.answer(True, identity=request.build_absolute_uri(
                 reverse(user_page, args=(request.user.username,))))
 
             sreg_resp = SRegResponse.extractResponse(sreg, sreg_data)
             oresp.addExtension(sreg_resp)
+
+            if ax:
+                ax_resp = FetchResponse(ax)
+                for uri in ax.requested_attributes:
+                    k = openid_ax_attribute_mapping.get(uri)
+                    if k and k in sreg_data:
+                        ax_resp.addValue(uri, sreg_data[k])
+                oresp.addExtension(ax_resp)
         elif 'reject' in request.POST:
             oresp = oreq.answer(False)
         else:
@@ -414,6 +488,23 @@ def openid_auth_site(request):
 
         del request.session['openid_request']
         return render_openid_response(request, oresp)
+
+    form = SiteAuthForm(instance=saved_pref)
+    sreg_form = {}
+    # Fill in lists for choices
+    for f in sreg_fields:
+        if f not in sreg_data:
+            pass
+        elif isinstance(sreg_data[f], list):
+            form.fields['which_%s' % f].widget.choices = [
+                (x, x) for x in sreg_data[f]
+            ]
+            sreg_form[f] = form['which_%s' % f]
+        else:
+            sreg_form[f] = format_html("<input type='text'"
+                                       + " readonly='readonly'"
+                                       + " value='{0}' />",
+                                       sreg_data[f])
 
     try:
         # TODO: cache it
@@ -426,11 +517,11 @@ def openid_auth_site(request):
     except openid.fetchers.HTTPFetchingError:
         tr_valid = 'Unable to verify trust (HTTP error)'
 
-    form = SiteAuthForm()
     return render(request, 'openid-auth-site.html', {
         'openid_request': oreq,
         'return_to_valid': tr_valid,
         'form': form,
-        'sreg': sreg,
-        'sreg_data': sreg_data,
+        'sreg': sreg_fields,
+        'sreg_form': sreg_form,
+        'policy_url': sreg.policy_url,
     })

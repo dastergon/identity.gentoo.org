@@ -122,3 +122,13 @@ class OpenID_Attributes(models.Model):
     country = models.NullBooleanField('Country', default=True)
     language = models.NullBooleanField('Language', default=True)
     timezone = models.NullBooleanField('Time zone', default=True)
+
+    which_email = models.CharField(max_length=254, null=True, blank=True)
+
+    always_auth = models.BooleanField(
+            'Always accept requests from this Trust Root', default=True)
+    trust_root = models.CharField(max_length=2048)
+    uid = models.IntegerField()
+
+    class Meta:
+        unique_together = ('trust_root', 'uid')

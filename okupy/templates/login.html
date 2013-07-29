@@ -16,6 +16,7 @@
         <h2>Login</h2>
         <br />
         <form action="." method="POST">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}" />
             {% for field in login_form %}
                 {{ field.label_tag }}{{ field }}<br />
             {% endfor %}

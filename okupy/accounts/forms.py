@@ -27,6 +27,7 @@ class SignupForm(forms.Form):
 class SiteAuthForm(forms.ModelForm):
     class Meta:
         model = OpenID_Attributes
+        exclude = ('trust_root', 'uid')
         widgets = {
             'nickname': forms.CheckboxInput,
             'email': forms.CheckboxInput,
@@ -37,4 +38,6 @@ class SiteAuthForm(forms.ModelForm):
             'country': forms.CheckboxInput,
             'language': forms.CheckboxInput,
             'timezone': forms.CheckboxInput,
+
+            'which_email': forms.Select,
         }

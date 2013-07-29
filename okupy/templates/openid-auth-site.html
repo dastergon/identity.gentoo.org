@@ -34,28 +34,38 @@
             <form id="trust" action="" method="POST">
                 {% csrf_token %}
 
-                <fieldset>
-                    <legend>User information</legend>
+                {% if sreg %}
+                    <fieldset>
+                        <legend>User information</legend>
 
-                    <table>
-                        {% for w in form %}
-                            <tr>
-                                {% if w.name in sreg %}
-                                    <td>{{ w }} {{ w.label }}</td>
-                                    {% for k, v in sreg_data.items %}
-                                        {% if k == w.name %}
-                                            <td>
-                                                <input type='text'
-                                                    readonly='readonly'
-                                                    value='{{ v }}' />
-                                            </td>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </table>
-                </fieldset>
+                        {% if policy_url %}
+                        <p><a rel="external" href="{{ policy_url }}">
+                            Privacy policy
+                        </a> of the service.</p>
+                        {% endif %}
+
+                        <table>
+                            {% for w in form %}
+                                <tr>
+                                    {% if w.name in sreg %}
+                                        <td>{{ w }} {{ w.label_tag }}</td>
+                                        {% for k, v in sreg_form.items %}
+                                            {% if k == w.name %}
+                                                <td>
+                                                    {{ v }}
+                                                </td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </fieldset>
+                {% endif %}
+
+                <div>
+                    {{ form.always_auth }} {{ form.always_auth.label_tag }}
+                </div>
 
                 <input type='submit' name='accept' value='Yes' />
                 <input type='submit' name='reject' value='No' />
