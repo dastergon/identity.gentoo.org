@@ -43,7 +43,7 @@ LOGGING = {
             'format': '%(instance_name)s: %(levelname)s %(id_name)s %(client_ip)s Message: %(message)s File: %(module)s Function: %(funcName)s Line: %(lineno)d',
         },
         'simple': {
-            'format': '%(instance_name)s: %(levelname)s Message: %(message)s File: %(module)s Function: %(funcName)s Line: %(lineno)d',
+            'format': '%(levelname)s Message: %(message)s File: %(module)s Function: %(funcName)s Line: %(lineno)d',
         },
     },
     'filters': {
