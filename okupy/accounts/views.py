@@ -184,7 +184,6 @@ def signup(request):
                     last_name=signup_form.cleaned_data['last_name'],
                     email=signup_form.cleaned_data['email'],
                     password=signup_form.cleaned_data['password_origin'],
-                    token=random_string(40),
                 )
                 try:
                     queued_user.save()
@@ -197,7 +196,7 @@ def signup(request):
                 send_mail(
                     '%sAccount Activation' % settings.EMAIL_SUBJECT_PREFIX,
                     'To confirm your email address, please click the \
-                    following link:\n%s' % queued_user.token,
+                    following link:\n%s' % queued_user.encrypted_id,
                     '%s' % settings.SERVER_EMAIL,
                     [signup_form.cleaned_data['email']]
                 )
@@ -216,14 +215,12 @@ def signup(request):
 def activate(request, token):
     """
     The page that users get to activate their accounts
-    It is in the form /activate/$TOKEN where the token is a 40 char string
+    It is in the form /activate/$TOKEN
     """
     try:
-        if len(token) != 40:
-            raise OkupyError('Invalid URL')
         try:
-            queued_user = Queue.objects.get(token=token)
-        except Queue.DoesNotExist:
+            queued_user = Queue.objects.get(encrypted_id=token)
+        except (Queue.DoesNotExist, OverflowError, TypeError, ValueError):
             raise OkupyError('Invalid URL')
         except Exception as error:
             logger.critical(error, extra=log_extra_data(request))
