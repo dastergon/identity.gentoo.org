@@ -6,6 +6,8 @@ from ldapdb.models.fields import (CharField, IntegerField, ListField,
                                   FloatField, ACLField, DateField)
 import ldapdb.models
 
+from ..common.models import EncryptedPKModel
+
 
 class Queue(models.Model):
     username = models.CharField(max_length=100, unique=True)
@@ -82,6 +84,14 @@ class LDAPUser(ldapdb.models.Model):
 
     def __unicode__(self):
         return self.username
+
+
+# Models for extra auth schemes
+
+class AuthToken(EncryptedPKModel):
+    user = models.CharField(max_length=255)
+    # mostly for cleaning stale tokens
+    ts = models.DateTimeField(auto_now_add=True)
 
 
 # Models for OpenID data store
