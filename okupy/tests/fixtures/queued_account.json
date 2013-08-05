@@ -7,8 +7,7 @@
       "first_name": "queued_first_name",
       "last_name": "queued_last_name",
       "password": "queuedpass",
-      "email": "queueduser@test.com",
-      "token": "0123456789012345678901234567890123456789"
+      "email": "queueduser@test.com"
     }
   }
 ]

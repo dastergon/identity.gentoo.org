@@ -6,14 +6,15 @@ from ldapdb.models.fields import (CharField, IntegerField, ListField,
                                   FloatField, ACLField, DateField)
 import ldapdb.models
 
+from ..common.models import EncryptedPKModel
 
-class Queue(models.Model):
+
+class Queue(EncryptedPKModel):
     username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=30)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(max_length=254, unique=True)
-    token = models.CharField(max_length=40)
 
 
 class LDAPUser(ldapdb.models.Model):

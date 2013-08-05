@@ -76,7 +76,7 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
     def setUp(self):
         self.client = Client()
         self.queued_account = Queue.objects.get(pk=1)
-        self.activate_url = '/activate/%s/' % self.queued_account.token
+        self.activate_url = '/activate/%s/' % self.queued_account.encrypted_id
         self.mockldap.start()
         self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
@@ -166,7 +166,7 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertEqual(queued_account.last_name, self.form_data['last_name'])
         self.assertEqual(queued_account.email, self.form_data['email'])
         self.assertEqual(queued_account.password, self.form_data['password_origin'])
-        self.assertRegexpMatches(queued_account.token, '^[a-zA-Z0-9]{40}$')
+        self.assertRegexpMatches(queued_account.encrypted_id, '^[a-f0-9]{32}$')
 
     @mock.patch("django.db.backends.util.CursorWrapper", cursor_wrapper)
     def test_signup_no_database(self):
