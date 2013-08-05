@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import (login as _login, logout as _logout,
                                  authenticate)
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
@@ -12,6 +13,7 @@ from django.forms.models import model_to_dict
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
+from django.utils.http import urlencode
 from django.views.decorators.csrf import csrf_exempt
 
 from edpwd import random_string
@@ -20,10 +22,12 @@ from openid.extensions.sreg import SRegRequest, SRegResponse
 from openid.server.server import (Server, ProtocolError, EncodingError,
                                   CheckIDRequest, ENCODE_URL,
                                   ENCODE_KVFORM, ENCODE_HTML_FORM)
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from passlib.hash import ldap_md5_crypt
+from urlparse import urljoin, urlparse, parse_qsl
 
 from .forms import LoginForm, SignupForm, SiteAuthForm
-from .models import LDAPUser, OpenID_Attributes, Queue
+from .models import AuthToken, LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
@@ -129,16 +133,83 @@ def login(request):
             except OkupyError as error:
                 messages.error(request, str(error))
     else:
+        if 'ssl_auth_success' in request.GET:
+            try:
+                token = AuthToken.objects.get(
+                    encrypted_id=request.GET['ssl_auth_success'])
+            except (AuthToken.DoesNotExist, OverflowError,
+                    TypeError, ValueError):
+                messages.error(request, 'Invalid SSL auth token')
+            else:
+                user = authenticate(username=token.user, ext_authed=True)
+                token.delete()
+                if user.is_active:
+                    _login(request, user)
+                    request.session.set_expiry(900)
+                    return redirect(request.POST.get('next', index))
+        elif 'ssl_auth_failed' in request.GET:
+            messages.error(request, 'SSL authentication failed: %s'
+                    % request.GET['ssl_auth_failed'])
+
         if request.user.is_authenticated():
             return redirect(request.GET.get('next', index))
         else:
             login_form = LoginForm()
 
+    # TODO: it fails when:
+    # 1. site is accessed via IP (auth.127.0.0.1),
+    # 2. HTTP used on non-standard port (https://...:8000).
+    ssl_auth_host = 'auth.' + request.get_host()
+    current_url = request.build_absolute_uri(request.get_full_path())
+    ssl_auth_path = reverse(ssl_auth) + '?' + urlencode({'back': current_url})
+    ssl_auth_uri = urljoin('https://' + ssl_auth_host, ssl_auth_path)
+
     return render(request, 'login.html', {
         'login_form': login_form,
         'openid_request': oreq,
         'next': request.GET.get('next', index),
+        'ssl_auth_uri': ssl_auth_uri,
     })
+
+
+def ssl_auth(request):
+    """ SSL certificate authentication. """
+
+    ret_url = request.GET['back']
+    qs = parse_qsl(urlparse(ret_url).query)
+
+    cert_verify = request.META['SSL_CLIENT_VERIFY']
+    if cert_verify == 'SUCCESS':
+        cert = load_certificate(FILETYPE_PEM,
+            request.META['SSL_CLIENT_RAW_CERT'])
+        dn = cert.get_subject().get_components()
+
+        # note: field may occur multiple times
+        for k, v in dn:
+            if k == 'emailAddress':
+                try:
+                    u = LDAPUser.objects.get(email__contains=v)
+                except LDAPUser.DoesNotExist:
+                    pass
+                else:
+                    auth_token = AuthToken(user=u.username)
+                    auth_token.save()
+                    qs.append(('ssl_auth_success',
+                        auth_token.encrypted_id))
+                    break
+        else:
+            qs.append(('ssl_auth_failed',
+                'E-mail does not match any of the users'))
+    else:
+        if cert_verify == 'NONE':
+            error = 'No certificate provided'
+        else:
+            error = 'Certificate verification failed'
+
+        qs.append(('ssl_auth_failed', error))
+
+    ret_url = urljoin(ret_url, '?' + urlencode(qs))
+    return redirect(ret_url)
 
 
 def logout(request):
@@ -284,6 +355,7 @@ def formerdevlist(request):
 
 def foundationlist(request):
     return render(request, 'foundation-members.html', {})
+
 
 # OpenID-specific
 

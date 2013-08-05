@@ -85,6 +85,14 @@ class LDAPUser(ldapdb.models.Model):
         return self.username
 
 
+# Models for extra auth schemes
+
+class AuthToken(EncryptedPKModel):
+    user = models.CharField(max_length=255)
+    # mostly for cleaning stale tokens
+    ts = models.DateTimeField(auto_now_add=True)
+
+
 # Models for OpenID data store
 
 class OpenID_Nonce(models.Model):
