@@ -11,6 +11,7 @@ from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.forms.models import model_to_dict
 from django.http import HttpResponse
+from django.views.generic.base import View
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
 from django.utils.http import urlencode
@@ -41,6 +42,19 @@ import logging
 
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
+
+
+class DevListsView(View):
+    template_name = ''
+
+    def get(self, request, *args, **kwargs):
+        if 'devlist.html' in self.template_name:
+            devlist = LDAPUser.objects.filter(is_developer=True)
+        elif 'former-devlist.html' in self.template_name:
+            devlist = LDAPUser.objects.filter(is_retired=True)
+        elif 'foundation-members.html' in self.template_name:
+            devlist = LDAPUser.objects.filter(is_foundation=True)
+        return render(request, self.template_name, {'devlist': devlist})
 
 
 @login_required
@@ -343,18 +357,6 @@ def activate(request, token):
     except OkupyError as error:
         messages.error(request, str(error))
     return redirect(login)
-
-
-def devlist(request):
-    return render(request, 'devlist.html', {})
-
-
-def formerdevlist(request):
-    return render(request, 'former-devlist.html', {})
-
-
-def foundationlist(request):
-    return render(request, 'foundation-members.html', {})
 
 
 # OpenID-specific
