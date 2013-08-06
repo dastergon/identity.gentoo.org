@@ -146,7 +146,7 @@ def login(request):
                 if user.is_active:
                     _login(request, user)
                     request.session.set_expiry(900)
-                    return redirect(request.POST.get('next', index))
+                    return redirect(request.GET.get('next', index))
         elif 'ssl_auth_failed' in request.GET:
             messages.error(request, 'SSL authentication failed: %s'
                     % request.GET['ssl_auth_failed'])
