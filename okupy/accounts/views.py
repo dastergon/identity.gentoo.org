@@ -160,7 +160,7 @@ def login(request):
                 if user.is_active:
                     _login(request, user)
                     request.session.set_expiry(900)
-                    return redirect(request.POST.get('next', index))
+                    return redirect(request.GET.get('next', index))
         elif 'ssl_auth_failed' in request.GET:
             messages.error(request, 'SSL authentication failed: %s'
                     % request.GET['ssl_auth_failed'])
@@ -526,9 +526,14 @@ def openid_auth_site(request):
                 elif not send:
                     del sreg_data[fn]
                 elif isinstance(sreg_data[fn], list):
-                    val = form.cleaned_data['which_%s' % fn]
-                    assert(val in sreg_data[fn])
+                    form_key = 'which_%s' % fn
+                    val = form.cleaned_data[form_key]
+                    if val not in sreg_data[fn]:
+                        raise NotImplementedError(
+                            'Changing choices not implemented yet')
                     sreg_data[fn] = val
+                    if not auto_auth:
+                        setattr(attrs, form_key, val)
 
             if not auto_auth:
                 # save prefs in the db
