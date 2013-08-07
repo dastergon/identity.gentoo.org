@@ -336,13 +336,14 @@ def activate(request, token):
                 queued_user.first_name, queued_user.last_name)]
         if 'posixAccount' in new_user['objectClass']:
             try:
-                max_uidnumber = admin_ldap_user.search_s(
+                results = admin_ldap_user.search_s(
                     settings.AUTH_LDAP_USER_BASE_DN, ldap.SCOPE_ONELEVEL,
-                    '(uidNumber=*)', ['uidNumber']
-                )[-1][1]['uidNumber'][0]
-            except IndexError:
+                    '(uidNumber=*)', ['uidNumber'])
+                uidnumbers = [int(x[1]['uidNumber'][0]) for x in results]
+                max_uidnumber = max(uidnumbers)
+            except (IndexError, ValueError):
                 max_uidnumber = 0
-            new_user['uidNumber'] = [str(int(max_uidnumber) + 1)]
+            new_user['uidNumber'] = [str(max_uidnumber + 1)]
             new_user['gidNumber'] = ['100']
             new_user['homeDirectory'] = [
                 '/home/%s' % str(queued_user.username)]
