@@ -2,8 +2,7 @@
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.test import TestCase
-from django.test.client import RequestFactory
+from django.test import TestCase, RequestFactory
 from mockldap import MockLdap
 from passlib.hash import ldap_md5_crypt
 
@@ -52,10 +51,8 @@ class ConnectionTests(TestCase):
         self.assertRaises(TypeError, get_ldap_connection, username='alice', password='ldaptest', admin=True)
 
     def test_get_logged_in_user(self):
-        self.factory = RequestFactory()
-        self.user = User.objects.create_user(username='alice', password='ldaptest')
-        request = self.factory.get('/index')
-        request.user = self.user
+        request = RequestFactory().get('/')
+        request.user = User.objects.create_user(username='alice', password='ldaptest')
         request.user.secondary_password = edpwd.encrypt(settings.SECRET_KEY, 'ldaptest2')
         alice = get_ldap_connection(request=request)
         self.assertEqual(self.ldapobject.bound_as, 'uid=alice,ou=people,o=test')
