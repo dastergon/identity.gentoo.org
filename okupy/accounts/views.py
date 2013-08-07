@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.contrib.auth import (login as _login, logout as _logout,
                                  authenticate)
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
@@ -17,7 +16,6 @@ from django.utils.html import format_html
 from django.utils.http import urlencode
 from django.views.decorators.csrf import csrf_exempt
 
-from edpwd import random_string
 from openid.extensions.ax import FetchRequest, FetchResponse
 from openid.extensions.sreg import SRegRequest, SRegResponse
 from openid.server.server import (Server, ProtocolError, EncodingError,
@@ -162,8 +160,8 @@ def login(request):
                     request.session.set_expiry(900)
                     return redirect(request.GET.get('next', index))
         elif 'ssl_auth_failed' in request.GET:
-            messages.error(request, 'SSL authentication failed: %s'
-                    % request.GET['ssl_auth_failed'])
+            messages.error(request, 'SSL authentication failed: %s' %
+                           request.GET['ssl_auth_failed'])
 
         if request.user.is_authenticated():
             return redirect(request.GET.get('next', index))
@@ -195,7 +193,7 @@ def ssl_auth(request):
     cert_verify = request.META['SSL_CLIENT_VERIFY']
     if cert_verify == 'SUCCESS':
         cert = load_certificate(FILETYPE_PEM,
-            request.META['SSL_CLIENT_RAW_CERT'])
+                                request.META['SSL_CLIENT_RAW_CERT'])
         dn = cert.get_subject().get_components()
 
         # note: field may occur multiple times
@@ -208,12 +206,11 @@ def ssl_auth(request):
                 else:
                     auth_token = AuthToken(user=u.username)
                     auth_token.save()
-                    qs.append(('ssl_auth_success',
-                        auth_token.encrypted_id))
+                    qs.append(('ssl_auth_success', auth_token.encrypted_id))
                     break
         else:
             qs.append(('ssl_auth_failed',
-                'E-mail does not match any of the users'))
+                       'E-mail does not match any of the users'))
     else:
         if cert_verify == 'NONE':
             error = 'No certificate provided'

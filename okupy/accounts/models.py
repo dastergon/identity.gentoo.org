@@ -135,7 +135,7 @@ class OpenID_Attributes(models.Model):
     which_email = models.CharField(max_length=254, null=True, blank=True)
 
     always_auth = models.BooleanField(
-            'Always accept requests from this Trust Root', default=True)
+        'Always accept requests from this Trust Root', default=True)
     trust_root = models.CharField(max_length=2048)
     uid = models.IntegerField()
 
