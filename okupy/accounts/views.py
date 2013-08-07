@@ -28,6 +28,7 @@ from urlparse import urljoin, urlparse, parse_qsl
 from .forms import LoginForm, SignupForm, SiteAuthForm
 from .models import AuthToken, LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
+from ..common.ldap_helpers import get_ldap_connection
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
 
@@ -57,7 +58,7 @@ class DevListsView(View):
 
 @login_required
 def index(request):
-    anon_ldap_user = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
+    anon_ldap_user = get_ldap_connection()
     results = anon_ldap_user.search_s(settings.AUTH_LDAP_USER_DN_TEMPLATE % {
         'user': request.user}, ldap.SCOPE_SUBTREE, '(uid=%s)' % (request.user))
     attrs = results[0][1]
@@ -240,11 +241,7 @@ def signup(request):
                         signup_form.cleaned_data['password_verify']:
                     raise OkupyError("Passwords don't match")
                 try:
-                    anon_ldap_user = ldap.initialize(
-                        settings.AUTH_LDAP_SERVER_URI)
-                    anon_ldap_user.simple_bind_s(
-                        settings.AUTH_LDAP_BIND_DN,
-                        settings.AUTH_LDAP_BIND_PASSWORD)
+                    anon_ldap_user = get_ldap_connection()
                 except Exception as error:
                     logger.critical(error, extra=log_extra_data(request))
                     logger_mail.exception(error)
@@ -310,10 +307,7 @@ def activate(request, token):
             raise OkupyError("Can't contact the database")
         # add account to ldap
         try:
-            admin_ldap_user = ldap.initialize(settings.AUTH_LDAP_SERVER_URI)
-            admin_ldap_user.simple_bind_s(
-                settings.AUTH_LDAP_ADMIN_BIND_DN,
-                settings.AUTH_LDAP_ADMIN_BIND_PASSWORD)
+            admin_ldap_user = get_ldap_connection(admin=True)
         except Exception as error:
             logger.critical(error, extra=log_extra_data(request))
             logger_mail.exception(error)
