@@ -31,3 +31,14 @@ application = get_wsgi_application()
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
 # application = HelloWorldApplication(application)
+
+# from http://projects.unbit.it/uwsgi/wiki/TipsAndTricks
+# AUTHOR: Simone Federici
+import uwsgi
+from uwsgidecorators import timer
+from django.utils import autoreload
+
+@timer(5)
+def change_code_gracefull_reload(sig):
+    if autoreload.code_changed():
+        uwsgi.reload()
