@@ -34,11 +34,17 @@ application = get_wsgi_application()
 
 # from http://projects.unbit.it/uwsgi/wiki/TipsAndTricks
 # AUTHOR: Simone Federici
-import uwsgi
-from uwsgidecorators import timer
-from django.utils import autoreload
+try:
+    # uwsgi module is only available when running from uwsgi
+    import uwsgi
+except ImportError:
+    # we're probably running from django's built-in server
+    pass
+else:
+    from uwsgidecorators import timer
+    from django.utils import autoreload
 
-@timer(5)
-def change_code_gracefull_reload(sig):
-    if autoreload.code_changed():
-        uwsgi.reload()
+    @timer(5)
+    def change_code_gracefull_reload(sig):
+        if autoreload.code_changed():
+            uwsgi.reload()
