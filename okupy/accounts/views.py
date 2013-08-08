@@ -112,37 +112,31 @@ def login(request):
             del request.session['openid_request']
             return render_openid_response(request, oresp)
     elif request.method == "POST":
-        if 'cancel' in request.POST:
-            if oreq is not None:
-                oresp = oreq.answer(False)
-                del request.session['openid_request']
-                return render_openid_response(request, oresp)
-        else:
-            login_form = LoginForm(request.POST)
+        login_form = LoginForm(request.POST)
+        try:
+            if login_form.is_valid():
+                username = login_form.cleaned_data['username']
+                password = login_form.cleaned_data['password']
+            else:
+                raise OkupyError('Login failed')
+            """
+            Perform authentication, if it retrieves a user object then
+            it was successful. If it retrieves None then it failed to login
+            """
             try:
-                if login_form.is_valid():
-                    username = login_form.cleaned_data['username']
-                    password = login_form.cleaned_data['password']
-                else:
-                    raise OkupyError('Login failed')
-                """
-                Perform authentication, if it retrieves a user object then
-                it was successful. If it retrieves None then it failed to login
-                """
-                try:
-                    user = authenticate(username=username, password=password)
-                except Exception as error:
-                    logger.critical(error, extra=log_extra_data(request))
-                    logger_mail.exception(error)
-                    raise OkupyError(
-                        "Can't contact the LDAP server or the database")
-                if not user:
-                    raise OkupyError('Login failed')
-                if user.is_active:
-                    _login(request, user)
-                    return redirect(next)
-            except OkupyError as error:
-                messages.error(request, str(error))
+                user = authenticate(username=username, password=password)
+            except Exception as error:
+                logger.critical(error, extra=log_extra_data(request))
+                logger_mail.exception(error)
+                raise OkupyError(
+                    "Can't contact the LDAP server or the database")
+            if not user:
+                raise OkupyError('Login failed')
+            if user.is_active:
+                _login(request, user)
+                return redirect(next)
+        except OkupyError as error:
+            messages.error(request, str(error))
     else:
         if 'ssl_auth_success' in request.GET:
             try:
