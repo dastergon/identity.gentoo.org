@@ -11,6 +11,10 @@ class LoginForm(forms.Form):
                                label='Password:')
 
 
+class OTPForm(forms.Form):
+    otp_token = forms.CharField(max_length=10, label='OTP token:')
+
+
 class SignupForm(forms.Form):
     first_name = forms.CharField(max_length=100, label='First Name:')
     last_name = forms.CharField(max_length=100, label='Last Name:')

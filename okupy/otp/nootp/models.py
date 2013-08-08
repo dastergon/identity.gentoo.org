@@ -8,4 +8,4 @@ class NoOTPDevice(Device):
 
     def verify_token(self, token=None):
         # TODO: put some real code
-        return True
+        return token == '1234'

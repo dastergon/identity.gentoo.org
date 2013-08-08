@@ -25,7 +25,7 @@ from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from passlib.hash import ldap_md5_crypt
 from urlparse import urljoin, urlparse, parse_qsl
 
-from .forms import LoginForm, SignupForm, SiteAuthForm
+from .forms import LoginForm, OTPForm, SignupForm, SiteAuthForm
 from .models import AuthToken, LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import get_ldap_connection
@@ -36,6 +36,7 @@ from ..otp import init_otp
 # the following two are for exceptions
 import openid.yadis.discover
 import openid.fetchers
+import django_otp
 import ldap
 import ldap.modlist as modlist
 import logging
@@ -105,6 +106,7 @@ def login(request):
     oreq = request.session.get('openid_request', None)
     # this can be POST or GET, and can be null or empty
     next = request.REQUEST.get('next') or index
+    is_otp = False
 
     try:
         if request.method != 'POST':
@@ -123,10 +125,27 @@ def login(request):
                 raise OkupyError('SSL authentication failed: %s'
                                  % request.GET['ssl_auth_failed'])
         elif 'cancel' in request.POST:
+            # note: this wipes request.session
+            _logout(request)
             if oreq is not None:
                 oresp = oreq.answer(False)
-                del request.session['openid_request']
                 return render_openid_response(request, oresp)
+        elif 'otp_token' in request.POST:
+            # if user's not authenticated, go back to square one
+            if not request.user.is_authenticated():
+                raise OkupyError('OTP verification timed out')
+
+            is_otp = True
+            otp_form = OTPForm(request.POST)
+            if otp_form.is_valid():
+                token = otp_form.cleaned_data['otp_token']
+            else:
+                raise OkupyError('OTP verification failed')
+
+            dev = django_otp.match_token(request.user, token)
+            if not dev:
+                raise OkupyError('OTP verification failed')
+            django_otp.login(request, dev)
         else:
             login_form = LoginForm(request.POST)
             if login_form.is_valid():
@@ -154,26 +173,31 @@ def login(request):
         _login(request, user)
         # prepare devices, and see if OTP is enabled
         init_otp(request)
-    if request.user.is_verified():
-        return redirect(next)
     if request.user.is_authenticated():
-        raise NotImplementedError('OTP form not implemented yet')
+        if request.user.is_verified():
+            return redirect(next)
+        login_form = OTPForm()
+        is_otp = True
     if login_form is None:
         login_form = LoginForm()
 
-    # TODO: it fails when:
-    # 1. site is accessed via IP (auth.127.0.0.1),
-    # 2. HTTP used on non-standard port (https://...:8000).
-    ssl_auth_host = 'auth.' + request.get_host()
-    current_url = request.build_absolute_uri(request.get_full_path())
-    ssl_auth_path = reverse(ssl_auth) + '?' + urlencode({'back': current_url})
-    ssl_auth_uri = urljoin('https://' + ssl_auth_host, ssl_auth_path)
+    if is_otp:
+        ssl_auth_uri = None
+    else:
+        # TODO: it fails when:
+        # 1. site is accessed via IP (auth.127.0.0.1),
+        # 2. HTTP used on non-standard port (https://...:8000).
+        ssl_auth_host = 'auth.' + request.get_host()
+        current_url = request.build_absolute_uri(request.get_full_path())
+        ssl_auth_path = reverse(ssl_auth) + '?' + urlencode({'back': current_url})
+        ssl_auth_uri = urljoin('https://' + ssl_auth_host, ssl_auth_path)
 
     return render(request, 'login.html', {
         'login_form': login_form,
         'openid_request': oreq,
         'next': next,
         'ssl_auth_uri': ssl_auth_uri,
+        'is_otp': is_otp,
     })
 
 
