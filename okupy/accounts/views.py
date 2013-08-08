@@ -32,6 +32,7 @@ from ..common.ldap_helpers import get_ldap_connection
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
 from ..otp import init_otp
+from ..otp.totp.models import TOTPDevice
 
 # the following two are for exceptions
 import openid.yadis.discover
@@ -365,6 +366,48 @@ def activate(request, token):
     except OkupyError as error:
         messages.error(request, str(error))
     return redirect(login)
+
+
+@otp_required
+def otp_setup(request):
+    dev = TOTPDevice.objects.get(user=request.user)
+    secret = None
+    conf_form = None
+
+    if request.method == 'POST':
+        if 'disable' in request.POST:
+            dev.disable()
+        elif 'confirm' in request.POST and 'otp_secret' in request.session:
+            secret = request.session['otp_secret']
+            conf_form = OTPForm(request.POST)
+            try:
+                if not conf_form.is_valid():
+                    raise OkupyError()
+                token = conf_form.cleaned_data['otp_token']
+                if not dev.verify_token(token, secret):
+                    raise OkupyError()
+            except OkupyError:
+                messages.error(request, 'Token verification failed.')
+                conf_form = OTPForm()
+            else:
+                dev.enable(secret)
+                secret = None
+                conf_form = None
+        elif 'enable' in request.POST:
+            secret = dev.gen_secret()
+            request.session['otp_secret'] = secret
+            conf_form = OTPForm()
+
+    if secret:
+        # into groups of four characters
+        secret = ' '.join([secret[i:i+4]
+                           for i in range(0, len(secret), 4)])
+
+    return render(request, 'otp-setup.html', {
+        'otp_enabled': dev.is_enabled(),
+        'secret': secret,
+        'conf_form': conf_form,
+    })
 
 
 # OpenID-specific

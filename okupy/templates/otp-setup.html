@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class='alert' style='margin-top:20px; margin-bottom:0'>
+    Gentoo Identity is currently available as an alpha version for selected users only.
+</div>
+<br />
+<div class="hero-unit">
+    <h1>Gentoo Identity</h1>
+    <h3 style="padding-left:20px;">Welcome to the home of the Gentoo Identity.</h3><br />
+    <p>Gentoo Identity is the central place to manage your information in Gentoo Community.</p>
+</div>
+<p>
+<div class="row">
+    <div class="span12">
+        <h2>OTP Setup</h2>
+
+        <p>OTP status:
+        {% if otp_enabled %}enabled{% else %}disabled{% endif %}
+        </p>
+
+        <form action="." method="POST">{% csrf_token %}
+            {% if conf_form %}
+                <p>New secret:
+                    <em>{{ secret }}</em>
+                </p>
+
+                {% for field in conf_form %}
+                    {{ field.label_tag }}{{ field }}<br />
+                {% endfor %}
+                <input type='submit' name='confirm' value='Confirm' />
+                <input type='submit' name='cancel' value='Cancel' />
+            {% else %}
+                {% if otp_enabled %}
+                    <input type='submit' name='disable' value='Disable OTP' />
+                    <input type='submit' name='enable' value='Generate new secret key' />
+                {% else %}
+                    <input type='submit' name='enable' value='Enable OTP' />
+                {% endif %}
+            {% endif %}
+        </form>
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+</div>
+</p>
+{% endblock %}
+
+{# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}
