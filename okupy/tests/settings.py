@@ -38,22 +38,22 @@ import ldap
 AUTH_LDAP_SERVER_URI = 'ldap://ldap.example.com'
 
 AUTH_LDAP_CONNECTION_OPTIONS = {
-    ldap.OPT_REFERRALS: 0,
-    ldap.OPT_X_TLS_DEMAND: False,
+    ldap.OPT_REFERRALS: 1,
+    ldap.OPT_X_TLS_DEMAND: True,
 }
 
-AUTH_LDAP_BIND_DN = ''
-AUTH_LDAP_BIND_PASSWORD = ''
+AUTH_LDAP_BIND_DN = 'cn=anon,o=test'
+AUTH_LDAP_BIND_PASSWORD = 'anonpassword'
 
-AUTH_LDAP_ADMIN_BIND_DN = ''
-AUTH_LDAP_ADMIN_BIND_PASSWORD = ''
+AUTH_LDAP_ADMIN_BIND_DN = 'cn=Manager,o=test'
+AUTH_LDAP_ADMIN_BIND_PASSWORD = 'adminpassword'
 
 AUTH_LDAP_USER_ATTR = 'uid'
 AUTH_LDAP_USER_BASE_DN = 'ou=people,o=test'
 
 AUTH_LDAP_PERMIT_EMPTY_PASSWORD = False
 
-AUTH_LDAP_START_TLS = False
+AUTH_LDAP_START_TLS = True
 
 # objectClasses that are used by any user
 AUTH_LDAP_USER_OBJECTCLASS = ['top', 'person', 'organizationalPerson',
@@ -282,6 +282,14 @@ DATABASES['ldap'] = {
 DATABASE_ROUTERS = ['ldapdb.router.Router']
 
 DIRECTORY = {
+    "o=test": {},
+    "cn=anon,o=test": {
+        "userPassword": ["{CRYPT}$1$n4jlXi20$.5a8UTvwIqVfVAMlXJ1EZ0"],
+    },
+    "cn=Manager,o=test": {
+        "userPassword": ["{CRYPT}$1$sY4mlRve$0eg5TLYMyZfBCIUgU/RPf0"],
+    },
+    "ou=people,o=test": {},
     "uid=alice,ou=people,o=test": {
         "uid": ["alice"],
         "userPassword": ['{CRYPT}$1$lO/RU6zz$2fJCOwurxBtCqdImkoLQo1'],

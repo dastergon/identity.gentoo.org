@@ -183,7 +183,9 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
 
     def test_add_first_user_empty_ldap_directory(self):
-        self.ldapobject.directory = {}
+        for key in self.ldapobject.directory.keys():
+            if key.startswith(settings.AUTH_LDAP_USER_ATTR) and key.endswith(settings.AUTH_LDAP_USER_BASE_DN):
+                del self.ldapobject.directory[key]
         response = self.client.post(self.activate_url)
         self.assertRedirects(response, '/login/')
         self.assertMessage(response, 'Your account has been activated successfully', 25)

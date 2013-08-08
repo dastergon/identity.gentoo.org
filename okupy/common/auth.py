@@ -3,6 +3,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 
+
 class ExternalBackend(ModelBackend):
     """ Authentication backend that relies on an external,
     non-password authentication. """
