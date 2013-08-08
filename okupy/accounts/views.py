@@ -132,9 +132,6 @@ def login(request):
                     "Can't contact the LDAP server or the database")
             if not user:
                 raise OkupyError('Login failed')
-            if user.is_active:
-                _login(request, user)
-                return redirect(next)
         except OkupyError as error:
             messages.error(request, str(error))
     else:
@@ -148,12 +145,13 @@ def login(request):
             else:
                 user = authenticate(username=token.user, ext_authed=True)
                 token.delete()
-                if user.is_active:
-                    _login(request, user)
-                    return redirect(next)
         elif 'ssl_auth_failed' in request.GET:
             messages.error(request, 'SSL authentication failed: %s'
                     % request.GET['ssl_auth_failed'])
+
+    if user and user.is_active:
+        _login(request, user)
+        return redirect(next)
 
     if login_form is None:
         if request.user.is_authenticated():
