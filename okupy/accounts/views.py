@@ -103,6 +103,8 @@ def login(request):
     login_form = None
     user = None
     oreq = request.session.get('openid_request', None)
+    # this can be POST or GET, and can be null or empty
+    next = request.REQUEST.get('next') or index
 
     if request.method == "POST" and 'cancel' in request.POST:
         if oreq is not None:
@@ -143,7 +145,7 @@ def login(request):
                 if user.is_active:
                     _login(request, user)
                     request.session.set_expiry(900)
-                    return redirect(request.POST.get('next', index))
+                    return redirect(next)
             except OkupyError as error:
                 messages.error(request, str(error))
     else:
@@ -160,13 +162,13 @@ def login(request):
                 if user.is_active:
                     _login(request, user)
                     request.session.set_expiry(900)
-                    return redirect(request.GET.get('next', index))
+                    return redirect(next)
         elif 'ssl_auth_failed' in request.GET:
             messages.error(request, 'SSL authentication failed: %s'
                     % request.GET['ssl_auth_failed'])
 
         if request.user.is_authenticated():
-            return redirect(request.GET.get('next', index))
+            return redirect(next)
         else:
             login_form = LoginForm()
 
@@ -181,7 +183,7 @@ def login(request):
     return render(request, 'login.html', {
         'login_form': login_form,
         'openid_request': oreq,
-        'next': request.GET.get('next', index),
+        'next': next,
         'ssl_auth_uri': ssl_auth_uri,
     })
 
