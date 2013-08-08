@@ -8,7 +8,7 @@ from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.forms.models import model_to_dict
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.views.generic.base import View
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
@@ -38,9 +38,11 @@ from ..otp.totp.models import TOTPDevice
 import openid.yadis.discover
 import openid.fetchers
 import django_otp
+import io
 import ldap
 import ldap.modlist as modlist
 import logging
+import qrcode
 
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
@@ -408,6 +410,19 @@ def otp_setup(request):
         'secret': secret,
         'conf_form': conf_form,
     })
+
+
+def otp_qrcode(request):
+    dev = TOTPDevice()
+    secret = request.session.get('otp_secret')
+    if not secret:
+        return HttpResponseForbidden()
+
+    qr = qrcode.make(dev.get_uri(secret), box_size=5)
+    f = io.BytesIO()
+    qr.save(f, 'PNG')
+
+    return HttpResponse(f.getvalue(), content_type='image/png')
 
 
 # OpenID-specific

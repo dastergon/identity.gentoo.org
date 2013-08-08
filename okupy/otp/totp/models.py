@@ -27,18 +27,14 @@ class TOTPDevice(Device):
             return None
         return o
 
-
     def is_enabled(self):
         return bool(self._get_secret())
-
 
     def disable(self):
         o = self._get_secret()
         if not o:
             return
-
         o.delete()
-
 
     def enable(self, new_secret):
         o = self._get_secret()
@@ -47,11 +43,13 @@ class TOTPDevice(Device):
         o.secret = new_secret
         o.save()
 
-
     def gen_secret(self):
         rng = Crypto.Random.new()
         return b32encode(rng.read(12)).rstrip('=')
 
+    @staticmethod
+    def get_uri(secret):
+        return 'otpauth://totp/identity.gentoo.org?secret=%s' % secret
 
     def verify_token(self, token, secret=None):
         if not secret:
@@ -69,7 +67,7 @@ class TOTPDevice(Device):
         except ValueError:
             return False
 
-        for offset in range(-2,3):
+        for offset in range(-2, 3):
             if oath.totp(key, drift=offset) == token:
                 return True
         return False

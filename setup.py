@@ -43,6 +43,7 @@ setup(
         'pyopenssl>=0.13',
         'python-ldap>=2.4.10',
         'python-openid>=2.2.5',
+        'qrcode>=3.0',
     ],
     setup_requires=[
         'setuptools>=0.6c11',

@@ -21,6 +21,8 @@
 
         <form action="." method="POST">{% csrf_token %}
             {% if conf_form %}
+                <img src='/otp-qrcode.png' />
+
                 <p>New secret:
                     <em>{{ secret }}</em>
                 </p>
