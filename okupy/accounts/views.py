@@ -152,13 +152,10 @@ def login(request):
 
     if user and user.is_active:
         _login(request, user)
+    if request.user.is_authenticated():
         return redirect(next)
-
     if login_form is None:
-        if request.user.is_authenticated():
-            return redirect(next)
-        else:
-            login_form = LoginForm()
+        login_form = LoginForm()
 
     # TODO: it fails when:
     # 1. site is accessed via IP (auth.127.0.0.1),
