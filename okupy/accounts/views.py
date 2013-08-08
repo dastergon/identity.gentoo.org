@@ -103,72 +103,59 @@ def login(request):
     login_form = None
     user = None
     oreq = request.session.get('openid_request', None)
+    # this can be POST or GET, and can be null or empty
+    next = request.REQUEST.get('next') or index
 
-    if request.method == "POST" and 'cancel' in request.POST:
-        if oreq is not None:
-            oresp = oreq.answer(False)
-            del request.session['openid_request']
-            return render_openid_response(request, oresp)
-        else:
-            # cheat it to display the form again
-            request.method = 'GET'
-
-    if request.method == "POST":
-        if 'cancel' in request.POST:
+    try:
+        if request.method != 'POST':
+            if 'ssl_auth_success' in request.GET:
+                try:
+                    token = AuthToken.objects.get(
+                        encrypted_id=request.GET['ssl_auth_success'])
+                except (AuthToken.DoesNotExist, OverflowError,
+                        TypeError, ValueError):
+                    raise OkupyError('Invalid SSL auth token')
+                else:
+                    # TODO: can we make this atomic?
+                    token.delete()
+                    user = authenticate(username=token.user, ext_authed=True)
+            elif 'ssl_auth_failed' in request.GET:
+                raise OkupyError('SSL authentication failed: %s'
+                                 % request.GET['ssl_auth_failed'])
+        elif 'cancel' in request.POST:
             if oreq is not None:
                 oresp = oreq.answer(False)
                 del request.session['openid_request']
                 return render_openid_response(request, oresp)
         else:
             login_form = LoginForm(request.POST)
-            try:
-                if login_form.is_valid():
-                    username = login_form.cleaned_data['username']
-                    password = login_form.cleaned_data['password']
-                else:
-                    raise OkupyError('Login failed')
-                """
-                Perform authentication, if it retrieves a user object then
-                it was successful. If it retrieves None then it failed to login
-                """
-                try:
-                    user = authenticate(username=username, password=password)
-                except Exception as error:
-                    logger.critical(error, extra=log_extra_data(request))
-                    logger_mail.exception(error)
-                    raise OkupyError(
-                        "Can't contact the LDAP server or the database")
-                if not user:
-                    raise OkupyError('Login failed')
-                if user.is_active:
-                    _login(request, user)
-                    request.session.set_expiry(900)
-                    return redirect(request.POST.get('next', index))
-            except OkupyError as error:
-                messages.error(request, str(error))
-    else:
-        if 'ssl_auth_success' in request.GET:
-            try:
-                token = AuthToken.objects.get(
-                    encrypted_id=request.GET['ssl_auth_success'])
-            except (AuthToken.DoesNotExist, OverflowError,
-                    TypeError, ValueError):
-                messages.error(request, 'Invalid SSL auth token')
+            if login_form.is_valid():
+                username = login_form.cleaned_data['username']
+                password = login_form.cleaned_data['password']
             else:
-                user = authenticate(username=token.user, ext_authed=True)
-                token.delete()
-                if user.is_active:
-                    _login(request, user)
-                    request.session.set_expiry(900)
-                    return redirect(request.GET.get('next', index))
-        elif 'ssl_auth_failed' in request.GET:
-            messages.error(request, 'SSL authentication failed: %s'
-                    % request.GET['ssl_auth_failed'])
+                raise OkupyError('Login failed')
+            """
+            Perform authentication, if it retrieves a user object then
+            it was successful. If it retrieves None then it failed to login
+            """
+            try:
+                user = authenticate(username=username, password=password)
+            except Exception as error:
+                logger.critical(error, extra=log_extra_data(request))
+                logger_mail.exception(error)
+                raise OkupyError(
+                    "Can't contact the LDAP server or the database")
+            if not user:
+                raise OkupyError('Login failed')
+    except OkupyError as error:
+        messages.error(request, str(error))
 
-        if request.user.is_authenticated():
-            return redirect(request.GET.get('next', index))
-        else:
-            login_form = LoginForm()
+    if user and user.is_active:
+        _login(request, user)
+    if request.user.is_authenticated():
+        return redirect(next)
+    if login_form is None:
+        login_form = LoginForm()
 
     # TODO: it fails when:
     # 1. site is accessed via IP (auth.127.0.0.1),
@@ -181,7 +168,7 @@ def login(request):
     return render(request, 'login.html', {
         'login_form': login_form,
         'openid_request': oreq,
-        'next': request.GET.get('next', index),
+        'next': next,
         'ssl_auth_uri': ssl_auth_uri,
     })
 
