@@ -67,7 +67,9 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertEqual(User.objects.count(), 0)
 
     def test_correct_user(self):
-        response = self.client.post('/login/', self.account)
+        account = self.account.copy()
+        account['next'] = ''
+        response = self.client.post('/login/', account)
         self.assertRedirects(response, '/')
         user = User.objects.get(pk=1)
         self.assertEqual(User.objects.count(), 1)
