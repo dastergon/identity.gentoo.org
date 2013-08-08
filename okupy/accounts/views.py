@@ -107,12 +107,27 @@ def login(request):
     next = request.REQUEST.get('next') or index
 
     try:
-        if request.method == "POST" and 'cancel' in request.POST:
+        if request.method != 'POST':
+            if 'ssl_auth_success' in request.GET:
+                try:
+                    token = AuthToken.objects.get(
+                        encrypted_id=request.GET['ssl_auth_success'])
+                except (AuthToken.DoesNotExist, OverflowError,
+                        TypeError, ValueError):
+                    raise OkupyError('Invalid SSL auth token')
+                else:
+                    # TODO: can we make this atomic?
+                    token.delete()
+                    user = authenticate(username=token.user, ext_authed=True)
+            elif 'ssl_auth_failed' in request.GET:
+                raise OkupyError('SSL authentication failed: %s'
+                                 % request.GET['ssl_auth_failed'])
+        elif 'cancel' in request.POST:
             if oreq is not None:
                 oresp = oreq.answer(False)
                 del request.session['openid_request']
                 return render_openid_response(request, oresp)
-        elif request.method == "POST":
+        else:
             login_form = LoginForm(request.POST)
             if login_form.is_valid():
                 username = login_form.cleaned_data['username']
@@ -132,21 +147,6 @@ def login(request):
                     "Can't contact the LDAP server or the database")
             if not user:
                 raise OkupyError('Login failed')
-        else:
-            if 'ssl_auth_success' in request.GET:
-                try:
-                    token = AuthToken.objects.get(
-                        encrypted_id=request.GET['ssl_auth_success'])
-                except (AuthToken.DoesNotExist, OverflowError,
-                        TypeError, ValueError):
-                    raise OkupyError('Invalid SSL auth token')
-                else:
-                    # TODO: can we make this atomic?
-                    token.delete()
-                    user = authenticate(username=token.user, ext_authed=True)
-            elif 'ssl_auth_failed' in request.GET:
-                raise OkupyError('SSL authentication failed: %s'
-                                 % request.GET['ssl_auth_failed'])
     except OkupyError as error:
         messages.error(request, str(error))
 
