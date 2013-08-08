@@ -144,7 +144,6 @@ def login(request):
                     raise OkupyError('Login failed')
                 if user.is_active:
                     _login(request, user)
-                    request.session.set_expiry(900)
                     return redirect(next)
             except OkupyError as error:
                 messages.error(request, str(error))
@@ -161,7 +160,6 @@ def login(request):
                 token.delete()
                 if user.is_active:
                     _login(request, user)
-                    request.session.set_expiry(900)
                     return redirect(next)
         elif 'ssl_auth_failed' in request.GET:
             messages.error(request, 'SSL authentication failed: %s'
