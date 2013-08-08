@@ -2,10 +2,11 @@
 
 from django_otp.models import Device
 
+from ..totp.models import TOTPDevice
+
 class NoOTPDevice(Device):
     """ A fake OTP device that successfully verifies token
     if user has OTP disabled. """
 
     def verify_token(self, token=None):
-        # TODO: put some real code
-        return token == '1234'
+        return not TOTPDevice.objects.get(user=self.user).is_enabled()
