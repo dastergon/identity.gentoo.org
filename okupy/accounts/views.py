@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (login as _login, logout as _logout,
                                  authenticate)
-from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
@@ -15,6 +14,7 @@ from django.shortcuts import redirect, render
 from django.utils.html import format_html
 from django.utils.http import urlencode
 from django.views.decorators.csrf import csrf_exempt
+from django_otp.decorators import otp_required
 
 from openid.extensions.ax import FetchRequest, FetchResponse
 from openid.extensions.sreg import SRegRequest, SRegResponse
@@ -31,6 +31,7 @@ from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import get_ldap_connection
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
+from ..otp import init_otp
 
 # the following two are for exceptions
 import openid.yadis.discover
@@ -56,7 +57,7 @@ class DevListsView(View):
         return render(request, self.template_name, {'devlist': devlist})
 
 
-@login_required
+@otp_required
 def index(request):
     anon_ldap_user = get_ldap_connection()
     results = anon_ldap_user.search_s(settings.AUTH_LDAP_USER_DN_TEMPLATE % {
@@ -151,8 +152,12 @@ def login(request):
 
     if user and user.is_active:
         _login(request, user)
-    if request.user.is_authenticated():
+        # prepare devices, and see if OTP is enabled
+        init_otp(request)
+    if request.user.is_verified():
         return redirect(next)
+    if request.user.is_authenticated():
+        raise NotImplementedError('OTP form not implemented yet')
     if login_form is None:
         login_form = LoginForm()
 
@@ -431,7 +436,7 @@ openid_ax_attribute_mapping = {
 }
 
 
-@login_required
+@otp_required
 def openid_auth_site(request):
     try:
         oreq = request.session['openid_request']

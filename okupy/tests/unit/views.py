@@ -5,13 +5,20 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.urlresolvers import resolve
 from django.test import TestCase, RequestFactory
 
+from django_otp.middleware import OTPMiddleware
+
 from ...accounts.views import login, index, signup
 from ...accounts.forms import LoginForm
 
-class LoginViewTests(TestCase):
-    request = RequestFactory().get('/login')
+def anon_request(uri):
+    request = RequestFactory().get(uri)
     request.session = {}
     request.user = AnonymousUser()
+    OTPMiddleware().process_request(request)
+    return request
+
+class LoginViewTests(TestCase):
+    request = anon_request('/login')
     response = login(request)
 
     def test_login_url_resolves_to_login_view(self):
@@ -25,8 +32,7 @@ class LoginViewTests(TestCase):
         self.assertTemplateUsed('login.html')
 
 class IndexViewTests(TestCase):
-    request = RequestFactory().get('/')
-    request.user = AnonymousUser()
+    request = anon_request('/')
     response = index(request)
 
     def test_index_url_resolves_to_index_view(self):
@@ -40,8 +46,7 @@ class IndexViewTests(TestCase):
         self.assertTemplateUsed('index.html')
 
 class SignupViewTests(TestCase):
-    request = RequestFactory().get('/signup')
-    request.user = AnonymousUser()
+    request = anon_request('/signup')
     response = signup(request)
 
     def test_signup_url_resolves_to_signup_view(self):
