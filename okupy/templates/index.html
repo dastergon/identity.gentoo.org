@@ -4,14 +4,15 @@
 <div id="pageRow" class="container">
     <div class="row">
         <div id="page" class="span10">
+            {% for user in ldb_user %}
             <div class="row-fluid">
                 <p>
                 <div class="span9">
                     <h3>Personal Information</h3><br />
                     <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw0">
-                        {% for key,attr in ldap_personal_info.items %}
-                            <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
-                        {% endfor %}
+                        <tr class="odd"><th>Real Name</th><td>{{user.full_name}}</td></tr>
+                        <tr class="even"><th>Nickname</th><td>{{user.username}}</td></tr>
+                        <tr class="odd"><th>Location</th><td>{{user.location}}</td></tr>
                     </table>
                 </p>
                 </div>
@@ -21,9 +22,21 @@
                 <div class="span9">
                     <h3>Contact Information</h3><br />
                     <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw1">
-                        {% for key,attr in ldap_contact_info.items %}
-                            <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
+                        <tr class="odd"><th>Email</th><td>
+                        {% for mail in user.email %}
+                            {{ mail }}<br />
                         {% endfor %}
+                        </td></tr>
+                        <tr class="even"><th>IM Nickname</th><td>
+                        {% for im in user.im %}
+                            {{ im }}<br />
+                        {% endfor %}
+                        </td></tr>
+                        <tr class="odd"><th>GPG Fingerprint</th><td>
+                        {% for gpg_fingerprint in user.gpg_fingerprint %}
+                            {{ gpg_fingerprint }}<br />
+                        {% endfor %}
+                        </td></tr>
                     </table>
                 </div>
                 </p>
@@ -33,13 +46,33 @@
                 <div class="span9">
                     <h3>Gentoo related Information</h3><br />
                     <table class="table table-bordered table-striped table-condensed fixed-cell" id="yw1">
-                        {% for key,attr in ldap_gentoo_info.items %}
-                            <tr class={% cycle 'odd' 'even' %}><th>{{ key }}</th><td>{{ attr }}</td></tr>
+                        <tr class="odd"><th>Roles</th><td>{{user.roles}}</td></tr>
+                        <tr class="even"><th>Date Joined</th><td>
+                        {% for jdate in user.gentoo_join_date %}
+                            {{ jdate }}<br />
                         {% endfor %}
+                        </td></tr>
+                        <tr class="odd"><th>Recruitment Bug</th><td>
+                        {% for devbug in user.developer_bug %}
+                            {{ devbug }}<br />
+                        {% endfor %}
+                        </td></tr>
+                        <tr class="even"><th>Mentor</th><td>
+                        {% for mentor in user.mentor %}
+                            {{ mentor }}<br />
+                        {% endfor %}
+                        </td></tr>
+                        {% if user.gentoo_retire_date%}
+                            <tr class="odd"><th>Retired</th><td>
+                            {% for retired in user.gentoo_retire_date %}
+                                {{ retired }}<br />
+                            {% endfor %}
+                        {% endif %}
                     </table>
                 </div>
                 </p>
             </div>
+            {% endfor %}
         </div>
     </div>
 </div>
