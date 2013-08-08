@@ -111,11 +111,7 @@ def login(request):
             oresp = oreq.answer(False)
             del request.session['openid_request']
             return render_openid_response(request, oresp)
-        else:
-            # cheat it to display the form again
-            request.method = 'GET'
-
-    if request.method == "POST":
+    elif request.method == "POST":
         if 'cancel' in request.POST:
             if oreq is not None:
                 oresp = oreq.answer(False)
@@ -165,6 +161,7 @@ def login(request):
             messages.error(request, 'SSL authentication failed: %s'
                     % request.GET['ssl_auth_failed'])
 
+    if login_form is None:
         if request.user.is_authenticated():
             return redirect(next)
         else:
