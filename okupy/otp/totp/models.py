@@ -1,5 +1,6 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
+from django.contrib.auth.models import User
 from django.db import models
 
 from django_otp import oath
@@ -7,7 +8,7 @@ from django_otp.models import Device
 
 from base64 import b32decode, b32encode
 
-from django.contrib.auth.models import User
+from ..models import RevokedToken
 
 import Crypto.Random
 
@@ -57,6 +58,10 @@ class TOTPDevice(Device):
             if not o:
                 return True
             secret = o.secret
+
+        # prevent replay attacks
+        if not RevokedToken.add(self.user, token):
+            return False
 
         # add missing padding if necessary
         secret += '=' * (-len(secret) % 8)

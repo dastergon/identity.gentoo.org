@@ -1,10 +1,11 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
+from django.contrib.auth.models import User
 from django.db import models
 
 from django_otp.models import Device
 
-from django.contrib.auth.models import User
+from ..models import RevokedToken
 
 import random
 
@@ -37,7 +38,9 @@ class SOTPDevice(Device):
             yield k
 
     def verify_token(self, token):
-        # TODO: add atomic blocking of used secrets
+        # ensure atomic revocation
+        if not RevokedToken.add(self.user, token):
+            return False
 
         try:
             token = SOTPToken.objects.get(user=self.user,
