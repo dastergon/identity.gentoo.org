@@ -15,10 +15,10 @@ if [[ -n ${TDAEMON} ]]; then
     [[ -n ${COVERAGE} ]] && COVERAGE="-c"
     ${TDAEMON} ${COVERAGE} --custom-args="${SETTINGS} ${APPS}"
 elif [[ -n ${COVERAGE} ]]; then
-    ${COVERAGE} run manage.py test ${SETTINGS} ${APPS}
+    ${COVERAGE} run manage.py test --traceback ${SETTINGS} ${APPS}
     ${COVERAGE} report -m
 else
-    COMMAND="python manage.py test ${SETTINGS} ${APPS}"
+    COMMAND="python2 manage.py test --traceback ${SETTINGS} ${APPS}"
     echo "Executing: $COMMAND"
     $COMMAND
 fi
