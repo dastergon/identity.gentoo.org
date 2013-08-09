@@ -4,17 +4,17 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (login as _login, logout as _logout,
                                  authenticate)
-from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.forms.models import model_to_dict
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.views.generic.base import View
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
 from django.utils.http import urlencode
 from django.views.decorators.csrf import csrf_exempt
+from django_otp.decorators import otp_required
 
 from openid.extensions.ax import FetchRequest, FetchResponse
 from openid.extensions.sreg import SRegRequest, SRegResponse
@@ -25,19 +25,25 @@ from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from passlib.hash import ldap_md5_crypt
 from urlparse import urljoin, urlparse, parse_qsl
 
-from .forms import LoginForm, SignupForm, SiteAuthForm
+from .forms import LoginForm, OTPForm, SignupForm, SiteAuthForm
 from .models import AuthToken, LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import get_ldap_connection
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
+from ..otp import init_otp
+from ..otp.sotp.models import SOTPDevice
+from ..otp.totp.models import TOTPDevice
 
 # the following two are for exceptions
 import openid.yadis.discover
 import openid.fetchers
+import django_otp
+import io
 import ldap
 import ldap.modlist as modlist
 import logging
+import qrcode
 
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
@@ -56,7 +62,7 @@ class DevListsView(View):
         return render(request, self.template_name, {'devlist': devlist})
 
 
-@login_required
+@otp_required
 def index(request):
     anon_ldap_user = get_ldap_connection()
     results = anon_ldap_user.search_s(settings.AUTH_LDAP_USER_DN_TEMPLATE % {
@@ -104,6 +110,7 @@ def login(request):
     oreq = request.session.get('openid_request', None)
     # this can be POST or GET, and can be null or empty
     next = request.REQUEST.get('next') or index
+    is_otp = False
 
     try:
         if request.method != 'POST':
@@ -122,10 +129,27 @@ def login(request):
                 raise OkupyError('SSL authentication failed: %s'
                                  % request.GET['ssl_auth_failed'])
         elif 'cancel' in request.POST:
+            # note: this wipes request.session
+            _logout(request)
             if oreq is not None:
                 oresp = oreq.answer(False)
-                del request.session['openid_request']
                 return render_openid_response(request, oresp)
+        elif 'otp_token' in request.POST:
+            # if user's not authenticated, go back to square one
+            if not request.user.is_authenticated():
+                raise OkupyError('OTP verification timed out')
+
+            is_otp = True
+            otp_form = OTPForm(request.POST)
+            if otp_form.is_valid():
+                token = otp_form.cleaned_data['otp_token']
+            else:
+                raise OkupyError('OTP verification failed')
+
+            dev = django_otp.match_token(request.user, token)
+            if not dev:
+                raise OkupyError('OTP verification failed')
+            django_otp.login(request, dev)
         else:
             login_form = LoginForm(request.POST)
             if login_form.is_valid():
@@ -151,24 +175,33 @@ def login(request):
 
     if user and user.is_active:
         _login(request, user)
+        # prepare devices, and see if OTP is enabled
+        init_otp(request)
     if request.user.is_authenticated():
-        return redirect(next)
+        if request.user.is_verified():
+            return redirect(next)
+        login_form = OTPForm()
+        is_otp = True
     if login_form is None:
         login_form = LoginForm()
 
-    # TODO: it fails when:
-    # 1. site is accessed via IP (auth.127.0.0.1),
-    # 2. HTTP used on non-standard port (https://...:8000).
-    ssl_auth_host = 'auth.' + request.get_host()
-    current_url = request.build_absolute_uri(request.get_full_path())
-    ssl_auth_path = reverse(ssl_auth) + '?' + urlencode({'back': current_url})
-    ssl_auth_uri = urljoin('https://' + ssl_auth_host, ssl_auth_path)
+    if is_otp:
+        ssl_auth_uri = None
+    else:
+        # TODO: it fails when:
+        # 1. site is accessed via IP (auth.127.0.0.1),
+        # 2. HTTP used on non-standard port (https://...:8000).
+        ssl_auth_host = 'auth.' + request.get_host()
+        current_url = request.build_absolute_uri(request.get_full_path())
+        ssl_auth_path = reverse(ssl_auth) + '?' + urlencode({'back': current_url})
+        ssl_auth_uri = urljoin('https://' + ssl_auth_host, ssl_auth_path)
 
     return render(request, 'login.html', {
         'login_form': login_form,
         'openid_request': oreq,
         'next': next,
         'ssl_auth_uri': ssl_auth_uri,
+        'is_otp': is_otp,
     })
 
 
@@ -338,6 +371,78 @@ def activate(request, token):
     return redirect(login)
 
 
+@otp_required
+def otp_setup(request):
+    dev = TOTPDevice.objects.get(user=request.user)
+    secret = None
+    conf_form = None
+    skeys = None
+
+    if request.method == 'POST':
+        if 'disable' in request.POST:
+            dev.disable()
+        elif 'confirm' in request.POST and 'otp_secret' in request.session:
+            secret = request.session['otp_secret']
+            conf_form = OTPForm(request.POST)
+            try:
+                if not conf_form.is_valid():
+                    raise OkupyError()
+                token = conf_form.cleaned_data['otp_token']
+                if not dev.verify_token(token, secret):
+                    raise OkupyError()
+            except OkupyError:
+                messages.error(request, 'Token verification failed.')
+                conf_form = OTPForm()
+            else:
+                dev.enable(secret)
+                secret = None
+                conf_form = None
+                sdev = SOTPDevice.objects.get(user=request.user)
+                skeys = sdev.gen_keys()
+                messages.info(request, 'The new secret has been set.')
+        elif 'enable' in request.POST:
+            secret = dev.gen_secret()
+            request.session['otp_secret'] = secret
+            conf_form = OTPForm()
+        elif 'recovery' in request.POST:
+            sdev = SOTPDevice.objects.get(user=request.user)
+            skeys = sdev.gen_keys()
+            messages.info(request, 'Your old recovery keys have been revoked.')
+        elif 'cancel' in request.POST:
+            messages.info(request, 'Secret change aborted. Previous settings are in effect.')
+
+    if secret:
+        # into groups of four characters
+        secret = ' '.join([secret[i:i+4]
+                           for i in range(0, len(secret), 4)])
+    if skeys:
+        # xxx xx xxx
+        def group_key(k):
+            s = str(k)
+            return ' '.join([s[0:3], s[3:5], s[5:8]])
+        skeys = list([group_key(k) for k in skeys])
+
+    return render(request, 'otp-setup.html', {
+        'otp_enabled': dev.is_enabled(),
+        'secret': secret,
+        'conf_form': conf_form,
+        'skeys': skeys,
+    })
+
+
+def otp_qrcode(request):
+    dev = TOTPDevice()
+    secret = request.session.get('otp_secret')
+    if not secret:
+        return HttpResponseForbidden()
+
+    qr = qrcode.make(dev.get_uri(secret), box_size=5)
+    f = io.BytesIO()
+    qr.save(f, 'PNG')
+
+    return HttpResponse(f.getvalue(), content_type='image/png')
+
+
 # OpenID-specific
 
 
@@ -431,7 +536,7 @@ openid_ax_attribute_mapping = {
 }
 
 
-@login_required
+@otp_required
 def openid_auth_site(request):
     try:
         oreq = request.session['openid_request']

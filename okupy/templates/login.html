@@ -22,12 +22,14 @@
                 {{ field.label_tag }}{{ field }}<br />
             {% endfor %}
             <input class="button" type="submit" value="Login" name="login" />
-            {% if openid_request %}
+            {% if openid_request or is_otp %}
                 <input type='submit' name='cancel' value='Cancel' />
             {% endif %}
         </form>
-        <p>Alternatively: <a href="{{ ssl_auth_uri }}">login using SSL client certificate</a></p>
-        <a href="/recover">Forgot your password?</a>
+        {% if not is_otp %}
+            <p>Alternatively: <a href="{{ ssl_auth_uri }}">login using SSL client certificate</a></p>
+            <a href="/recover">Forgot your password?</a>
+        {% endif %}
         <br />
         {% for message in messages %}
             {{ message }}

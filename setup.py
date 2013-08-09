@@ -37,11 +37,13 @@ setup(
         'django-auth-ldap>=1.1.4',
         'django-compressor>=1.3',
         'django-ldapdb',
+        'django-otp>=0.1.7',
         'edpwd>=0.0.7',
         'passlib>=1.6.1',
         'pyopenssl>=0.13',
         'python-ldap>=2.4.10',
         'python-openid>=2.2.5',
+        'qrcode>=3.0',
     ],
     setup_requires=[
         'setuptools>=0.6c11',
