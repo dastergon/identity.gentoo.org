@@ -3,7 +3,6 @@
 from django_otp import login as otp_login
 from django_otp.middleware import OTPMiddleware
 
-from .nootp.models import NoOTPDevice
 from .sotp.models import SOTPDevice
 from .totp.models import TOTPDevice
 
@@ -13,14 +12,6 @@ def init_otp(request):
     for django_otp and calls the middleware to fill
     request.user.is_verified().
     """
-
-    nodev, created = NoOTPDevice.objects.get_or_create(
-        user=request.user,
-        defaults={
-            'name': 'OTP-disabled pass-through',
-        })
-    if created:
-        nodev.save()
 
     tdev, created = TOTPDevice.objects.get_or_create(
         user=request.user,
@@ -38,9 +29,9 @@ def init_otp(request):
     if created:
         sdev.save()
 
-    # nootp may match already
-    if nodev.verify_token():
-        otp_login(request, nodev)
+    # if OTP is disabled, it will match already
+    if tdev.verify_token():
+        otp_login(request, tdev)
 
     # add .is_verified()
     OTPMiddleware().process_request(request)

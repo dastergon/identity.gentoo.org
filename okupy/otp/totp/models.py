@@ -52,11 +52,13 @@ class TOTPDevice(Device):
     def get_uri(secret):
         return 'otpauth://totp/identity.gentoo.org?secret=%s' % secret
 
-    def verify_token(self, token, secret=None):
+    def verify_token(self, token=None, secret=None):
         if not secret:
             o = self._get_secret()
             if not o:
                 return True
+            elif not token: # (we're just being probed)
+                return False
             secret = o.secret
 
         # prevent replay attacks
