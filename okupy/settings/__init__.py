@@ -157,6 +157,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'okupy.accounts',
     'okupy.otp.nootp',
+    'okupy.otp.sotp',
     'okupy.otp.totp',
 )
 

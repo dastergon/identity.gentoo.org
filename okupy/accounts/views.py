@@ -32,6 +32,7 @@ from ..common.ldap_helpers import get_ldap_connection
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
 from ..otp import init_otp
+from ..otp.sotp.models import SOTPDevice
 from ..otp.totp.models import TOTPDevice
 
 # the following two are for exceptions
@@ -375,6 +376,7 @@ def otp_setup(request):
     dev = TOTPDevice.objects.get(user=request.user)
     secret = None
     conf_form = None
+    skeys = None
 
     if request.method == 'POST':
         if 'disable' in request.POST:
@@ -395,20 +397,36 @@ def otp_setup(request):
                 dev.enable(secret)
                 secret = None
                 conf_form = None
+                sdev = SOTPDevice.objects.get(user=request.user)
+                skeys = sdev.gen_keys()
+                messages.info(request, 'The new secret has been set.')
         elif 'enable' in request.POST:
             secret = dev.gen_secret()
             request.session['otp_secret'] = secret
             conf_form = OTPForm()
+        elif 'recovery' in request.POST:
+            sdev = SOTPDevice.objects.get(user=request.user)
+            skeys = sdev.gen_keys()
+            messages.info(request, 'Your old recovery keys have been revoked.')
+        elif 'cancel' in request.POST:
+            messages.info(request, 'Secret change aborted. Previous settings are in effect.')
 
     if secret:
         # into groups of four characters
         secret = ' '.join([secret[i:i+4]
                            for i in range(0, len(secret), 4)])
+    if skeys:
+        # xxx xx xxx
+        def group_key(k):
+            s = str(k)
+            return ' '.join([s[0:3], s[3:5], s[5:8]])
+        skeys = list([group_key(k) for k in skeys])
 
     return render(request, 'otp-setup.html', {
         'otp_enabled': dev.is_enabled(),
         'secret': secret,
         'conf_form': conf_form,
+        'skeys': skeys,
     })
 
 

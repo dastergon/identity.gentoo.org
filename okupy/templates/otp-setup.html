@@ -36,14 +36,32 @@
                 {% if otp_enabled %}
                     <input type='submit' name='disable' value='Disable OTP' />
                     <input type='submit' name='enable' value='Generate new secret key' />
+                    <input type='submit' name='recovery' value='Generate new recovery keys' />
                 {% else %}
                     <input type='submit' name='enable' value='Enable OTP' />
                 {% endif %}
             {% endif %}
         </form>
+
         {% for message in messages %}
             <p>{{ message }}</p>
         {% endfor %}
+
+        {% if skeys %}
+            <p>Your new recovery keys are:</p>
+
+            <ol>
+                {% for k in skeys %}
+                    <li>{{ k }}</li>
+                {% endfor %}
+            </ol>
+
+            <p>Please write them down, print or save them and keep
+            in a <em>safe</em> place. If something goes wrong, they will
+            allow you to bypass the OTP authentication. Each of them can
+            be used only <em>once</em>. You need to keep track of them
+            and generate new ones when necessary.</p>
+        {% endif %}
     </div>
 </div>
 </p>

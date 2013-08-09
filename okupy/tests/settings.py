@@ -163,6 +163,7 @@ INSTALLED_APPS = (
     'django_otp',
     'okupy.accounts',
     'okupy.otp.nootp',
+    'okupy.otp.sotp',
     'okupy.otp.totp',
     'okupy.tests'
 )

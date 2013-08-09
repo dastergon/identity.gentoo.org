@@ -4,6 +4,7 @@ from django_otp import login as otp_login
 from django_otp.middleware import OTPMiddleware
 
 from .nootp.models import NoOTPDevice
+from .sotp.models import SOTPDevice
 from .totp.models import TOTPDevice
 
 def init_otp(request):
@@ -28,6 +29,14 @@ def init_otp(request):
         })
     if created:
         tdev.save()
+
+    sdev, created = SOTPDevice.objects.get_or_create(
+        user=request.user,
+        defaults={
+            'name': 'SOTP device with LDAP passwords',
+        })
+    if created:
+        sdev.save()
 
     # nootp may match already
     if nodev.verify_token():
