@@ -1,0 +1,7 @@
+#!/bin/bash
+DUMMY="bin/.daemon_run_dummy"
+if [[ -f $DUMMY ]]; then
+    rm $DUMMY
+else
+    touch $DUMMY
+fi

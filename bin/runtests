@@ -1,0 +1,24 @@
+#!/bin/bash
+
+while getopts sa:dc arg; do
+    case ${arg} in
+        s) SETTINGS="--settings=okupy.tests.settings" ;;
+        a) APPS=${OPTARG} ;;
+        d) TDAEMON="tdaemon -t django" ;;
+        c) COVERAGE="coverage" ;;
+    esac
+done
+
+[[ -z ${APPS} ]] && APPS="tests"
+
+if [[ -n ${TDAEMON} ]]; then
+    [[ -n ${COVERAGE} ]] && COVERAGE="-c"
+    ${TDAEMON} ${COVERAGE} --custom-args="${SETTINGS} ${APPS}"
+elif [[ -n ${COVERAGE} ]]; then
+    ${COVERAGE} run manage.py test ${SETTINGS} ${APPS}
+    ${COVERAGE} report -m
+else
+    COMMAND="python manage.py test ${SETTINGS} ${APPS}"
+    echo "Executing: $COMMAND"
+    $COMMAND
+fi
