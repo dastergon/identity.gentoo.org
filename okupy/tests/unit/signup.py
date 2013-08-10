@@ -10,7 +10,7 @@ from ...common.test_helpers import set_request
 class SignupUnitTests(TestCase):
     def test_signup_url_resolves_to_signup_view(self):
         found = resolve('/signup')
-        self.assertEqual(found.func, index)
+        self.assertEqual(found.func, signup)
 
     def test_signup_page_returns_200_for_anonymous(self):
         request = set_request(uri='/signup')
