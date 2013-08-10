@@ -1,11 +1,32 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
-from django.test import TestCase
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.messages.storage.cookie import CookieStorage
+from django.test import TestCase, RequestFactory
+
+
+def set_request(uri, post=False, user=False, messages=False):
+    if post:
+        if type(post) == bool:
+            post = {}
+        request = RequestFactory().post(uri, post)
+    else:
+        request = RequestFactory().get(uri)
+    if user:
+        request.user = user
+    else:
+        request.user = AnonymousUser()
+    request.user.is_verified = lambda: True
+    request.session = {}
+    if messages:
+        SessionMiddleware().process_request(request)
+        MessageMiddleware().process_request(request)
+    return request
 
 
 class OkupyTestCase(TestCase):
-
     def _get_matches(self, response, text):
         """ Get messages that match the given text """
         messages = self._get_messages(response)
