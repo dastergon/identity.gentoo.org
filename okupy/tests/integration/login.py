@@ -11,10 +11,15 @@ from ...common.test_helpers import OkupyTestCase
 
 import mock
 
+
+account1 = {'username': 'alice', 'password': 'ldaptest'}
+account2 = {'username': 'bob', 'password': 'ldapmoretest'}
+wrong_account = {'username': 'wrong', 'password': 'wrong'}
+
+
 class LoginTestsEmptyDB(OkupyTestCase):
     cursor_wrapper = mock.Mock()
     cursor_wrapper.side_effect = DatabaseError
-    account = {'username': 'alice', 'password': 'ldaptest'}
 
     @classmethod
     def setUpClass(cls):
@@ -47,7 +52,7 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertEqual(User.objects.count(), 0)
 
     def test_correct_user(self):
-        account = self.account.copy()
+        account = account1.copy()
         account['next'] = ''
         response = self.client.post('/login/', account)
         self.assertRedirects(response, '/')
@@ -61,25 +66,25 @@ class LoginTestsEmptyDB(OkupyTestCase):
 
     def test_no_ldap(self):
         self.mockldap.stop()
-        response = self.client.post('/login/', self.account)
+        response = self.client.post('/login/', account1)
         self.assertMessage(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 0)
         self.mockldap.start()
 
     @mock.patch("django.db.backends.util.CursorWrapper", cursor_wrapper)
     def test_no_database(self):
-        response = self.client.post('/login/', self.account)
+        response = self.client.post('/login/', account1)
         self.assertMessage(response, "Can't contact the LDAP server or the database", 40)
         self.assertEqual(len(mail.outbox), 1)
         self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
 
     def test_already_authenticated_user_redirects_to_index(self):
-        response = self.client.post('/login/', self.account)
+        response = self.client.post('/login/', account1)
         response = self.client.get('/login/')
         self.assertRedirects(response, '/')
 
     def test_logout_for_logged_in_user(self):
-        response = self.client.post('/login/', self.account)
+        response = self.client.post('/login/', account1)
         response = self.client.get('/logout/')
         self.assertRedirects(response, '/login/')
 
@@ -89,9 +94,6 @@ class LoginTestsEmptyDB(OkupyTestCase):
 
 class LoginTestsOneAccountInDB(OkupyTestCase):
     fixtures = ['alice']
-
-    account1 = {'username': 'alice', 'password': 'ldaptest'}
-    account2 = {'username': 'bob', 'password': 'ldapmoretest'}
 
     @classmethod
     def setUpClass(cls):
@@ -107,13 +109,13 @@ class LoginTestsOneAccountInDB(OkupyTestCase):
 
     def test_dont_authenticate_from_db_when_ldap_is_down(self):
         self.mockldap.stop()
-        response = self.client.post('/login/', self.account1)
+        response = self.client.post('/login/', account1)
         self.assertMessage(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 1)
         self.mockldap.start()
 
     def test_authenticate_account_that_is_already_in_db(self):
-        response = self.client.post('/login/', self.account1)
+        response = self.client.post('/login/', account1)
         self.assertRedirects(response, '/')
         user = User.objects.get(pk=1)
         self.assertEqual(User.objects.count(), 1)
@@ -124,7 +126,7 @@ class LoginTestsOneAccountInDB(OkupyTestCase):
         self.assertEqual(user.email, '')
 
     def test_authenticate_new_account(self):
-        response = self.client.post('/login/', self.account2)
+        response = self.client.post('/login/', account2)
         self.assertRedirects(response, '/')
         self.assertEqual(User.objects.count(), 2)
         user1 = User.objects.get(pk=1)
