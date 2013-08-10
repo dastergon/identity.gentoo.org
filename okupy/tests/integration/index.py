@@ -4,7 +4,7 @@ from django.conf import settings
 from django.test.client import Client
 from mockldap import MockLdap
 
-from ...common.testcase import OkupyTestCase
+from ...common.test_helpers import OkupyTestCase
 
 class IndexTests(OkupyTestCase):
     @classmethod
