@@ -18,9 +18,6 @@ class LoginViewTests(TestCase):
     def test_login_page_returns_200(self):
         self.assertEqual(self.response.status_code, 200)
 
-    def test_login_page_uses_correct_template(self):
-        self.assertTemplateUsed('login.html')
-
 
 class IndexViewTests(TestCase):
     request = set_request(uri='/')
@@ -44,6 +41,3 @@ class SignupViewTests(TestCase):
 
     def test_index_page_returns_200_for_anonymous(self):
         self.assertEqual(self.response.status_code, 200)
-
-    def test_index_page_uses_correct_template(self):
-        self.assertTemplateUsed('signup.html')
