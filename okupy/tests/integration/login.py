@@ -40,26 +40,6 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertMessage(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 0)
 
-    def test_correct_user_leading_space_in_username(self):
-        account = self.account.copy()
-        account['username'] = ' %s' % self.account['username']
-        response = self.client.post('/login/', account)
-        self.assertRedirects(response, '/')
-        user = User.objects.get(pk=1)
-        self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(user.username, 'alice')
-        self.assert_(not user.has_usable_password())
-
-    def test_correct_user_trailing_space_in_username(self):
-        account = self.account.copy()
-        account['username'] = '%s ' % self.account['username']
-        response = self.client.post('/login/', account)
-        self.assertRedirects(response, '/')
-        user = User.objects.get(pk=1)
-        self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(user.username, 'alice')
-        self.assert_(not user.has_usable_password())
-
     def test_incorrect_user(self):
         wrong_account = {'username': 'username', 'password': 'password'}
         response = self.client.post('/login/', wrong_account)
