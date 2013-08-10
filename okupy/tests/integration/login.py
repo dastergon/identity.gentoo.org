@@ -51,11 +51,16 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertMessage(response, 'Login failed', 40)
         self.assertEqual(User.objects.count(), 0)
 
-    def test_correct_user(self):
+    def test_correct_user_post_login_redirect(self):
         account = account1.copy()
         account['next'] = ''
         response = self.client.post('/login/', account)
         self.assertRedirects(response, '/')
+        response = self.client.get('/')
+        self.assertIn('Personal Information', response.content)
+
+    def test_correct_user_gets_transferred_in_db(self):
+        response = self.client.post('/login/', account1)
         user = User.objects.get(pk=1)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(user.username, 'alice')
