@@ -28,10 +28,10 @@ class LoginTestsEmptyDB(OkupyTestCase):
     def tearDown(self):
         self.mockldap.stop()
 
-    def test_template(self):
+    def test_login_page_uses_correct_template(self):
         response = self.client.get('/login/')
-        self.assertIn('login_form', response.context)
-        self.assertIn('messages', response.context)
+        self.assertTemplateUsed(response, 'base.html')
+        self.assertTemplateUsed(response, 'login.html')
 
     def test_empty_user(self):
         response = self.client.post('/login/')
