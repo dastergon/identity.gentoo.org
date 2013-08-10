@@ -88,12 +88,12 @@ class LoginTestsEmptyDB(OkupyTestCase):
         response = self.client.get('/login/')
         self.assertRedirects(response, '/')
 
-    def test_logout_for_logged_in_user(self):
+    def test_logout_for_logged_in_user_redirects_to_login(self):
         response = self.client.post('/login/', account1)
         response = self.client.get('/logout/')
         self.assertRedirects(response, '/login/')
 
-    def test_logout_for_anonymous_user(self):
+    def test_logout_for_anonymous_user_redirects_to_login(self):
         response = self.client.get('/logout/')
         self.assertRedirects(response, '/login/')
 
