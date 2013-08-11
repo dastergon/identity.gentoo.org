@@ -6,7 +6,7 @@ from django.test.client import Client
 
 from mockldap import MockLdap
 
-from ...common.test_helpers import OkupyTestCase
+from ...common.test_helpers import OkupyTestCase, get_ldap_user, set_search_seed
 
 
 account1 = {'username': 'alice', 'password': 'ldaptest'}
@@ -33,6 +33,7 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertTemplateUsed(response, 'login.html')
 
     def test_correct_user_post_login_redirect(self):
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
         account = account1.copy()
         account['next'] = ''
         response = self.client.post('/login/', account)
@@ -51,6 +52,7 @@ class LoginTestsEmptyDB(OkupyTestCase):
         self.assertEqual(user.email, '')
 
     def test_already_authenticated_user_redirects_to_index(self):
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
         response = self.client.post('/login/', account1)
         response = self.client.get('/login/')
         self.assertRedirects(response, '/')
@@ -81,6 +83,7 @@ class LoginTestsOneAccountInDB(OkupyTestCase):
         self.mockldap.stop()
 
     def test_authenticate_account_that_is_already_in_db(self):
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
         response = self.client.post('/login/', account1)
         self.assertRedirects(response, '/')
         user = User.objects.get(pk=1)
@@ -92,6 +95,7 @@ class LoginTestsOneAccountInDB(OkupyTestCase):
         self.assertEqual(user.email, '')
 
     def test_authenticate_new_account(self):
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('bob'))([get_ldap_user('bob')])
         response = self.client.post('/login/', account2)
         self.assertRedirects(response, '/')
         self.assertEqual(User.objects.count(), 2)
