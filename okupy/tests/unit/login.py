@@ -9,8 +9,7 @@ from django.test.utils import override_settings
 
 from ...accounts.views import login
 from ...accounts.forms import LoginForm
-from ...common.decorators import no_database
-from ...common.test_helpers import OkupyTestCase, set_request
+from ...common.test_helpers import OkupyTestCase, set_request, no_database
 
 
 account1 = {'username': 'alice', 'password': 'ldaptest'}
