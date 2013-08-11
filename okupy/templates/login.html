@@ -27,7 +27,15 @@
             {% endif %}
         </form>
         {% if not is_otp %}
-            <p>Alternatively: <a href="{{ ssl_auth_uri }}">login using SSL client certificate</a></p>
+            <p>
+                Alternatively:
+                <form action="{{ ssl_auth_uri }}" method="POST">
+                    {% for field in ssl_auth_form %}
+                        {{ field }}
+                    {% endfor %}
+                    <input type="submit" value="Login using SSL certificate" />
+                </form>
+            </p>
             <a href="/recover">Forgot your password?</a>
         {% endif %}
         <br />

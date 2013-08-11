@@ -31,6 +31,8 @@ class OkupyCipher(object):
         if necessary.
         """
 
+        # ensure it's bytestring before we append random bits
+        data = bytes(data)
         # minus is intentional. (-X % S) == S - (X % S)
         padding = -len(data) % self._cipher_block_size
         if padding:

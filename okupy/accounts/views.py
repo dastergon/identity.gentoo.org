@@ -4,11 +4,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (login as _login, logout as _logout,
                                  authenticate)
+from django.contrib.sessions.backends.cache import SessionStore
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.forms.models import model_to_dict
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import (HttpResponse, HttpResponseForbidden,
+                         HttpResponseBadRequest)
 from django.views.generic.base import View
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
@@ -25,10 +27,11 @@ from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from passlib.hash import ldap_md5_crypt
 from urlparse import urljoin, urlparse, parse_qsl
 
-from .forms import LoginForm, OTPForm, SignupForm, SiteAuthForm
-from .models import AuthToken, LDAPUser, OpenID_Attributes, Queue
+from .forms import LoginForm, SSLCertLoginForm, OTPForm, SignupForm, SiteAuthForm
+from .models import LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import get_ldap_connection
+from ..common.crypto import cipher
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
 from ..otp import init_otp
@@ -38,6 +41,7 @@ from ..otp.totp.models import TOTPDevice
 # the following two are for exceptions
 import openid.yadis.discover
 import openid.fetchers
+import base64
 import django_otp
 import io
 import ldap
@@ -76,25 +80,12 @@ def login(request):
     user = None
     oreq = request.session.get('openid_request', None)
     # this can be POST or GET, and can be null or empty
-    next = request.REQUEST.get('next') or index
+    next = request.REQUEST.get('next') or reverse(index)
     is_otp = False
 
     try:
         if request.method != 'POST':
-            if 'ssl_auth_success' in request.GET:
-                try:
-                    token = AuthToken.objects.get(
-                        encrypted_id=request.GET['ssl_auth_success'])
-                except (AuthToken.DoesNotExist, OverflowError,
-                        TypeError, ValueError):
-                    raise OkupyError('Invalid SSL auth token')
-                else:
-                    # TODO: can we make this atomic?
-                    token.delete()
-                    user = authenticate(username=token.user, ext_authed=True)
-            elif 'ssl_auth_failed' in request.GET:
-                raise OkupyError('SSL authentication failed: %s'
-                                 % request.GET['ssl_auth_failed'])
+            pass
         elif 'cancel' in request.POST:
             # note: this wipes request.session
             _logout(request)
@@ -153,14 +144,33 @@ def login(request):
         login_form = LoginForm()
 
     if is_otp:
+        ssl_auth_form = None
         ssl_auth_uri = None
     else:
+        if 'encrypted_id' not in request.session:
+            # .cache_key is a very good property since it ensures
+            # that the cache is actually created, and works from first
+            # request
+            session_id = request.session.cache_key
+
+            # since it always starts with the backend module name
+            # and __init__() expects pure id, we can strip that
+            assert(session_id.startswith('django.contrib.sessions.cache'))
+            session_id = session_id[29:]
+            request.session['encrypted_id'] = base64.b64encode(
+                cipher.encrypt(session_id))
+
         # TODO: it fails when:
         # 1. site is accessed via IP (auth.127.0.0.1),
         # 2. HTTP used on non-standard port (https://...:8000).
+        ssl_auth_form = SSLCertLoginForm({
+            'session_id': request.session['encrypted_id'],
+            'next': request.build_absolute_uri(next),
+            'login_uri': request.build_absolute_uri(request.get_full_path()),
+        })
+
         ssl_auth_host = 'auth.' + request.get_host()
-        current_url = request.build_absolute_uri(request.get_full_path())
-        ssl_auth_path = reverse(ssl_auth) + '?' + urlencode({'back': current_url})
+        ssl_auth_path = reverse(ssl_auth)
         ssl_auth_uri = urljoin('https://' + ssl_auth_host, ssl_auth_path)
 
     return render(request, 'login.html', {
@@ -168,15 +178,28 @@ def login(request):
         'openid_request': oreq,
         'next': next,
         'ssl_auth_uri': ssl_auth_uri,
+        'ssl_auth_form': ssl_auth_form,
         'is_otp': is_otp,
     })
 
 
+@csrf_exempt
 def ssl_auth(request):
     """ SSL certificate authentication. """
 
-    ret_url = request.GET['back']
-    qs = parse_qsl(urlparse(ret_url).query)
+    if request.method != 'POST':
+        # TODO: add some unicorns?
+        return HttpResponseBadRequest('400 Bad Request')
+
+    ssl_auth_form = SSLCertLoginForm(request.POST)
+    if not ssl_auth_form.is_valid():
+        return HttpResponseBadRequest('400 Bad Request')
+
+    session_id = cipher.decrypt(
+            base64.b64decode(ssl_auth_form.cleaned_data['session_id']),
+            32)
+
+    next_uri = ssl_auth_form.cleaned_data['login_uri']
 
     cert_verify = request.META['SSL_CLIENT_VERIFY']
     if cert_verify == 'SUCCESS':
@@ -192,23 +215,28 @@ def ssl_auth(request):
                 except LDAPUser.DoesNotExist:
                     pass
                 else:
-                    auth_token = AuthToken(user=u.username)
-                    auth_token.save()
-                    qs.append(('ssl_auth_success', auth_token.encrypted_id))
+                    user = authenticate(username=u.username, ext_authed=True)
+                    _login(request, user)
+                    init_otp(request)
+                    if request.user.is_verified(): # OTP disabled
+                        next_uri = ssl_auth_form.cleaned_data['next']
                     break
         else:
-            qs.append(('ssl_auth_failed',
-                       'E-mail does not match any of the users'))
+            messages.error(request, 'E-mail does not match any of the users')
     else:
         if cert_verify == 'NONE':
             error = 'No certificate provided'
         else:
             error = 'Certificate verification failed'
+        messages.error(request, error)
 
-        qs.append(('ssl_auth_failed', error))
-
-    ret_url = urljoin(ret_url, '?' + urlencode(qs))
-    return redirect(ret_url)
+    # so, django will always start a new session for us. we need to copy
+    # the data to the original session and preferably flush the new one.
+    session = SessionStore(session_key=session_id)
+    session.update(request.session)
+    session.save()
+    request.session.flush()
+    return redirect(next_uri)
 
 
 def logout(request):
