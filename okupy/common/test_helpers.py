@@ -1,5 +1,6 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
@@ -19,6 +20,22 @@ tests-in-django/
 no_database = curry(
     mock.patch, 'django.db.backends.util.CursorWrapper',
     mock.Mock(side_effect=DatabaseError))
+
+
+def get_ldap_user(username):
+    """ Retrieve LDAP user from the fake LDAP directory """
+    dn = settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': username}
+    return (dn, settings.DIRECTORY[dn])
+
+
+def set_search_seed(username):
+    """ Create the filterstr of the search_s seed part of the mocked
+    ldap object """
+    search_item = '(&'
+    for item in settings.AUTH_LDAP_USER_OBJECTCLASS:
+        search_item += '(objectClass=%s)' % item
+    search_item += '(uid=%s))' % username
+    return search_item
 
 
 def set_request(uri, post=False, user=False, messages=False):
