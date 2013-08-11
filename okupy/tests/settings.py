@@ -8,6 +8,56 @@ import os
 # Full path of the project dir
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__)) + '/../..'
 
+SITE_ID = 1
+
+ROOT_URLCONF = 'okupy.urls'
+
+# Python dotted path to the WSGI application used by Django's runserver.
+WSGI_APPLICATION = 'okupy.wsgi.application'
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_URL = '/logout/'
+SESSION_COOKIE_AGE = 900
+
+# Custom authentication backend
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'okupy.common.auth.ExternalBackend',
+)
+
+MIDDLEWARE_CLASSES = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    # Uncomment the next line for simple clickjacking protection:
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
+
+INSTALLED_APPS = (
+    'compressor',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django_auth_ldap',
+    'django_otp',
+    'okupy.accounts',
+    'okupy.otp',
+    'okupy.otp.sotp',
+    'okupy.otp.totp',
+    'okupy.tests',
+)
+
+#Compressor settings
+COMPRESS_ENABLED = False
+COMPRESS_PARSER = 'compressor.parser.HtmlParser'
+
 ADMINS = (
     ('admin', 'admin@example.com'),
 )
@@ -143,13 +193,6 @@ TEMPLATE_DIRS = (
 
 MANAGERS = ADMINS
 
-SITE_ID = 1
-
-ROOT_URLCONF = 'okupy.urls'
-
-# Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'okupy.wsgi.application'
-
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
@@ -222,18 +265,7 @@ LOGGING = {
     }
 }
 
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_URL = '/logout/'
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
 AUTH_LDAP_USER_DN_TEMPLATE = AUTH_LDAP_USER_ATTR + '=%(user)s,' + AUTH_LDAP_USER_BASE_DN
-
-# Custom authentication backend
-AUTHENTICATION_BACKENDS = (
-    'django_auth_ldap.backend.LDAPBackend',
-    'okupy.common.auth.ExternalBackend',
-)
 
 # email sending variables regarding server authentication
 # and configuration should be specified in settings/local.py
@@ -254,38 +286,6 @@ DATABASES['ldap'] = {
 }
 
 DATABASE_ROUTERS = ['ldapdb.router.Router']
-
-MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django_otp.middleware.OTPMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
-
-INSTALLED_APPS = (
-    'compressor',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django_auth_ldap',
-    'django_otp',
-    'okupy.accounts',
-    'okupy.otp',
-    'okupy.otp.sotp',
-    'okupy.otp.totp',
-    'okupy.tests',
-)
-
-#Compressor settings
-COMPRESS_ENABLED = False
-COMPRESS_PARSER = 'compressor.parser.HtmlParser'
 
 DIRECTORY = {
     "o=test": {},
