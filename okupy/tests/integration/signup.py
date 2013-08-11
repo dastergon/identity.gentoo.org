@@ -166,7 +166,8 @@ class SignupTestsOneAccountInQueue(OkupyTestCase):
         self.assertEqual(queued_account.last_name, self.form_data['last_name'])
         self.assertEqual(queued_account.email, self.form_data['email'])
         self.assertEqual(queued_account.password, self.form_data['password_origin'])
-        self.assertRegexpMatches(queued_account.encrypted_id, '^[a-f0-9]{32}$')
+        # note: this needs to be kept in line with used cipher
+        self.assertRegexpMatches(queued_account.encrypted_id, '^[a-f0-9]{16}$')
 
     @mock.patch("django.db.backends.util.CursorWrapper", cursor_wrapper)
     def test_signup_no_database(self):

@@ -3,35 +3,7 @@
 from django.conf import settings
 from django.db import models
 
-from Crypto.Cipher.AES import AESCipher
-from Crypto.Hash.SHA256 import SHA256Hash
-
-import binascii
-import random
-import struct
-
-
-class IDCipher(object):
-    def __init__(self):
-        hasher = SHA256Hash()
-        hasher.update(settings.SECRET_KEY)
-        key_hash = hasher.digest()
-        self.cipher = AESCipher(key_hash)
-
-    def encrypt(self, id):
-        # pack the id and some random data to prevent attacks
-        # trying to guess the SECRET_KEY with guessed ids
-        byte_id = struct.pack('!QQ', id, random.getrandbits(64))
-        byte_eid = self.cipher.encrypt(byte_id)
-        return binascii.b2a_hex(byte_eid)
-
-    def decrypt(self, eid):
-        byte_eid = binascii.a2b_hex(eid)
-        byte_id = self.cipher.decrypt(byte_eid)
-        id, rand = struct.unpack('!QQ', byte_id)
-        return id
-
-idcipher = IDCipher()
+from .crypto import idcipher
 
 
 # based on https://gist.github.com/treyhunner/735861
