@@ -22,6 +22,8 @@ LOGOUT_URL = '/logout/'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_COOKIE_AGE = 900
 
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
 # Custom authentication backend
 AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
