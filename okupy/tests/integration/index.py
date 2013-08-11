@@ -4,7 +4,8 @@ from django.conf import settings
 from django.test.client import Client
 from mockldap import MockLdap
 
-from ...common.test_helpers import OkupyTestCase
+from ...common.test_helpers import OkupyTestCase, get_ldap_user, set_search_seed
+
 
 class IndexTests(OkupyTestCase):
     @classmethod
@@ -22,11 +23,11 @@ class IndexTests(OkupyTestCase):
     def test_redirect_to_login_for_anonymous(self):
         response = self.client.get('/')
         self.assertRedirects(response, '/login/?next=/')
-        self.assertTemplateUsed('login.html')
+        self.assertEqual(response.status_code, 302)
 
-    def test_template(self):
+    def test_index_page_uses_correct_template(self):
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
         response = self.client.post('/login/', {'username': 'alice', 'password': 'ldaptest'})
-        self.assertRedirects(response, '/')
         response = self.client.get('/')
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed('index.html')
+        self.assertTemplateUsed(response, 'base.html')
+        self.assertTemplateUsed(response, 'index.html')
