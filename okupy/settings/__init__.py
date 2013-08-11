@@ -18,7 +18,11 @@ WSGI_APPLICATION = 'okupy.wsgi.application'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_URL = '/logout/'
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_COOKIE_AGE = 900
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Custom authentication backend
 AUTHENTICATION_BACKENDS = (

@@ -19,6 +19,14 @@ DEVELOPMENT = True
 # Examples: okupy, okupy-dev, identity.gentoo.org
 INSTANCE_NAME = 'okupy-dev'
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        # replace with the path to your memcached socket
+        'LOCATION': 'unix://home/$USER/okupy/memcached.sock',
+    }
+}
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.

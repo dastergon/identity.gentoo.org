@@ -42,6 +42,7 @@ setup(
         'passlib>=1.6.1',
         'pyopenssl>=0.13',
         'python-ldap>=2.4.10',
+        'python-memcached>=1.53',
         'python-openid>=2.2.5',
         'qrcode>=3.0',
     ],
