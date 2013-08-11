@@ -72,7 +72,7 @@ class LoginUnitTests(OkupyTestCase):
         self.assertMessage(response, 'Login failed', 40)
 
     @no_database()
-    @override_settings(AUTHENTICATION_BACKENDS = (
+    @override_settings(AUTHENTICATION_BACKENDS=(
         'django_auth_ldap.backend.LDAPBackend',
         'django.contrib.auth.backends.ModelBackend'))
     def test_no_database_raises_critical(self):
