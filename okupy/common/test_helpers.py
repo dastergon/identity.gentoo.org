@@ -4,10 +4,25 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.messages.storage.cookie import CookieStorage
+from django.db import DatabaseError
 from django.test import TestCase, RequestFactory
+from django.utils.functional import curry
+
+import mock
+
+
+"""
+Decorator that restricts database access
+http://codeinthehole.com/writing/disable-database-access-when-writing-unit-
+tests-in-django/
+"""
+no_database = curry(
+    mock.patch, 'django.db.backends.util.CursorWrapper',
+    mock.Mock(side_effect=DatabaseError))
 
 
 def set_request(uri, post=False, user=False, messages=False):
+    """ Sets a request with RequestFactory """
     if post:
         if type(post) == bool:
             post = {}
@@ -27,6 +42,11 @@ def set_request(uri, post=False, user=False, messages=False):
 
 
 class OkupyTestCase(TestCase):
+    """
+    Custon TestCase class, implements additional assert functions
+    http://stackoverflow.com/questions/2897609/how-can-i-unit-test-django-
+    messages
+    """
     def _get_matches(self, response, text):
         """ Get messages that match the given text """
         messages = self._get_messages(response)
