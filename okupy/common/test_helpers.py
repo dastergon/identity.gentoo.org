@@ -29,6 +29,16 @@ def get_ldap_user(username):
     return (dn, settings.DIRECTORY[dn])
 
 
+def get_all_ldap_users():
+    """ Retrieve all LDAP users from the fake LDAP directory """
+    all_users = []
+    for dn, attrs in settings.DIRECTORY.items():
+        if dn.endswith(settings.AUTH_LDAP_USER_BASE_DN) and \
+                dn is not settings.AUTH_LDAP_USER_BASE_DN:
+            all_users.append((dn, attrs))
+    return all_users
+
+
 def set_search_seed(username=None):
     """ Create the filterstr of the search_s seed part of the mocked
     ldap object """
