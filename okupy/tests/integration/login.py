@@ -36,9 +36,7 @@ class LoginTestsEmptyDB(OkupyTestCase):
         account = account1.copy()
         account['next'] = ''
         response = self.client.post('/login/', account)
-        self.assertRedirects(response, '/')
-        response = self.client.get('/')
-        self.assertIn('Personal Information', response.content)
+        self.assertRedirects(response, '/', 302, 200)
 
     def test_already_authenticated_user_redirects_to_index(self):
         self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])

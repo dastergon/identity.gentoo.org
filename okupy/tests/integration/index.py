@@ -23,7 +23,6 @@ class IndexTests(OkupyTestCase):
     def test_redirect_to_login_for_anonymous(self):
         response = self.client.get('/')
         self.assertRedirects(response, '/login/?next=/')
-        self.assertEqual(response.status_code, 302)
 
     def test_index_page_uses_correct_template(self):
         self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
