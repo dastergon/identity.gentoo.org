@@ -6,6 +6,7 @@ while getopts sa:dc arg; do
         a) APPS=${OPTARG} ;;
         d) TDAEMON="tdaemon -t django" ;;
         c) COVERAGE="coverage" ;;
+        2) SUFFIX="2" ;;
     esac
 done
 
@@ -18,7 +19,7 @@ elif [[ -n ${COVERAGE} ]]; then
     ${COVERAGE} run manage.py test --traceback ${SETTINGS} ${APPS}
     ${COVERAGE} report -m
 else
-    COMMAND="python2 manage.py test --traceback ${SETTINGS} ${APPS}"
+    COMMAND="python${SUFFIX} manage.py test --traceback ${SETTINGS} ${APPS}"
     echo "Executing: $COMMAND"
     $COMMAND
 fi
