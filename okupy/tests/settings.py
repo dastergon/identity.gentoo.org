@@ -31,7 +31,7 @@ CACHES = {
 # Custom authentication backend
 AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
-    'okupy.common.auth.ExternalBackend',
+    'okupy.common.auth.SSLCertAuthBackend',
 )
 
 MIDDLEWARE_CLASSES = (

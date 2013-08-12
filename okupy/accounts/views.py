@@ -23,7 +23,6 @@ from openid.extensions.sreg import SRegRequest, SRegResponse
 from openid.server.server import (Server, ProtocolError, EncodingError,
                                   CheckIDRequest, ENCODE_URL,
                                   ENCODE_KVFORM, ENCODE_HTML_FORM)
-from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from passlib.hash import ldap_md5_crypt
 from urlparse import urljoin, urlparse, parse_qsl
 
@@ -201,34 +200,14 @@ def ssl_auth(request):
 
     next_uri = ssl_auth_form.cleaned_data['login_uri']
 
-    cert_verify = request.META['SSL_CLIENT_VERIFY']
-    if cert_verify == 'SUCCESS':
-        cert = load_certificate(FILETYPE_PEM,
-                                request.META['SSL_CLIENT_RAW_CERT'])
-        dn = cert.get_subject().get_components()
-
-        # note: field may occur multiple times
-        for k, v in dn:
-            if k == 'emailAddress':
-                try:
-                    u = LDAPUser.objects.get(email__contains=v)
-                except LDAPUser.DoesNotExist:
-                    pass
-                else:
-                    user = authenticate(username=u.username, ext_authed=True)
-                    _login(request, user)
-                    init_otp(request)
-                    if request.user.is_verified(): # OTP disabled
-                        next_uri = ssl_auth_form.cleaned_data['next']
-                    break
-        else:
-            messages.error(request, 'E-mail does not match any of the users')
+    user = authenticate(request=request)
+    if user and user.is_active:
+        _login(request, user)
+        init_otp(request)
+        if request.user.is_verified(): # OTP disabled
+            next_uri = ssl_auth_form.cleaned_data['next']
     else:
-        if cert_verify == 'NONE':
-            error = 'No certificate provided'
-        else:
-            error = 'Certificate verification failed'
-        messages.error(request, error)
+        messages.error(request, 'Certificate authentication failed')
 
     # so, django will always start a new session for us. we need to copy
     # the data to the original session and preferably flush the new one.
