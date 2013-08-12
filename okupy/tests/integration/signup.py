@@ -8,7 +8,7 @@ from django.test.client import Client
 from mockldap import MockLdap
 
 from ...accounts.models import Queue
-from ...common.testcase import OkupyTestCase
+from ...common.test_helpers import OkupyTestCase
 
 import mock
 

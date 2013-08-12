@@ -1,11 +1,69 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
-from django.test import TestCase
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.messages.storage.cookie import CookieStorage
+from django.db import DatabaseError
+from django.test import TestCase, RequestFactory
+from django.utils.functional import curry
+
+import mock
+
+
+"""
+Decorator that restricts database access
+http://codeinthehole.com/writing/disable-database-access-when-writing-unit-
+tests-in-django/
+"""
+no_database = curry(
+    mock.patch, 'django.db.backends.util.CursorWrapper',
+    mock.Mock(side_effect=DatabaseError))
+
+
+def get_ldap_user(username):
+    """ Retrieve LDAP user from the fake LDAP directory """
+    dn = settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': username}
+    return (dn, settings.DIRECTORY[dn])
+
+
+def set_search_seed(username):
+    """ Create the filterstr of the search_s seed part of the mocked
+    ldap object """
+    search_item = '(&'
+    for item in settings.AUTH_LDAP_USER_OBJECTCLASS:
+        search_item += '(objectClass=%s)' % item
+    search_item += '(uid=%s))' % username
+    return search_item
+
+
+def set_request(uri, post=False, user=False, messages=False):
+    """ Sets a request with RequestFactory """
+    if post:
+        if type(post) == bool:
+            post = {}
+        request = RequestFactory().post(uri, post)
+    else:
+        request = RequestFactory().get(uri)
+    if user:
+        request.user = user
+    else:
+        request.user = AnonymousUser()
+    request.user.is_verified = lambda: True
+    request.session = {}
+    if messages:
+        SessionMiddleware().process_request(request)
+        MessageMiddleware().process_request(request)
+    return request
 
 
 class OkupyTestCase(TestCase):
-
+    """
+    Custon TestCase class, implements additional assert functions
+    http://stackoverflow.com/questions/2897609/how-can-i-unit-test-django-
+    messages
+    """
     def _get_matches(self, response, text):
         """ Get messages that match the given text """
         messages = self._get_messages(response)

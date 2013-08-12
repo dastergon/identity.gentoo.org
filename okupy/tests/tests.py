@@ -2,7 +2,9 @@
 
 # run tests modules
 from .unit.connection import *
-from .unit.views import *
+from .unit.index import *
+from .unit.login import *
+#from .unit.signup import *
 from .integration.index import *
 from .integration.login import *
-from .integration.signup import *
+#from .integration.signup import *
