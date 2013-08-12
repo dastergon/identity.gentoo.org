@@ -11,6 +11,12 @@ class LoginForm(forms.Form):
                                label='Password:')
 
 
+class SSLCertLoginForm(forms.Form):
+    session_id = forms.CharField(max_length=200, widget=forms.HiddenInput())
+    next = forms.CharField(max_length=254, widget=forms.HiddenInput())
+    login_uri = forms.CharField(max_length=254, widget=forms.HiddenInput())
+
+
 class OTPForm(forms.Form):
     otp_token = forms.CharField(max_length=10, label='OTP token:')
 

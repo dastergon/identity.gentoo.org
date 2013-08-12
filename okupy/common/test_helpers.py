@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.backends.cache import SessionStore
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.messages.storage.cookie import CookieStorage
 from django.db import DatabaseError
@@ -51,7 +52,7 @@ def set_request(uri, post=False, user=False, messages=False):
     else:
         request.user = AnonymousUser()
     request.user.is_verified = lambda: True
-    request.session = {}
+    request.session = SessionStore()
     if messages:
         SessionMiddleware().process_request(request)
         MessageMiddleware().process_request(request)
