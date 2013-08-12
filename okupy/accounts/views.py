@@ -399,8 +399,7 @@ def otp_setup(request):
                            for i in range(0, len(secret), 4)])
     if skeys:
         # xxx xx xxx
-        def group_key(k):
-            s = str(k)
+        def group_key(s):
             return ' '.join([s[0:3], s[3:5], s[5:8]])
         skeys = list([group_key(k) for k in skeys])
 
