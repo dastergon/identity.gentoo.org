@@ -90,7 +90,7 @@ class LoginUnitTests(OkupyTestCase):
 
     def test_authenticate_account_that_is_already_in_db(self):
         self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
-        User(username='alice').save()
+        User.objects.create_user(username='alice')
         request = set_request(uri='/login', post=account1, messages=True)
         response = login(request)
         self.assertEqual(User.objects.count(), 1)
