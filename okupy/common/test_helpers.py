@@ -5,7 +5,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.backends.cache import SessionStore
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.contrib.messages.storage.cookie import CookieStorage
 from django.db import DatabaseError
 from django.test import TestCase, RequestFactory
 from django.utils.functional import curry
@@ -90,11 +89,7 @@ class OkupyTestCase(TestCase):
         try:
             messages = response.context['messages']
         except (TypeError, KeyError):
-            try:
-                messages = CookieStorage(response)._decode(
-                    response.cookies['messages'].value)
-            except KeyError:
-                return
+            return
         return messages
 
     def assertMessageCount(self, response, expect_num):
