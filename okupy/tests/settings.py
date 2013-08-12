@@ -22,11 +22,7 @@ LOGOUT_URL = '/logout/'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_COOKIE_AGE = 900
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-    }
-}
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Custom authentication backend
 AUTHENTICATION_BACKENDS = (
@@ -78,6 +74,12 @@ ADMINS = (
 # /var/www/${INSTANCE_NAME}/htdocs/{media,static}
 # Examples: okupy, okupy-dev, identity.gentoo.org
 INSTANCE_NAME = 'okupy-test'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
 
 DATABASES = {
     'default': {
