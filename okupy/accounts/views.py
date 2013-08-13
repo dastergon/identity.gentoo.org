@@ -29,8 +29,8 @@ from urlparse import urljoin, urlparse, parse_qsl
 from .forms import LoginForm, SSLCertLoginForm, OTPForm, SignupForm, SiteAuthForm
 from .models import LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
-from ..common.ldap_helpers import get_ldap_connection
 from ..common.crypto import cipher
+from ..common.ldap_helpers import get_ldap_connection, remove_secondary_password, set_secondary_password
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
 from ..otp import init_otp
@@ -134,6 +134,12 @@ def login(request):
         _login(request, user)
         # prepare devices, and see if OTP is enabled
         init_otp(request)
+        try:
+            set_secondary_password(request=request, password=password)
+        except Exception as error:
+            logger.critical(error, extra=log_extra_data(request))
+            logger_mail.exception(error)
+            raise OkupyError("Can't contact LDAP server")
     if request.user.is_authenticated():
         if request.user.is_verified():
             return redirect(next)
@@ -195,8 +201,7 @@ def ssl_auth(request):
         return HttpResponseBadRequest('400 Bad Request')
 
     session_id = cipher.decrypt(
-            base64.b64decode(ssl_auth_form.cleaned_data['session_id']),
-            32)
+        base64.b64decode(ssl_auth_form.cleaned_data['session_id']), 32)
 
     next_uri = ssl_auth_form.cleaned_data['login_uri']
 
@@ -204,7 +209,7 @@ def ssl_auth(request):
     if user and user.is_active:
         _login(request, user)
         init_otp(request)
-        if request.user.is_verified(): # OTP disabled
+        if request.user.is_verified():  # OTP disabled
             next_uri = ssl_auth_form.cleaned_data['next']
     else:
         messages.error(request, 'Certificate authentication failed')
@@ -220,7 +225,14 @@ def ssl_auth(request):
 
 def logout(request):
     """ The logout page """
-    _logout(request)
+    try:
+        remove_secondary_password(request=request)
+    except Exception as error:
+        logger.critical(error, extra=log_extra_data(request))
+        logger_mail.exception(error)
+        raise OkupyError("Can't contact LDAP server")
+    finally:
+        _logout(request)
     return redirect(login)
 
 
@@ -387,7 +399,7 @@ def otp_setup(request):
 
     if secret:
         # into groups of four characters
-        secret = ' '.join([secret[i:i+4]
+        secret = ' '.join([secret[i:i + 4]
                            for i in range(0, len(secret), 4)])
     if skeys:
         # xxx xx xxx
