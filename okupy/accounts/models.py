@@ -6,6 +6,8 @@ from ldapdb.models.fields import (CharField, IntegerField, ListField,
                                   FloatField, ACLField, DateField)
 import ldapdb.models
 
+from contextlib import contextmanager
+
 from ..common.models import EncryptedPKModel
 
 
@@ -83,6 +85,38 @@ class LDAPUser(ldapdb.models.Model):
 
     def __unicode__(self):
         return self.username
+
+    @contextmanager
+    def bind_as(self, user=None, password=None, dn=None):
+        """
+        Return a context manager that does bind the database object
+        using a different LDAP user. Either username or DN must
+        be provided, and a password.
+
+        This should be used with 'with' statement to ensure that
+        previous credentials are restored after leaving the scope.
+        """
+        if not ((user or dn) and password):
+            raise TypeError('User or DN, and password must be provided.')
+
+        ldap_db = settings.DATABASES['ldap']
+
+        # save the old user/password
+        old_dn = ldap_db['USER']
+        old_pass = ldap_db['PASSWORD']
+
+        # bind with the new ones
+        if not dn:
+            dn = (settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': user})
+        ldap_db['USER'] = dn
+        ldap_db['PASSWORD'] = password
+
+        try:
+            yield self
+        finally:
+            # restore the previous bind
+            ldap_db['USER'] = old_dn
+            ldap_db['PASSWORD'] = old_pass
 
 
 # Models for OpenID data store

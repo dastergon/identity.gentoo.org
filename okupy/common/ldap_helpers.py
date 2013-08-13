@@ -43,32 +43,40 @@ def get_ldap_connection(request=None, username=None, password=None, admin=False)
 
 def set_secondary_password(request, password):
     """ Generate a secondary passsword and encrypt it in the session """
-    settings.DATABASES['ldap']['USER'] = settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': request.user.username}
-    settings.DATABASES['ldap']['PASSWORD'] = password
-
     user = LDAPUser.objects.get(username=request.user.username)
 
-    secondary_password = Random.get_random_bytes(48)
-    request.session['secondary_password'] = cipher.encrypt(secondary_password)
-    """ Clean up possible leftover secondary passwords from the LDAP account """
-    if len(user.password) > 1:
-        for hash in user.password:
-            if not ldap_md5_crypt.verify(password, hash):
-                user.password.remove(hash)
-    """ Add a new generated encrypted password to LDAP """
-    user.password.append(ldap_md5_crypt.encrypt(base64.b64encode(secondary_password)))
-    user.save()
+    with user.bind_as(request.user.username, password) as user:
+        secondary_password = Random.get_random_bytes(48)
+        request.session['secondary_password'] = cipher.encrypt(
+            secondary_password)
+        """ Clean up possible leftover secondary passwords
+            from the LDAP account """
+        if len(user.password) > 1:
+            try:
+                for hash in user.password:
+                    if not ldap_md5_crypt.verify(password, hash):
+                        user.password.remove(hash)
+            except ValueError:
+                # don't remove unknown hashes
+                pass
+        """ Add a new generated encrypted password to LDAP """
+        user.password.append(ldap_md5_crypt.encrypt(
+            base64.b64encode(secondary_password)))
+        user.save()
 
 
 def remove_secondary_password(request):
     """ Remove secondary password on logout """
-    settings.DATABASES['ldap']['USER'] = settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': request.user.username}
-    password = base64.b64encode(cipher.decrypt(request.session['secondary_password'], 48))
-    settings.DATABASES['ldap']['PASSWORD'] = password
-
     user = LDAPUser.objects.get(username=request.user.username)
-    if len(user.password) > 1:
-        for hash in user.password:
-            if ldap_md5_crypt.verify(password, hash):
-                user.password.remove(hash)
-    user.save()
+    password = base64.b64encode(cipher.decrypt(request.session['secondary_password'], 48))
+
+    with user.bind_as(request.user.username, password) as user:
+        if len(user.password) > 1:
+            for hash in user.password:
+                try:
+                    if ldap_md5_crypt.verify(password, hash):
+                        user.password.remove(hash)
+                except ValueError:
+                    # ignore unknown hashes
+                    pass
+        user.save()
