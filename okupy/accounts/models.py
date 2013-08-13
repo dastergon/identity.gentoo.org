@@ -6,6 +6,8 @@ from ldapdb.models.fields import (CharField, IntegerField, ListField,
                                   FloatField, ACLField, DateField)
 import ldapdb.models
 
+from contextlib import contextmanager
+
 from ..common.models import EncryptedPKModel
 
 
@@ -83,6 +85,26 @@ class LDAPUser(ldapdb.models.Model):
 
     def __unicode__(self):
         return self.username
+
+    @contextmanager
+    def bind_as(self, user, password):
+        ldap_db = settings.DATABASES['ldap']
+
+        # save the old user/password
+        old_user = ldap_db['USER']
+        old_pass = ldap_db['PASSWORD']
+
+        # bind with the new ones
+        ldap_db['USER'] = (settings.AUTH_LDAP_USER_DN_TEMPLATE
+                           % {'user': user})
+        ldap_db['PASSWORD'] = password
+
+        try:
+            yield self
+        finally:
+            # restore the previous bind
+            ldap_db['USER'] = old_user
+            ldap_db['PASSWORD'] = old_pass
 
 
 # Models for OpenID data store
