@@ -50,6 +50,7 @@ setup(
         'setuptools>=0.6c11',
     ],
     tests_require=[
+        'django-discover-runner>=1.0',
         'mockldap',
         'mock>=1.0.1',
     ],

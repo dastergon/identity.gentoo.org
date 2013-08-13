@@ -55,6 +55,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_auth_ldap',
     'django_otp',
+    'discover_runner',
     'okupy.accounts',
     'okupy.otp',
     'okupy.otp.sotp',
@@ -294,6 +295,8 @@ DATABASES['ldap'] = {
 }
 
 DATABASE_ROUTERS = ['ldapdb.router.Router']
+
+TEST_RUNNER = 'discover_runner.DiscoverRunner'
 
 DIRECTORY = {
     "o=test": {},
