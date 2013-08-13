@@ -87,23 +87,35 @@ class LDAPUser(ldapdb.models.Model):
         return self.username
 
     @contextmanager
-    def bind_as(self, user, password):
+    def bind_as(self, user=None, password=None, dn=None):
+        """
+        Return a context manager that does bind the database object
+        using a different LDAP user. Either username or DN must
+        be provided, and a password.
+
+        This should be used with 'with' statement to ensure that
+        previous credentials are restored after leaving the scope.
+        """
+        if not ((user or dn) and password):
+            raise TypeError('User or DN, and password must be provided.')
+
         ldap_db = settings.DATABASES['ldap']
 
         # save the old user/password
-        old_user = ldap_db['USER']
+        old_dn = ldap_db['USER']
         old_pass = ldap_db['PASSWORD']
 
         # bind with the new ones
-        ldap_db['USER'] = (settings.AUTH_LDAP_USER_DN_TEMPLATE
-                           % {'user': user})
+        if not dn:
+            dn = (settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': user})
+        ldap_db['USER'] = dn
         ldap_db['PASSWORD'] = password
 
         try:
             yield self
         finally:
             # restore the previous bind
-            ldap_db['USER'] = old_user
+            ldap_db['USER'] = old_dn
             ldap_db['PASSWORD'] = old_pass
 
 
