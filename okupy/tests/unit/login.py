@@ -7,9 +7,11 @@ from django.core.urlresolvers import resolve
 from django.template import RequestContext
 from django.test.utils import override_settings
 
+from mockldap import MockLdap
+
 from ...accounts.views import login
 from ...accounts.forms import LoginForm
-from ...common.test_helpers import OkupyTestCase, set_request, no_database
+from ...common.test_helpers import OkupyTestCase, set_request, no_database, get_ldap_user, set_search_seed
 
 
 account1 = {'username': 'alice', 'password': 'ldaptest'}
@@ -18,6 +20,17 @@ wrong_account = {'username': 'wrong', 'password': 'wrong'}
 
 
 class LoginUnitTests(OkupyTestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mockldap = MockLdap(settings.DIRECTORY)
+
+    def setUp(self):
+        self.mockldap.start()
+        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
+
+    def tearDown(self):
+        self.mockldap.stop()
+
     def test_login_url_resolves_to_login_view(self):
         found = resolve('/login/')
         self.assertEqual(found.func, login)
@@ -46,12 +59,6 @@ class LoginUnitTests(OkupyTestCase):
         response.context = RequestContext(request)
         self.assertMessage(response, 'Login failed', 40)
 
-    def test_dont_authenticate_from_db_when_ldap_is_down(self):
-        request = set_request(uri='/login', post=account2, messages=True)
-        response = login(request)
-        response.context = RequestContext(request)
-        self.assertMessage(response, 'Login failed', 40)
-
     def test_incorrect_user_raises_login_failed(self):
         request = set_request(uri='/login', post=wrong_account, messages=True)
         response = login(request)
@@ -64,12 +71,6 @@ class LoginUnitTests(OkupyTestCase):
         response.context = RequestContext(request)
         self.assertEqual(User.objects.count(), 0)
 
-    def test_no_ldap(self):
-        request = set_request(uri='/login', post=wrong_account, messages=True)
-        response = login(request)
-        response.context = RequestContext(request)
-        self.assertMessage(response, 'Login failed', 40)
-
     @no_database()
     @override_settings(AUTHENTICATION_BACKENDS=(
         'django_auth_ldap.backend.LDAPBackend',
@@ -81,3 +82,29 @@ class LoginUnitTests(OkupyTestCase):
         self.assertMessage(response, "Can't contact the LDAP server or the database", 40)
         self.assertEqual(len(mail.outbox), 1)
         self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
+
+    def test_correct_user_gets_transferred_in_db(self):
+        request = set_request(uri='/login', post=account1, messages=True)
+        response = login(request)
+        self.assertEqual(User.objects.count(), 1)
+
+    def test_authenticate_account_that_is_already_in_db(self):
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
+        User.objects.create_user(username='alice')
+        request = set_request(uri='/login', post=account1, messages=True)
+        response = login(request)
+        self.assertEqual(User.objects.count(), 1)
+
+
+class LoginUnitTestsNoLDAP(OkupyTestCase):
+    def test_dont_authenticate_from_db_when_ldap_is_down(self):
+        request = set_request(uri='/login', post=account2, messages=True)
+        response = login(request)
+        response.context = RequestContext(request)
+        self.assertMessage(response, 'Login failed', 40)
+
+    def test_no_ldap_connection(self):
+        request = set_request(uri='/login', post=wrong_account, messages=True)
+        response = login(request)
+        response.context = RequestContext(request)
+        self.assertMessage(response, 'Login failed', 40)

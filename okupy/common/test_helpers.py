@@ -5,7 +5,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.backends.cache import SessionStore
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.contrib.messages.storage.cookie import CookieStorage
 from django.db import DatabaseError
 from django.test import TestCase, RequestFactory
 from django.utils.functional import curry
@@ -29,14 +28,25 @@ def get_ldap_user(username):
     return (dn, settings.DIRECTORY[dn])
 
 
-def set_search_seed(username):
+def get_all_ldap_users():
+    """ Retrieve all LDAP users from the fake LDAP directory """
+    all_users = []
+    for dn, attrs in settings.DIRECTORY.items():
+        if dn.endswith(settings.AUTH_LDAP_USER_BASE_DN) and \
+                dn is not settings.AUTH_LDAP_USER_BASE_DN:
+            all_users.append((dn, attrs))
+    return all_users
+
+
+def set_search_seed(username=None):
     """ Create the filterstr of the search_s seed part of the mocked
     ldap object """
     search_item = '(&'
     for item in settings.AUTH_LDAP_USER_OBJECTCLASS:
         search_item += '(objectClass=%s)' % item
-    search_item += '(uid=%s))' % username
-    return search_item
+    if username:
+        search_item += '(uid=%s)' % username
+    return search_item + ')'
 
 
 def set_request(uri, post=False, user=False, messages=False):
@@ -79,11 +89,7 @@ class OkupyTestCase(TestCase):
         try:
             messages = response.context['messages']
         except (TypeError, KeyError):
-            try:
-                messages = CookieStorage(response)._decode(
-                    response.cookies['messages'].value)
-            except KeyError:
-                return
+            return
         return messages
 
     def assertMessageCount(self, response, expect_num):

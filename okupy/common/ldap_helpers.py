@@ -25,7 +25,7 @@ def get_ldap_connection(request=None, username=None, password=None,
         dn = settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user':
                                                     request.user.username}
         password = edpwd.decrypt(settings.SECRET_KEY,
-                                 request.user.secondary_password)
+                                 request.session['secondary_password'])
     elif username:
         dn = settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': username}
     else:
