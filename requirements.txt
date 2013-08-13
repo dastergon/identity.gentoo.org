@@ -1,6 +1,7 @@
 django>=1.5
 django-auth-ldap>=1.1.4
 django-compressor>=1.3
+django-discover-runner>=1.0
 django-otp>=0.1.7
 git+https://github.com/tampakrap/django-ldapdb@okupy#egg=django-ldapdb
 edpwd>=0.0.7

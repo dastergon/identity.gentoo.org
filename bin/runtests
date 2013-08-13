@@ -10,8 +10,6 @@ while getopts sa:dc arg; do
     esac
 done
 
-[[ -z ${APPS} ]] && APPS="tests"
-
 if [[ -n ${TDAEMON} ]]; then
     [[ -n ${COVERAGE} ]] && COVERAGE="-c"
     ${TDAEMON} ${COVERAGE} --custom-args="${SETTINGS} ${APPS}"
