@@ -11,6 +11,11 @@ class LoginForm(forms.Form):
                                label='Password:')
 
 
+class OpenIDLoginForm(LoginForm):
+    auto_logout = forms.BooleanField(required=False,
+        label='Log out after answering the OpenID request')
+
+
 class SSLCertLoginForm(forms.Form):
     session_id = forms.CharField(max_length=200, widget=forms.HiddenInput())
     next = forms.CharField(max_length=254, widget=forms.HiddenInput())
