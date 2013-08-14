@@ -75,7 +75,7 @@ class DjangoDBOpenIDStore(OpenIDStore):
         nonce_dt = datetime.datetime.utcfromtimestamp(ts)
         nonce_dt = timezone.make_aware(nonce_dt, timezone.utc)
         # copy-paste from python-openid's sqlstore
-        if abs(nonce_dt - timezone.now()) > nonce.SKEW:
+        if abs((nonce_dt - timezone.now()).total_seconds()) > nonce.SKEW:
             return False
 
         objs = db_models.OpenID_Nonce.objects
