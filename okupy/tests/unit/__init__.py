@@ -3,4 +3,5 @@
 from .index import *
 from .login import *
 from .secondary_password import *
+from .openid import *
 from .signup import *
