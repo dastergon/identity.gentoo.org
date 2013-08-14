@@ -219,6 +219,12 @@ def ssl_auth(request):
     # the data to the original session and preferably flush the new one.
     session = SessionStore(session_key=session_id)
     session.update(request.session)
+
+    # always logout automatically from SSL-based auth
+    # it's easy enough to log back in anyway
+    if 'openid_request' in session:
+        session['auto_logout'] = True
+
     session.save()
     request.session.flush()
     return redirect(next_uri)
