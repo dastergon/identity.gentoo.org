@@ -16,6 +16,7 @@ from django.shortcuts import redirect, render
 from django.utils.html import format_html
 from django.utils.http import urlencode
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django_otp.decorators import otp_required
 
 from openid.extensions.ax import FetchRequest, FetchResponse
@@ -196,12 +197,9 @@ def login(request):
 
 
 @csrf_exempt
+@require_POST
 def ssl_auth(request):
     """ SSL certificate authentication. """
-
-    if request.method != 'POST':
-        # TODO: add some unicorns?
-        return HttpResponseBadRequest('400 Bad Request')
 
     ssl_auth_form = SSLCertLoginForm(request.POST)
     if not ssl_auth_form.is_valid():
