@@ -2,6 +2,7 @@
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+from django.db import IntegrityError
 
 from ..accounts.models import LDAPUser
 
@@ -38,8 +39,14 @@ class SSLCertAuthBackend(ModelBackend):
                     pass
                 else:
                     UserModel = get_user_model()
-                    user, created = UserModel.objects.get_or_create(**{
+                    attr_dict = {
                         UserModel.USERNAME_FIELD: u.username
-                    })
+                    }
+
+                    user = UserModel(**attr_dict)
+                    try:
+                        user.save()
+                    except IntegrityError:
+                        user = UserModel.objects.get(**attr_dict)
                     return user
         return None
