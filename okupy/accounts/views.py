@@ -11,6 +11,7 @@ from django.db import IntegrityError
 from django.forms.models import model_to_dict
 from django.http import (HttpResponse, HttpResponseForbidden,
                          HttpResponseBadRequest)
+from django.views.decorators.cache import cache_page
 from django.views.generic.base import View
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
@@ -55,19 +56,16 @@ import qrcode
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
 
-
-class DevListsView(View):
-    template_name = ''
-
-    def get(self, request, *args, **kwargs):
-        if 'devlist.html' in self.template_name:
-            devlist = LDAPUser.objects.filter(is_developer=True)
-        elif 'former-devlist.html' in self.template_name:
-            devlist = LDAPUser.objects.filter(is_retired=True)
-        elif 'foundation-members.html' in self.template_name:
-            devlist = LDAPUser.objects.filter(is_foundation=True)
-        return render(request, self.template_name, {'devlist': devlist})
-
+@cache_page(60 * 20)
+def accounts_lists(request, acc_list):
+    devlist = LDAPUser.objects.all()
+    if acc_list == 'devlist':
+        devlist = devlist.filter(is_developer=True)
+    elif acc_list == 'former-devlist':
+        devlist = devlist.filter(is_retired=True)
+    elif acc_list == 'foundation-members':
+        devlist = devlist.filter(is_foundation=True)
+    return render(request, '%s.html' % acc_list, {'devlist': devlist})
 
 @otp_required
 def index(request):
