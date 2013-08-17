@@ -1,5 +1,6 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
+from django.db import IntegrityError
 from django_otp import login as otp_login
 from django_otp.middleware import OTPMiddleware
 
@@ -13,21 +14,19 @@ def init_otp(request):
     request.user.is_verified().
     """
 
-    tdev, created = TOTPDevice.objects.get_or_create(
-        user=request.user,
-        defaults={
-            'name': 'TOTP device with LDAP secret',
-        })
-    if created:
+    tdev = TOTPDevice(user=request.user,
+                      name='TOTP device with LDAP secret')
+    try:
         tdev.save()
+    except IntegrityError:
+        tdev = TOTPDevice.objects.get(user=request.user)
 
-    sdev, created = SOTPDevice.objects.get_or_create(
-        user=request.user,
-        defaults={
-            'name': 'SOTP device with LDAP passwords',
-        })
-    if created:
+    sdev = SOTPDevice(user=request.user,
+                      name='SOTP device with LDAP secret')
+    try:
         sdev.save()
+    except IntegrityError:
+        pass
 
     # if OTP is disabled, it will match already
     if tdev.verify_token():

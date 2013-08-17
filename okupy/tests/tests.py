@@ -4,6 +4,7 @@
 from .unit.index import *
 from .unit.login import *
 from .unit.secondary_password import *
+from .unit.openid import *
 #from .unit.signup import *
 from .integration.index import *
 from .integration.login import *

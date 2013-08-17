@@ -78,3 +78,6 @@ class TOTPDevice(Device):
             if oath.totp(key, drift=offset) == token:
                 return True
         return False
+
+    class Meta:
+        unique_together = ('user',)

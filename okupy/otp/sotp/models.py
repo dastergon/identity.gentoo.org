@@ -50,3 +50,6 @@ class SOTPDevice(Device):
         else:
             token.delete()
         return True
+
+    class Meta:
+        unique_together = ('user',)

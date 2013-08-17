@@ -5,6 +5,7 @@ import calendar
 import datetime
 import time
 
+from django.db import IntegrityError
 from django.utils import timezone
 
 from openid.store.interface import OpenIDStore
@@ -75,18 +76,19 @@ class DjangoDBOpenIDStore(OpenIDStore):
         nonce_dt = datetime.datetime.utcfromtimestamp(ts)
         nonce_dt = timezone.make_aware(nonce_dt, timezone.utc)
         # copy-paste from python-openid's sqlstore
-        if abs(nonce_dt - timezone.now()) > nonce.SKEW:
+        if abs((nonce_dt - timezone.now()).total_seconds()) > nonce.SKEW:
             return False
 
-        objs = db_models.OpenID_Nonce.objects
-        n, created = objs.get_or_create(
+        n = db_models.OpenID_Nonce(
             server_uri=server_uri,
             ts=nonce_dt,
             salt=salt)
-
-        # if it was created, it is unique and everything's fine.
-        # if we found one existing, it is duplicate and we return False.
-        return created
+        try:
+            n.save()
+        except IntegrityError:
+            # non-unique
+            return False
+        return True
 
     def cleanupNonces(self):
         skew_td = datetime.timedelta(seconds=nonce.SKEW)
