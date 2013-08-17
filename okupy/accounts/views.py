@@ -11,6 +11,7 @@ from django.db import IntegrityError
 from django.forms.models import model_to_dict
 from django.http import (HttpResponse, HttpResponseForbidden,
                          HttpResponseBadRequest)
+from django.views.decorators.cache import cache_page
 from django.views.generic.base import View
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
@@ -51,6 +52,7 @@ import qrcode
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
 
+@cache_page(60 * 20)
 def accounts_lists(request, acc_list):
     devlist = LDAPUser.objects.all()
     if acc_list == 'devlist':
