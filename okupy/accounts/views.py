@@ -29,7 +29,8 @@ from urlparse import urljoin, urlparse, parse_qsl
 from .forms import LoginForm, SSLCertLoginForm, OTPForm, SignupForm, SiteAuthForm
 from .models import LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
-from ..common.ldap_helpers import get_ldap_connection
+from ..common.ldap_helpers import (get_ldap_connection, set_secondary_password,
+                                   remove_secondary_password)
 from ..common.crypto import cipher
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
@@ -134,6 +135,12 @@ def login(request):
         _login(request, user)
         # prepare devices, and see if OTP is enabled
         init_otp(request)
+        try:
+            set_secondary_password(request=request, password=password)
+        except Exception as error:
+            logger.critical(error, extra=log_extra_data(request))
+            logger_mail.exception(error)
+            raise OkupyError("Can't contact LDAP server")
     if request.user.is_authenticated():
         if request.user.is_verified():
             return redirect(next)
@@ -220,7 +227,13 @@ def ssl_auth(request):
 
 def logout(request):
     """ The logout page """
-    _logout(request)
+    try:
+        remove_secondary_password(request)
+    except Exception as error:
+        logger.critical(error, extra=log_extra_data(request))
+        logger_mail.exception(error)
+    finally:
+        _logout(request)
     return redirect(login)
 
 
