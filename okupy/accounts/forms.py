@@ -41,6 +41,14 @@ class SignupForm(forms.Form):
     password_verify = forms.CharField(
         max_length=30, widget=forms.PasswordInput(), label='Verify Password:')
 
+    def clean_password_verify(self):
+        cleaned_data = super(SignupForm, self).clean()
+        password_origin = cleaned_data.get('password_origin')
+        password_verify = cleaned_data.get('password_verify')
+        if password_origin != password_verify:
+            raise forms.ValidationError("Passwords don't match")
+        return password_verify
+
 
 # OpenID forms.
 

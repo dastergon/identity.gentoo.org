@@ -275,9 +275,6 @@ def signup(request):
         signup_form = SignupForm(request.POST)
         if signup_form.is_valid():
             try:
-                if signup_form.cleaned_data['password_origin'] != \
-                        signup_form.cleaned_data['password_verify']:
-                    raise OkupyError("Passwords don't match")
                 user = LDAPUser()
                 try:
                     user.objects.get(
