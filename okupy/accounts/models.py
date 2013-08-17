@@ -55,6 +55,8 @@ class LDAPUser(ldapdb.models.Model):
     gpg_key = ListField(db_column='gpgKey')
     latitude = FloatField(db_column='lat')
     longitude = FloatField(db_column='lon')
+    otp_secret = CharField(db_column='gentooOTPSecret')
+    otp_recovery_keys = ListField(db_column='gentooOTPRecoveryKey')
     # gentooDevGroup
     roles = CharField(db_column='gentooRoles')
     alias = ListField(db_column='gentooAlias')
