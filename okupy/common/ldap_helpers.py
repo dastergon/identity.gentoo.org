@@ -46,11 +46,10 @@ def get_ldap_connection(request=None, username=None, password=None,
 
 def set_secondary_password(request, password):
     """ Generate a secondary passsword and encrypt it in the session """
-    settings.DATABASES['ldap']['USER'] = settings.AUTH_LDAP_USER_DN_TEMPLATE \
-        % {'user': request.user.username}
-    settings.DATABASES['ldap']['PASSWORD'] = password
-
-    user = LDAPUser.objects.get(username=request.user.username)
+    username = request.user.username
+    user = LDAPUser.bind_as(alias='ldap_%s' % username,
+                            username=username,
+                            password=password).objects.get(username=username)
 
     secondary_password = Random.get_random_bytes(48)
     request.session['secondary_password'] = cipher.encrypt(secondary_password)
@@ -70,16 +69,17 @@ def set_secondary_password(request, password):
 
 def remove_secondary_password(request):
     """ Remove secondary password on logout """
-    settings.DATABASES['ldap']['USER'] = settings.AUTH_LDAP_USER_DN_TEMPLATE \
-        % {'user': request.user.username}
     try:
         password = b64encode(cipher.decrypt(
             request.session['secondary_password'], 48))
     except KeyError:
         return
-    settings.DATABASES['ldap']['PASSWORD'] = password
 
-    user = LDAPUser.objects.get(username=request.user.username)
+    username = request.user.username
+    user = LDAPUser.bind_as(alias='ldap_%s' % username,
+                            username=username,
+                            password=password).objects.get(username=username)
+
     if len(user.password) > 1:
         for hash in user.password:
             try:
