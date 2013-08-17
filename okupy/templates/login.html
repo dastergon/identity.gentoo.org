@@ -26,7 +26,7 @@
                 <input type='submit' name='cancel' value='Cancel' />
             {% endif %}
         </form>
-        {% if not is_otp %}
+        {% if ssl_auth_form %}
             <p>
                 Alternatively:
                 <form action="{{ ssl_auth_uri }}" method="POST">
@@ -36,6 +36,8 @@
                     <input type="submit" value="Login using SSL certificate" />
                 </form>
             </p>
+        {% endif %}
+        {% if not is_otp %}
             <a href="/recover">Forgot your password?</a>
         {% endif %}
         <br />

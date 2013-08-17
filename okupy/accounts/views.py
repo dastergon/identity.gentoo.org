@@ -16,6 +16,7 @@ from django.shortcuts import redirect, render
 from django.utils.html import format_html
 from django.utils.http import urlencode
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django_otp.decorators import otp_required
 
 from openid.extensions.ax import FetchRequest, FetchResponse
@@ -33,6 +34,7 @@ from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import (set_secondary_password,
                                    remove_secondary_password)
 from ..common.crypto import cipher
+from ..common.decorators import strong_auth_required
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
 from ..otp import init_otp
@@ -84,6 +86,7 @@ def login(request):
     is_otp = False
     login_form = None
     login_form_class = OpenIDLoginForm if oreq else LoginForm
+    strong_auth_req = 'strong_auth_requested' in request.session
 
     try:
         if request.method != 'POST':
@@ -147,7 +150,9 @@ def login(request):
             logger.critical(error, extra=log_extra_data(request))
             logger_mail.exception(error)
             raise OkupyError("Can't contact LDAP server")
-    if request.user.is_authenticated():
+    if (request.user.is_authenticated()
+            and (not strong_auth_req
+                 or 'secondary_password' in request.session)):
         if request.user.is_verified():
             return redirect(next)
         login_form = OTPForm()
@@ -155,7 +160,7 @@ def login(request):
     if login_form is None:
         login_form = login_form_class()
 
-    if is_otp:
+    if is_otp or strong_auth_req:
         ssl_auth_form = None
         ssl_auth_uri = None
     else:
@@ -196,12 +201,9 @@ def login(request):
 
 
 @csrf_exempt
+@require_POST
 def ssl_auth(request):
     """ SSL certificate authentication. """
-
-    if request.method != 'POST':
-        # TODO: add some unicorns?
-        return HttpResponseBadRequest('400 Bad Request')
 
     ssl_auth_form = SSLCertLoginForm(request.POST)
     if not ssl_auth_form.is_valid():
@@ -350,6 +352,7 @@ def activate(request, token):
     return redirect(login)
 
 
+@strong_auth_required
 @otp_required
 def otp_setup(request):
     dev = TOTPDevice.objects.get(user=request.user)
