@@ -57,8 +57,12 @@ def set_secondary_password(request, password):
     # Clean up possible leftover secondary passwords from the LDAP account
     if len(user.password) > 1:
         for hash in user.password:
-            if not ldap_md5_crypt.verify(password, hash):
-                user.password.remove(hash)
+            try:
+                if not ldap_md5_crypt.verify(password, hash):
+                    user.password.remove(hash)
+            except ValueError:
+                # don't remove unknown hashes
+                pass
     # Add a new generated encrypted password to LDAP
     user.password.append(ldap_md5_crypt.encrypt(b64encode(secondary_password)))
     user.save()
@@ -78,6 +82,10 @@ def remove_secondary_password(request):
     user = LDAPUser.objects.get(username=request.user.username)
     if len(user.password) > 1:
         for hash in user.password:
-            if ldap_md5_crypt.verify(password, hash):
-                user.password.remove(hash)
+            try:
+                if ldap_md5_crypt.verify(password, hash):
+                    user.password.remove(hash)
+            except ValueError:
+                # ignore unknown hashes
+                pass
     user.save()
