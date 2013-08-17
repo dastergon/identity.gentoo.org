@@ -67,8 +67,7 @@ class LoginUnitTests(OkupyTestCase):
 
     def test_incorrect_user_does_not_get_transferred_in_db(self):
         request = set_request(uri='/login', post=wrong_account, messages=True)
-        response = login(request)
-        response.context = RequestContext(request)
+        login(request)
         self.assertEqual(User.objects.count(), 0)
 
     @no_database()
@@ -84,15 +83,16 @@ class LoginUnitTests(OkupyTestCase):
         self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
 
     def test_correct_user_gets_transferred_in_db(self):
-        request = set_request(uri='/login', post=account1, messages=True)
-        response = login(request)
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
+        request = set_request(uri='/login', post=account1)
+        login(request)
         self.assertEqual(User.objects.count(), 1)
 
     def test_authenticate_account_that_is_already_in_db(self):
         self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
         User.objects.create_user(username='alice')
-        request = set_request(uri='/login', post=account1, messages=True)
-        response = login(request)
+        request = set_request(uri='/login', post=account1)
+        login(request)
         self.assertEqual(User.objects.count(), 1)
 
 
@@ -103,7 +103,7 @@ class LoginUnitTestsNoLDAP(OkupyTestCase):
         response.context = RequestContext(request)
         self.assertMessage(response, 'Login failed', 40)
 
-    def test_no_ldap_connection(self):
+    def test_no_ldap_connection_raises_login_failed_in_login(self):
         request = set_request(uri='/login', post=wrong_account, messages=True)
         response = login(request)
         response.context = RequestContext(request)
