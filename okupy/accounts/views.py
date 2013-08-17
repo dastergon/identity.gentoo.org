@@ -29,7 +29,8 @@ from urlparse import urljoin, urlparse, parse_qsl
 from .forms import LoginForm, SSLCertLoginForm, OTPForm, SignupForm, SiteAuthForm
 from .models import LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
-from ..common.ldap_helpers import get_ldap_connection
+from ..common.ldap_helpers import (set_secondary_password,
+                                   remove_secondary_password)
 from ..common.crypto import cipher
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
@@ -134,6 +135,12 @@ def login(request):
         _login(request, user)
         # prepare devices, and see if OTP is enabled
         init_otp(request)
+        try:
+            set_secondary_password(request=request, password=password)
+        except Exception as error:
+            logger.critical(error, extra=log_extra_data(request))
+            logger_mail.exception(error)
+            raise OkupyError("Can't contact LDAP server")
     if request.user.is_authenticated():
         if request.user.is_verified():
             return redirect(next)
@@ -220,7 +227,13 @@ def ssl_auth(request):
 
 def logout(request):
     """ The logout page """
-    _logout(request)
+    try:
+        remove_secondary_password(request)
+    except Exception as error:
+        logger.critical(error, extra=log_extra_data(request))
+        logger_mail.exception(error)
+    finally:
+        _logout(request)
     return redirect(login)
 
 
@@ -234,23 +247,25 @@ def signup(request):
                 if signup_form.cleaned_data['password_origin'] != \
                         signup_form.cleaned_data['password_verify']:
                     raise OkupyError("Passwords don't match")
+                user = LDAPUser()
                 try:
-                    anon_ldap_user = get_ldap_connection()
+                    user.objects.get(
+                        username=signup_form.cleaned_data['username'])
+                except user.DoesNotExist:
+                    pass
                 except Exception as error:
                     logger.critical(error, extra=log_extra_data(request))
                     logger_mail.exception(error)
                     raise OkupyError("Can't contact LDAP server")
-                if anon_ldap_user.search_s(
-                        settings.AUTH_LDAP_USER_BASE_DN, ldap.SCOPE_ONELEVEL,
-                        filterstr='(uid=%s)' %
-                        signup_form.cleaned_data['username']):
+                else:
                     raise OkupyError('Username already exists')
-                if anon_ldap_user.search_s(
-                        settings.AUTH_LDAP_USER_BASE_DN, ldap.SCOPE_ONELEVEL,
-                        filterstr='(mail=%s)' %
-                        signup_form.cleaned_data['email']):
+                try:
+                    user.objects.get(
+                        username=signup_form.cleaned_data['email'])
+                except user.DoesNotExist:
+                    pass
+                else:
                     raise OkupyError('Email already exists')
-                anon_ldap_user.unbind_s()
                 queued_user = Queue(
                     username=signup_form.cleaned_data['username'],
                     first_name=signup_form.cleaned_data['first_name'],
@@ -300,42 +315,20 @@ def activate(request, token):
             logger_mail.exception(error)
             raise OkupyError("Can't contact the database")
         # add account to ldap
-        try:
-            admin_ldap_user = get_ldap_connection(admin=True)
-        except Exception as error:
-            logger.critical(error, extra=log_extra_data(request))
-            logger_mail.exception(error)
-            raise OkupyError("Can't contact LDAP server")
-        new_user = {
-            'uid': [str(queued_user.username)],
-            'userPassword': [ldap_md5_crypt.encrypt(queued_user.password)],
-            'mail': [str(queued_user.email)],
-            'givenName': [str(queued_user.first_name)],
-            'sn': [str(queued_user.last_name)],
-            'gecos': ['%s %s' % (queued_user.first_name,
-                                 queued_user.last_name)],
-            'objectClass': settings.AUTH_LDAP_USER_OBJECTCLASS,
-        }
-        if 'person' in new_user['objectClass']:
-            new_user['cn'] = ['%s %s' % (
-                queued_user.first_name, queued_user.last_name)]
-        if 'posixAccount' in new_user['objectClass']:
-            try:
-                results = admin_ldap_user.search_s(
-                    settings.AUTH_LDAP_USER_BASE_DN, ldap.SCOPE_ONELEVEL,
-                    '(uidNumber=*)', ['uidNumber'])
-                uidnumbers = [int(x[1]['uidNumber'][0]) for x in results]
-                max_uidnumber = max(uidnumbers)
-            except (IndexError, ValueError):
-                max_uidnumber = 0
-            new_user['uidNumber'] = [str(max_uidnumber + 1)]
-            new_user['gidNumber'] = ['100']
-            new_user['homeDirectory'] = [
-                '/home/%s' % str(queued_user.username)]
-        ldif = modlist.addModlist(new_user)
-        admin_ldap_user.add_s('uid=%s,%s' % (
-            queued_user.username, settings.AUTH_LDAP_USER_BASE_DN), ldif)
-        admin_ldap_user.unbind_s()
+        new_user = LDAPUser(
+            username=queued_user.username,
+            password=ldap_md5_crypt.encrypt(queued_user.password),
+            email=[queued_user.email],
+            first_name=queued_user.first_name,
+            last_name=queued_user.last_name,
+            gecos='%s %s' % (queued_user.first_name, queued_user.last_name),
+            objectClass=settings.AUTH_LDAP_USER_OBJECTCLASS,
+            cn='%s %s' % (queued_user.first_name, queued_user.last_name),
+            uidnumber=LDAPUser.objects.latest('uid') + 1,
+            gidNumber=100,
+            homeDirectory='/home/%s' % str(queued_user.username),
+        )
+        new_user.save()
         # remove queued account from DB
         queued_user.delete()
         messages.success(

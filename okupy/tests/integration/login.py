@@ -13,7 +13,7 @@ account2 = {'username': 'bob', 'password': 'ldapmoretest'}
 wrong_account = {'username': 'wrong', 'password': 'wrong'}
 
 
-class LoginTestsEmptyDB(OkupyTestCase):
+class LoginIntegrationTests(OkupyTestCase):
     @classmethod
     def setUpClass(cls):
         cls.mockldap = MockLdap(settings.DIRECTORY)
@@ -40,15 +40,24 @@ class LoginTestsEmptyDB(OkupyTestCase):
 
     def test_already_authenticated_user_redirects_to_index(self):
         self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
-        response = self.client.post('/login/', account1)
+        self.client.post('/login/', account1)
         response = self.client.get('/login/')
         self.assertRedirects(response, '/')
 
     def test_logout_for_logged_in_user_redirects_to_login(self):
-        response = self.client.post('/login/', account1)
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
+        self.client.post('/login/', account1)
         response = self.client.get('/logout/')
         self.assertRedirects(response, '/login/')
 
     def test_logout_for_anonymous_user_redirects_to_login(self):
         response = self.client.get('/logout/')
         self.assertRedirects(response, '/login/')
+
+    def test_logout_no_ldap_doesnt_raise_exception(self):
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
+        self.client.post('/login/', account1)
+        self.mockldap.stop()
+        response = self.client.get('/logout/')
+        self.assertRedirects(response, '/login/', 302, 200)
+        self.mockldap.start()
