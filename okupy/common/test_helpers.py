@@ -22,16 +22,16 @@ no_database = curry(
     mock.Mock(side_effect=DatabaseError))
 
 
-def get_ldap_user(username):
+def get_ldap_user(username, directory=settings.DIRECTORY):
     """ Retrieve LDAP user from the fake LDAP directory """
     dn = settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': username}
-    return (dn, settings.DIRECTORY[dn])
+    return (dn, directory[dn])
 
 
-def get_all_ldap_users():
+def get_all_ldap_users(directory=settings.DIRECTORY):
     """ Retrieve all LDAP users from the fake LDAP directory """
     all_users = []
-    for dn, attrs in settings.DIRECTORY.items():
+    for dn, attrs in directory.items():
         if dn.endswith(settings.AUTH_LDAP_USER_BASE_DN) and \
                 dn is not settings.AUTH_LDAP_USER_BASE_DN:
             all_users.append((dn, attrs))
