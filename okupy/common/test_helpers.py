@@ -59,9 +59,9 @@ def set_request(uri, post=False, user=False, messages=False):
         request = RequestFactory().get(uri)
     if user:
         request.user = user
+        request.user.is_verified = lambda: True
     else:
         request.user = AnonymousUser()
-    request.user.is_verified = lambda: True
     request.session = SessionStore()
     if messages:
         SessionMiddleware().process_request(request)
