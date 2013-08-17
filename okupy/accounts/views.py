@@ -26,7 +26,8 @@ from openid.server.server import (Server, ProtocolError, EncodingError,
 from passlib.hash import ldap_md5_crypt
 from urlparse import urljoin, urlparse, parse_qsl
 
-from .forms import LoginForm, SSLCertLoginForm, OTPForm, SignupForm, SiteAuthForm
+from .forms import (LoginForm, OpenIDLoginForm, SSLCertLoginForm,
+                    OTPForm, SignupForm, SiteAuthForm)
 from .models import LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import (set_secondary_password,
@@ -76,12 +77,13 @@ def index(request):
 
 def login(request):
     """ The login page """
-    login_form = None
     user = None
     oreq = request.session.get('openid_request', None)
     # this can be POST or GET, and can be null or empty
     next = request.REQUEST.get('next') or reverse(index)
     is_otp = False
+    login_form = None
+    login_form_class = OpenIDLoginForm if oreq else LoginForm
 
     try:
         if request.method != 'POST':
@@ -109,7 +111,7 @@ def login(request):
                 raise OkupyError('OTP verification failed')
             django_otp.login(request, dev)
         else:
-            login_form = LoginForm(request.POST)
+            login_form = login_form_class(request.POST)
             if login_form.is_valid():
                 username = login_form.cleaned_data['username']
                 password = login_form.cleaned_data['password']
@@ -128,6 +130,10 @@ def login(request):
                     "Can't contact the LDAP server or the database")
             if not user:
                 raise OkupyError('Login failed')
+
+            if oreq:
+                request.session['auto_logout'] = (
+                    login_form.cleaned_data['auto_logout'])
     except OkupyError as error:
         messages.error(request, str(error))
 
@@ -147,7 +153,7 @@ def login(request):
         login_form = OTPForm()
         is_otp = True
     if login_form is None:
-        login_form = LoginForm()
+        login_form = login_form_class()
 
     if is_otp:
         ssl_auth_form = None
@@ -220,6 +226,12 @@ def ssl_auth(request):
     # the data to the original session and preferably flush the new one.
     session = SessionStore(session_key=session_id)
     session.update(request.session)
+
+    # always logout automatically from SSL-based auth
+    # it's easy enough to log back in anyway
+    if 'openid_request' in session:
+        session['auto_logout'] = True
+
     session.save()
     request.session.flush()
     return redirect(next_uri)
@@ -613,7 +625,11 @@ def openid_auth_site(request):
                 'error': 'Invalid request submitted.',
             }, status=400)
 
-        del request.session['openid_request']
+        if request.session.get('auto_logout', False):
+            # _logout clears request.session
+            _logout(request)
+        else:
+            del request.session['openid_request']
         return render_openid_response(request, oresp)
 
     form = SiteAuthForm(instance=saved_pref)
