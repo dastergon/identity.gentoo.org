@@ -1,11 +1,12 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from django.conf import settings
+from django.test import TestCase
 from django.test.client import Client
 
 from mockldap import MockLdap
 
-from ...common.test_helpers import OkupyTestCase, get_ldap_user, set_search_seed
+from ...common.test_helpers import get_ldap_user, set_search_seed
 
 
 account1 = {'username': 'alice', 'password': 'ldaptest'}
@@ -13,7 +14,7 @@ account2 = {'username': 'bob', 'password': 'ldapmoretest'}
 wrong_account = {'username': 'wrong', 'password': 'wrong'}
 
 
-class LoginIntegrationTests(OkupyTestCase):
+class LoginIntegrationTests(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.mockldap = MockLdap(settings.DIRECTORY)
