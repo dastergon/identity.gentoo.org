@@ -38,7 +38,7 @@ def set_secondary_password(request, password):
     request.session['secondary_password'] = cipher.encrypt(secondary_password)
     # Clean up possible leftover secondary passwords from the LDAP account
     if len(user.password) > 1:
-        for hash in user.password:
+        for hash in list(user.password):
             try:
                 if not ldap_md5_crypt.verify(password, hash):
                     user.password.remove(hash)
@@ -60,7 +60,7 @@ def remove_secondary_password(request):
     user = get_bound_ldapuser(request, password)
 
     if len(user.password) > 1:
-        for hash in user.password:
+        for hash in list(user.password):
             try:
                 if ldap_md5_crypt.verify(password, hash):
                     user.password.remove(hash)
