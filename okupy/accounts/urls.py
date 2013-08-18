@@ -4,13 +4,13 @@ from django.conf.urls import patterns, url
 from . import views as v
 
 accounts_urlpatterns = patterns('',
-    url(r'^$', v.index),
+    url(r'^$', v.index, name="index"),
     url(r'^login/$', v.login),
     url(r'^ssl-auth/$', v.ssl_auth),
-    url(r'^logout/$', v.logout),
-    url(r'^devlist/$', v.accounts_lists, {'acc_list': 'devlist'}),
-    url(r'^former-devlist/$', v.accounts_lists, {'acc_list': 'former-devlist'}),
-    url(r'^foundation-members/$', v.accounts_lists, {'acc_list': 'foundation-members'}),
+    url(r'^logout/$', v.logout, name="logout"),
+    url(r'^devlist/$', v.lists, {'acc_list': 'devlist'}, name="active_developers"),
+    url(r'^former-devlist/$', v.lists, {'acc_list': 'former-devlist'}, name="former_developers"),
+    url(r'^foundation-members/$', v.lists, {'acc_list': 'foundation-members'}, name="foundation_members"),
     url(r'^signup/$', v.signup),
     url(r'^activate/(?P<token>[a-zA-Z0-9]+)/$', v.activate),
     url(r'^otp-setup/$', v.otp_setup),

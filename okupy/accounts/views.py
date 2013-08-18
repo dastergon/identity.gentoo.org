@@ -57,7 +57,7 @@ logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
 
 @cache_page(60 * 20)
-def accounts_lists(request, acc_list):
+def lists(request, acc_list):
     devlist = LDAPUser.objects.all()
     if acc_list == 'devlist':
         devlist = devlist.filter(is_developer=True)
