@@ -64,6 +64,7 @@ def remove_secondary_password(request):
             try:
                 if ldap_md5_crypt.verify(password, hash):
                     user.password.remove(hash)
+                    break
             except ValueError:
                 # ignore unknown hashes
                 pass
