@@ -32,7 +32,8 @@ from .forms import (LoginForm, OpenIDLoginForm, SSLCertLoginForm,
                     OTPForm, SignupForm, SiteAuthForm)
 from .models import LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
-from ..common.ldap_helpers import (set_secondary_password,
+from ..common.ldap_helpers import (get_bound_ldapuser,
+                                   set_secondary_password,
                                    remove_secondary_password)
 from ..common.crypto import cipher
 from ..common.decorators import strong_auth_required
@@ -357,10 +358,11 @@ def otp_setup(request):
     secret = None
     conf_form = None
     skeys = None
+    user = get_bound_ldapuser(request)
 
     if request.method == 'POST':
         if 'disable' in request.POST:
-            dev.disable()
+            dev.disable(user)
         elif 'confirm' in request.POST and 'otp_secret' in request.session:
             secret = request.session['otp_secret']
             conf_form = OTPForm(request.POST)
@@ -374,11 +376,11 @@ def otp_setup(request):
                 messages.error(request, 'Token verification failed.')
                 conf_form = OTPForm()
             else:
-                dev.enable(secret)
+                dev.enable(user, secret)
                 secret = None
                 conf_form = None
                 sdev = SOTPDevice.objects.get(user=request.user)
-                skeys = sdev.gen_keys()
+                skeys = sdev.gen_keys(user)
                 messages.info(request, 'The new secret has been set.')
         elif 'enable' in request.POST:
             secret = dev.gen_secret()
@@ -386,7 +388,7 @@ def otp_setup(request):
             conf_form = OTPForm()
         elif 'recovery' in request.POST:
             sdev = SOTPDevice.objects.get(user=request.user)
-            skeys = sdev.gen_keys()
+            skeys = sdev.gen_keys(user)
             messages.info(request, 'Your old recovery keys have been revoked.')
         elif 'cancel' in request.POST:
             messages.info(request, 'Secret change aborted. Previous settings are in effect.')

@@ -9,8 +9,7 @@ import random
 
 
 class SOTPDevice(Device):
-    def gen_keys(self, num=10):
-        u = LDAPUser.objects.get(username = self.user.username)
+    def gen_keys(self, user, num=10):
         new_keys = set()
 
         # generate the new keys the fun way
@@ -19,8 +18,8 @@ class SOTPDevice(Device):
         while len(new_keys) < num:
             new_keys.add(str(random.randint(1E7, 1E8)))
 
-        u.otp_recovery_keys = new_keys
-        u.save()
+        user.otp_recovery_keys = new_keys
+        user.save()
         return new_keys
 
     def verify_token(self, token):

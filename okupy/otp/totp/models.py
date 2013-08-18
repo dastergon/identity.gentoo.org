@@ -15,16 +15,14 @@ class TOTPDevice(Device):
     def is_enabled(self):
         return not self.verify_token()
 
-    def disable(self):
-        u = LDAPUser.objects.get(username = self.user.username)
-        if u.otp_secret:
-            u.otp_secret = None
-            u.save()
+    def disable(self, user):
+        if user.otp_secret:
+            user.otp_secret = None
+            user.save()
 
-    def enable(self, new_secret):
-        u = LDAPUser.objects.get(username = self.user.username)
-        u.otp_secret = new_secret
-        u.save()
+    def enable(self, user, new_secret):
+        user.otp_secret = new_secret
+        user.save()
 
     def gen_secret(self):
         rng = Crypto.Random.new()
