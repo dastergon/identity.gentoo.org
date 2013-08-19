@@ -157,12 +157,7 @@ def login(request):
         _login(request, user)
         # prepare devices, and see if OTP is enabled
         init_otp(request)
-        try:
-            set_secondary_password(request=request, password=password)
-        except Exception as error:
-            logger.critical(error, extra=log_extra_data(request))
-            logger_mail.exception(error)
-            raise OkupyError("Can't contact LDAP server")
+        set_secondary_password(request=request, password=password)
     if request.user.is_authenticated():
         if (strong_auth_req
                 and not 'secondary_password' in request.session):
