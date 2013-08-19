@@ -149,13 +149,16 @@ def login(request):
             logger.critical(error, extra=log_extra_data(request))
             logger_mail.exception(error)
             raise OkupyError("Can't contact LDAP server")
-    if (request.user.is_authenticated()
-            and (not strong_auth_req
-                 or 'secondary_password' in request.session)):
-        if request.user.is_verified():
-            return redirect(next)
-        login_form = OTPForm()
-        is_otp = True
+    if request.user.is_authenticated():
+        if (strong_auth_req
+                and not 'secondary_password' in request.session):
+            messages.info(request, 'You need to type in your password'
+                          + ' again to perform this action')
+        else:
+            if request.user.is_verified():
+                return redirect(next)
+            login_form = OTPForm()
+            is_otp = True
     if login_form is None:
         login_form = login_form_class()
 
