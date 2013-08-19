@@ -4,7 +4,7 @@ from django.conf import settings
 from django.test.client import Client
 from mockldap import MockLdap
 
-from ...common.test_helpers import OkupyTestCase, get_ldap_user, set_search_seed
+from ...common.test_helpers import OkupyTestCase, ldap_users, set_search_seed
 
 
 class IndexTests(OkupyTestCase):
@@ -25,7 +25,7 @@ class IndexTests(OkupyTestCase):
         self.assertRedirects(response, '/login/?next=/')
 
     def test_index_page_uses_correct_template(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         response = self.client.post('/login/', {'username': 'alice', 'password': 'ldaptest'})
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'base.html')

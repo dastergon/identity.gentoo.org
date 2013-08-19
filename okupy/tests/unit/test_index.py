@@ -8,7 +8,7 @@ from django.test import TestCase
 from mockldap import MockLdap
 
 from ...accounts.views import index
-from ...common.test_helpers import set_request, get_ldap_user, set_search_seed
+from ...common.test_helpers import set_request, ldap_users, set_search_seed
 
 
 alice = User(username='alice', password='ldaptest')
@@ -33,13 +33,13 @@ class IndexUnitTests(TestCase):
         self.assertEqual(found.func, index)
 
     def test_index_page_returns_200_for_logged_in(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         request = set_request(uri='/', user=alice)
         response = index(request)
         self.assertEqual(response.status_code, 200)
 
     def test_rendered_index_page(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([get_ldap_user('alice')])
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         request = set_request(uri='/', user=alice)
         response = index(request)
         nickname_html = '<tr class="even"><th>Nickname</th><td>alice</td></tr>'
