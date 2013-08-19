@@ -1,12 +1,13 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
+from django.test import TestCase
+
 from ...accounts.openid_store import DjangoDBOpenIDStore
-from ...common.test_helpers import OkupyTestCase
 
 import time
 
 
-class OpenIDStoreTests(OkupyTestCase):
+class OpenIDStoreTests(TestCase):
 	def setUp(self):
 		self.store = DjangoDBOpenIDStore()
 

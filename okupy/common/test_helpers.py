@@ -9,6 +9,8 @@ from django.db import DatabaseError
 from django.test import TestCase, RequestFactory
 from django.utils.functional import curry
 
+from okupy.tests import vars
+
 import mock
 
 
@@ -22,30 +24,41 @@ no_database = curry(
     mock.Mock(side_effect=DatabaseError))
 
 
-def get_ldap_user(username, directory=settings.DIRECTORY):
-    """ Retrieve LDAP user from the fake LDAP directory """
-    dn = settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': username}
-    return (dn, directory[dn])
+def ldap_users(username=None, all=False, clean=False,
+               directory=vars.DIRECTORY):
+    """
+    Retrieve either a single LDAP user from the fake LDAP directory,
+    or all the users, or clean up the users from the directory
+    """
+    if (username and all) or (username and clean) or (all and clean):
+        raise TypeError('Please specify one of username, all or clean')
+
+    if username:
+        dn = settings.AUTH_LDAP_USER_DN_TEMPLATE % {'user': username}
+        result = (dn, directory[dn])
+    elif all:
+        result = []
+        for dn, attrs in directory.items():
+            if dn.endswith(settings.AUTH_LDAP_USER_BASE_DN) and \
+                    dn is not settings.AUTH_LDAP_USER_BASE_DN:
+                result.append((dn, attrs))
+    elif clean:
+        result = directory.copy()
+        for dn in directory.keys():
+            if dn.endswith(settings.AUTH_LDAP_USER_BASE_DN) and \
+                    dn is not settings.AUTH_LDAP_USER_BASE_DN:
+                del result[dn]
+    return result
 
 
-def get_all_ldap_users(directory=settings.DIRECTORY):
-    """ Retrieve all LDAP users from the fake LDAP directory """
-    all_users = []
-    for dn, attrs in directory.items():
-        if dn.endswith(settings.AUTH_LDAP_USER_BASE_DN) and \
-                dn is not settings.AUTH_LDAP_USER_BASE_DN:
-            all_users.append((dn, attrs))
-    return all_users
-
-
-def set_search_seed(username=None):
+def set_search_seed(value=None, attr='uid'):
     """ Create the filterstr of the search_s seed part of the mocked
     ldap object """
     search_item = '(&'
     for item in settings.AUTH_LDAP_USER_OBJECTCLASS:
         search_item += '(objectClass=%s)' % item
-    if username:
-        search_item += '(uid=%s)' % username
+    if value:
+        search_item += '(%s=%s)' % (attr, value)
     return search_item + ')'
 
 
