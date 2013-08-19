@@ -58,3 +58,8 @@ class LoginIntegrationTests(TestCase):
         response = self.client.get('/logout/')
         self.assertRedirects(response, '/login/', 302, 200)
         self.mockldap.start()
+
+    def test_redirect_to_requested_page_after_login(self):
+        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
+        response = self.client.post('/login/?next=/otp-setup/', vars.LOGIN_ALICE)
+        self.assertRedirects(response, '/otp-setup/', 302, 200)
