@@ -36,7 +36,7 @@ from ..common.ldap_helpers import (get_bound_ldapuser,
                                    set_secondary_password,
                                    remove_secondary_password)
 from ..common.crypto import cipher
-from ..common.decorators import strong_auth_required
+from ..common.decorators import strong_auth_required, anonymous_required
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
 from ..otp import init_otp
@@ -263,6 +263,7 @@ def logout(request):
     return redirect(login)
 
 
+@anonymous_required
 def signup(request):
     """ The signup page """
     signup_form = None
@@ -322,6 +323,7 @@ def signup(request):
     })
 
 
+@anonymous_required
 def activate(request, token):
     """
     The page that users get to activate their accounts

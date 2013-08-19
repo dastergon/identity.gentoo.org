@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.views import redirect_to_login
+from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django.utils.decorators import available_attrs
 from django.utils.encoding import force_str
@@ -51,3 +52,24 @@ def strong_auth_required(function=None,
     if function:
         return decorator(function)
     return decorator
+
+
+def anonymous_required(view_function, redirect_to=None):
+    """
+    Decorator that implements the opposite functionality of login_required
+    http://blog.motane.lu/2010/01/06/django-anonymous_required-decorator/
+    """
+    return AnonymousRequired(view_function, redirect_to)
+
+
+class AnonymousRequired(object):
+    def __init__(self, view_function, redirect_to):
+        if redirect_to is None:
+            redirect_to = settings.LOGIN_REDIRECT_URL
+        self.view_function = view_function
+        self.redirect_to = redirect_to
+
+    def __call__(self, request, *args, **kwargs):
+        if request.user is not None and request.user.is_authenticated():
+            return HttpResponseRedirect(self.redirect_to)
+        return self.view_function(request, *args, **kwargs)
