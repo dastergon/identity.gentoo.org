@@ -4,13 +4,14 @@ from django.conf import settings
 from django.test.client import Client
 from mockldap import MockLdap
 
+from .. import vars
 from ...common.test_helpers import OkupyTestCase, ldap_users, set_search_seed
 
 
-class IndexTests(OkupyTestCase):
+class IndexIntegrationTests(OkupyTestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mockldap = MockLdap(settings.DIRECTORY)
+        cls.mockldap = MockLdap(vars.DIRECTORY)
 
     def setUp(self):
         self.client = Client()

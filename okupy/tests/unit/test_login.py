@@ -12,21 +12,17 @@ from Crypto import Random
 from passlib.hash import ldap_md5_crypt
 from mockldap import MockLdap
 
+from .. import vars
 from ...accounts.views import login, logout
 from ...accounts.forms import LoginForm
 from ...common.crypto import cipher
 from ...common.test_helpers import OkupyTestCase, set_request, no_database, ldap_users, set_search_seed
 
 
-account1 = {'username': 'alice', 'password': 'ldaptest'}
-account2 = {'username': 'bob', 'password': 'ldapmoretest'}
-wrong_account = {'username': 'wrong', 'password': 'wrong'}
-
-
 class LoginUnitTests(OkupyTestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mockldap = MockLdap(settings.DIRECTORY)
+        cls.mockldap = MockLdap(vars.DIRECTORY)
 
     def setUp(self):
         self.mockldap.start()
@@ -36,13 +32,13 @@ class LoginUnitTests(OkupyTestCase):
         self.mockldap.stop()
 
     def test_incorrect_user_raises_login_failed(self):
-        request = set_request(uri='/login', post=wrong_account, messages=True)
+        request = set_request(uri='/login', post=vars.LOGIN_WRONG, messages=True)
         response = login(request)
         response.context = RequestContext(request)
         self.assertMessage(response, 'Login failed', 40)
 
     def test_incorrect_user_does_not_get_transferred_in_db(self):
-        request = set_request(uri='/login', post=wrong_account, messages=True)
+        request = set_request(uri='/login', post=vars.LOGIN_WRONG, messages=True)
         login(request)
         self.assertEqual(User.objects.count(), 0)
 
@@ -51,7 +47,7 @@ class LoginUnitTests(OkupyTestCase):
         'django_auth_ldap.backend.LDAPBackend',
         'django.contrib.auth.backends.ModelBackend'))
     def test_no_database_raises_critical(self):
-        request = set_request(uri='/login', post=account1, messages=True)
+        request = set_request(uri='/login', post=vars.LOGIN_ALICE, messages=True)
         response = login(request)
         response.context = RequestContext(request)
         self.assertMessage(response, "Can't contact the LDAP server or the database", 40)
@@ -61,7 +57,7 @@ class LoginUnitTests(OkupyTestCase):
         'django_auth_ldap.backend.LDAPBackend',
         'django.contrib.auth.backends.ModelBackend'))
     def test_no_database_sends_notification_mail(self):
-        request = set_request(uri='/login', post=account1, messages=True)
+        request = set_request(uri='/login', post=vars.LOGIN_ALICE, messages=True)
         response = login(request)
         response.context = RequestContext(request)
         self.assertEqual(len(mail.outbox), 1)
@@ -69,20 +65,20 @@ class LoginUnitTests(OkupyTestCase):
 
     def test_correct_user_gets_transferred_in_db(self):
         self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
-        request = set_request(uri='/login', post=account1)
+        request = set_request(uri='/login', post=vars.LOGIN_ALICE)
         login(request)
         self.assertEqual(User.objects.count(), 1)
 
     def test_authenticate_account_that_is_already_in_db(self):
         self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
-        User.objects.create_user(username='alice')
-        request = set_request(uri='/login', post=account1)
+        vars.USER_ALICE.save()
+        request = set_request(uri='/login', post=vars.LOGIN_ALICE)
         login(request)
         self.assertEqual(User.objects.count(), 1)
 
     def test_secondary_password_is_added_in_login(self):
         self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
-        request = set_request(uri='/login', post=account1)
+        request = set_request(uri='/login', post=vars.LOGIN_ALICE)
         login(request)
         self.assertEqual(len(ldap_users('alice', directory=self.ldapobject.directory)[1]['userPassword']), 2)
         self.assertEqual(len(request.session['secondary_password']), 48)
@@ -92,8 +88,7 @@ class LoginUnitTests(OkupyTestCase):
         secondary_password_crypt = ldap_md5_crypt.encrypt(b64encode(secondary_password))
         self.ldapobject.directory[ldap_users('alice')[0]]['userPassword'].append(secondary_password_crypt)
         self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice', directory=self.ldapobject.directory)])
-        alice = User(username='alice')
-        request = set_request(uri='/login', post=account1, user=alice)
+        request = set_request(uri='/login', post=vars.LOGIN_ALICE, user=vars.USER_ALICE)
         request.session['secondary_password'] = cipher.encrypt(secondary_password)
         logout(request)
         self.assertEqual(len(ldap_users('alice', directory=self.ldapobject.directory)[1]['userPassword']), 1)
@@ -129,20 +124,19 @@ class LoginUnitTestsNoLDAP(OkupyTestCase):
         self.assertMessage(response, 'Login failed', 40)
 
     def test_dont_authenticate_from_db_when_ldap_is_down(self):
-        request = set_request(uri='/login', post=account2, messages=True)
+        request = set_request(uri='/login', post=vars.LOGIN_BOB, messages=True)
         response = login(request)
         response.context = RequestContext(request)
         self.assertMessage(response, 'Login failed', 40)
 
     def test_no_ldap_connection_raises_login_failed_in_login(self):
-        request = set_request(uri='/login', post=wrong_account, messages=True)
+        request = set_request(uri='/login', post=vars.LOGIN_WRONG, messages=True)
         response = login(request)
         response.context = RequestContext(request)
         self.assertMessage(response, 'Login failed', 40)
 
     def test_no_ldap_connection_in_logout_sends_notification_mail(self):
-        alice = User(username='alice')
-        request = set_request(uri='/login', post=account1, user=alice)
+        request = set_request(uri='/login', post=vars.LOGIN_ALICE, user=vars.USER_ALICE)
         request.session['secondary_password'] = 'test'
         logout(request)
         self.assertEqual(len(mail.outbox), 1)

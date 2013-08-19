@@ -299,34 +299,3 @@ DATABASES['ldap'] = {
 DATABASE_ROUTERS = ['ldapdb.router.Router']
 
 TEST_RUNNER = 'discover_runner.DiscoverRunner'
-
-DIRECTORY = {
-    "o=test": {},
-    "cn=anon,o=test": {
-        "userPassword": ["{CRYPT}$1$n4jlXi20$.5a8UTvwIqVfVAMlXJ1EZ0"],
-    },
-    "cn=Manager,o=test": {
-        "userPassword": ["{CRYPT}$1$sY4mlRve$0eg5TLYMyZfBCIUgU/RPf0"],
-    },
-    "ou=people,o=test": {},
-    "uid=alice,ou=people,o=test": {
-        "uid": ["alice"],
-        "userPassword": ['{CRYPT}$1$lO/RU6zz$2fJCOwurxBtCqdImkoLQo1'],
-        "objectClass": AUTH_LDAP_USER_OBJECTCLASS + AUTH_LDAP_DEV_OBJECTCLASS,
-        "uidNumber": ["1000"],
-        "gidNumber": ["1000"],
-        "givenName": ["Alice"],
-        "sn": ["Adams"],
-        "mail": ["alice@test.com"],
-    },
-    "uid=bob,ou=people,o=test": {
-        "uid": ["bob"],
-        "userPassword": ['{CRYPT}$1$eFSQMJY6$8y.WUL/ONeEarVXqeCIbH.'],
-        "objectClass": AUTH_LDAP_USER_OBJECTCLASS,
-        "uidNumber": ["1001"],
-        "gidNumber": ["50"],
-        "givenName": ["Robert"],
-        "sn": ["Barker"],
-        "mail": ["bob@test.com"],
-    }
-}

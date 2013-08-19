@@ -9,6 +9,8 @@ from django.db import DatabaseError
 from django.test import TestCase, RequestFactory
 from django.utils.functional import curry
 
+from okupy.tests import vars
+
 import mock
 
 
@@ -23,7 +25,7 @@ no_database = curry(
 
 
 def ldap_users(username=None, all=False, clean=False,
-               directory=settings.DIRECTORY):
+               directory=vars.DIRECTORY):
     """
     Retrieve either a single LDAP user from the fake LDAP directory,
     or all the users, or clean up the users from the directory
