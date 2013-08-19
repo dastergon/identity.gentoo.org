@@ -51,6 +51,11 @@ cipher = OkupyCipher()
 
 
 class IDCipher(object):
+    """
+    A cipher to create 'encrypted database IDs'. It is specifically fit
+    to encrypt an integer into constant-length hexstring.
+    """
+
     def encrypt(self, id):
         byte_id = struct.pack('!I', id)
         byte_eid = cipher.encrypt(byte_id)

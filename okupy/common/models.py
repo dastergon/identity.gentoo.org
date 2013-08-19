@@ -17,10 +17,17 @@ class EncryptedPKModelManager(models.Manager):
 
 
 class EncryptedPKModel(models.Model):
+    """
+    A model with built-in identifier encryption (for secure tokens).
+    """
+
     objects = EncryptedPKModelManager()
 
     @property
     def encrypted_id(self):
+        """
+        The object identifier encrypted using IDCipher, as a hex-string.
+        """
         if self.id is None:
             return None
         return idcipher.encrypt(self.id)

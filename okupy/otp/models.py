@@ -15,6 +15,10 @@ class RevokedToken(models.Model):
 
     @classmethod
     def cleanup(cls):
+        """
+        Remove tokens old enough to be no longer valid.
+        """
+
         # we use this just to enforce atomicity and prevent replay
         # for SOTP, we can clean up old tokens quite fast
         # (as soon as .delete() is effective)
@@ -24,6 +28,12 @@ class RevokedToken(models.Model):
 
     @classmethod
     def add(cls, user, token):
+        """
+        Use and revoke the given token, for the given user.
+
+        Returns True if the token is fine, False if it was used
+        already.
+        """
         cls.cleanup()
 
         t = cls(user=user, token=token)

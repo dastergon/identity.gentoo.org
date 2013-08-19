@@ -9,7 +9,16 @@ import random
 
 
 class SOTPDevice(Device):
+    """
+    OTP device that verifies against a list of recovery keys in LDAP.
+    """
+
     def gen_keys(self, user, num=10):
+        """
+        Generate new recovery keys for user and store them in LDAP.
+
+        Previous keys (if any) will be removed.
+        """
         new_keys = set()
 
         # generate the new keys the fun way
@@ -23,6 +32,9 @@ class SOTPDevice(Device):
         return new_keys
 
     def verify_token(self, token):
+        """
+        Verify token against recovery keys.
+        """
         # ensure atomic revocation
         if not RevokedToken.add(self.user, token):
             return False
