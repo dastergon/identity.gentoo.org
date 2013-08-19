@@ -8,12 +8,31 @@ from .crypto import cipher
 from ..accounts.models import LDAPUser
 
 
+def get_bound_ldapuser(request, password=None):
+    """
+    Get LDAPUser with connection bound to the current user.
+    Uses either provided password or the secondary password saved
+    in session.
+    """
+    username = request.user.username
+    if not password:
+        try:
+            password = b64encode(cipher.decrypt(
+                request.session['secondary_password'], 48))
+        except KeyError:
+            raise OkupyError('Secondary password not available (no strong auth?)')
+
+    bound_cls = LDAPUser.bind_as(
+        alias='ldap_%s' % username,
+        username=username,
+        password=password,
+    )
+    return bound_cls.objects.get(username=username)
+
+
 def set_secondary_password(request, password):
     """ Generate a secondary passsword and encrypt it in the session """
-    username = request.user.username
-    user = LDAPUser.bind_as(alias='ldap_%s' % username,
-                            username=username,
-                            password=password).objects.get(username=username)
+    user = get_bound_ldapuser(request, password)
 
     secondary_password = Random.get_random_bytes(48)
     request.session['secondary_password'] = cipher.encrypt(secondary_password)
@@ -38,11 +57,7 @@ def remove_secondary_password(request):
             request.session['secondary_password'], 48))
     except KeyError:
         return
-
-    username = request.user.username
-    user = LDAPUser.bind_as(alias='ldap_%s' % username,
-                            username=username,
-                            password=password).objects.get(username=username)
+    user = get_bound_ldapuser(request, password)
 
     if len(user.password) > 1:
         for hash in user.password:
