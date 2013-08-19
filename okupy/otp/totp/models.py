@@ -6,7 +6,6 @@ from django_otp.models import Device
 from base64 import b32decode, b32encode
 
 from ...accounts.models import LDAPUser
-from ..models import RevokedToken
 
 import Crypto.Random
 
@@ -67,10 +66,6 @@ class TOTPDevice(Device):
             elif not token: # (we're just being probed)
                 return False
             secret = u.otp_secret
-
-        # prevent replay attacks
-        if not RevokedToken.add(self.user, token):
-            return False
 
         # add missing padding if necessary
         secret += '=' * (-len(secret) % 8)

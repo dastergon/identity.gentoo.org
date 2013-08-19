@@ -3,7 +3,6 @@
 from django_otp.models import Device
 
 from ...accounts.models import LDAPUser
-from ..models import RevokedToken
 
 import random
 
@@ -35,10 +34,6 @@ class SOTPDevice(Device):
         """
         Verify token against recovery keys.
         """
-        # ensure atomic revocation
-        if not RevokedToken.add(self.user, token):
-            return False
-
         u = LDAPUser.objects.get(username = self.user.username)
         if token in u.otp_recovery_keys:
             u.otp_recovery_keys.remove(token)
