@@ -29,7 +29,7 @@ from passlib.hash import ldap_md5_crypt
 from urlparse import urljoin, urlparse, parse_qsl
 
 from .forms import (LoginForm, OpenIDLoginForm, SSLCertLoginForm,
-                    OTPForm, SignupForm, SiteAuthForm)
+                    OTPForm, SignupForm, SiteAuthForm, StrongAuthForm)
 from .models import LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import (get_bound_ldapuser,
@@ -84,8 +84,15 @@ def login(request):
     next = request.REQUEST.get('next') or reverse(index)
     is_otp = False
     login_form = None
-    login_form_class = OpenIDLoginForm if oreq else LoginForm
     strong_auth_req = 'strong_auth_requested' in request.session
+
+    if oreq:
+        login_form_class = OpenIDLoginForm
+    elif ('strong_auth_requested' in request.session
+            and request.user.is_authenticated()):
+        login_form_class = StrongAuthForm
+    else:
+        login_form_class = LoginForm
 
     try:
         if request.method != 'POST':
@@ -115,7 +122,10 @@ def login(request):
         else:
             login_form = login_form_class(request.POST)
             if login_form.is_valid():
-                username = login_form.cleaned_data['username']
+                if login_form_class != StrongAuthForm:
+                    username = login_form.cleaned_data['username']
+                else:
+                    username = request.user.username
                 password = login_form.cleaned_data['password']
             else:
                 raise OkupyError('Login failed')
@@ -152,8 +162,9 @@ def login(request):
     if request.user.is_authenticated():
         if (strong_auth_req
                 and not 'secondary_password' in request.session):
-            messages.info(request, 'You need to type in your password'
-                          + ' again to perform this action')
+            if request.method != 'POST':
+                messages.info(request, 'You need to type in your password'
+                              + ' again to perform this action')
         else:
             if request.user.is_verified():
                 return redirect(next)
