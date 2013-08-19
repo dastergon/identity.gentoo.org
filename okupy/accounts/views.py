@@ -270,11 +270,10 @@ def signup(request):
         signup_form = SignupForm(request.POST)
         if signup_form.is_valid():
             try:
-                user = LDAPUser()
                 try:
-                    user.objects.get(
+                    user = LDAPUser.objects.get(
                         username=signup_form.cleaned_data['username'])
-                except user.DoesNotExist:
+                except LDAPUser.DoesNotExist:
                     pass
                 except Exception as error:
                     logger.critical(error, extra=log_extra_data(request))
@@ -283,9 +282,9 @@ def signup(request):
                 else:
                     raise OkupyError('Username already exists')
                 try:
-                    user.objects.get(
-                        username=signup_form.cleaned_data['email'])
-                except user.DoesNotExist:
+                    user = LDAPUser.objects.get(
+                        email__contains=signup_form.cleaned_data['email'])
+                except LDAPUser.DoesNotExist:
                     pass
                 else:
                     raise OkupyError('Email already exists')
@@ -337,19 +336,29 @@ def activate(request, token):
             logger.critical(error, extra=log_extra_data(request))
             logger_mail.exception(error)
             raise OkupyError("Can't contact the database")
+        # get max uidNumber
+        try:
+            uidnumber = LDAPUser.objects.latest('uid').uid + 1
+        except LDAPUser.DoesNotExist:
+            uidnumber = 1
+        except Exception as error:
+            logger.critical(error, extra=log_extra_data(request))
+            logger_mail.exception(error)
+            raise OkupyError("Can't contact LDAP server")
         # add account to ldap
         new_user = LDAPUser(
-            username=queued_user.username,
-            password=ldap_md5_crypt.encrypt(queued_user.password),
-            email=[queued_user.email],
-            first_name=queued_user.first_name,
+            object_class=settings.AUTH_LDAP_USER_OBJECTCLASS,
             last_name=queued_user.last_name,
+            full_name='%s %s' % (queued_user.first_name, queued_user.last_name),
+            password=[ldap_md5_crypt.encrypt(queued_user.password)],
+            first_name=queued_user.first_name,
+            email=[queued_user.email],
+            username=queued_user.username,
+            uid=uidnumber,
+            gid=100,
             gecos='%s %s' % (queued_user.first_name, queued_user.last_name),
-            objectClass=settings.AUTH_LDAP_USER_OBJECTCLASS,
-            cn='%s %s' % (queued_user.first_name, queued_user.last_name),
-            uidnumber=LDAPUser.objects.latest('uid') + 1,
-            gidNumber=100,
-            homeDirectory='/home/%s' % str(queued_user.username),
+            home_directory='/home/%s' % queued_user.username,
+            ACL=['user.group'],
         )
         new_user.save()
         # remove queued account from DB
