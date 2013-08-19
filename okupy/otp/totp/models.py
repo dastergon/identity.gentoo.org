@@ -6,33 +6,59 @@ from django_otp.models import Device
 from base64 import b32decode, b32encode
 
 from ...accounts.models import LDAPUser
-from ..models import RevokedToken
 
 import Crypto.Random
 
 
 class TOTPDevice(Device):
+    """
+    OTP device that verifies against a TOTP-generated token.
+    """
+
     def is_enabled(self):
+        """
+        Check whether TOTP is enabled.
+
+        Returns True if user has TOTP secret set, False otherwise.
+        """
         return not self.verify_token()
 
     def disable(self, user):
+        """
+        Disable TOTP. Removes the secret from LDAP.
+        """
         if user.otp_secret:
             user.otp_secret = None
             user.save()
 
     def enable(self, user, new_secret):
+        """
+        Enable TOTP. Saves the secret to LDAP.
+        """
         user.otp_secret = new_secret
         user.save()
 
     def gen_secret(self):
+        """
+        Generate a new TOTP secret compliant with Google Authenticator.
+
+        Returns 20-character base32 string (with padding stripped).
+        """
         rng = Crypto.Random.new()
         return b32encode(rng.read(12)).rstrip('=')
 
     @staticmethod
     def get_uri(secret):
-        return 'otpauth://totp/identity.gentoo.org?secret=%s' % secret
+        """
+        Get otpauth:// URI for secret transfer.
+        """
+        return 'otpauth://totp/gentoo.org?secret=%s' % secret
 
     def verify_token(self, token=None, secret=None):
+        """
+        Verify the entered token against current TOTP token, and the few
+        past and future tokens to include clock drift.
+        """
         if not secret:
             u = LDAPUser.objects.get(username = self.user.username)
             if not u.otp_secret:
@@ -40,10 +66,6 @@ class TOTPDevice(Device):
             elif not token: # (we're just being probed)
                 return False
             secret = u.otp_secret
-
-        # prevent replay attacks
-        if not RevokedToken.add(self.user, token):
-            return False
 
         # add missing padding if necessary
         secret += '=' * (-len(secret) % 8)

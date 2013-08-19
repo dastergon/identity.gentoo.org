@@ -11,6 +11,11 @@ class LoginForm(forms.Form):
                                label='Password:')
 
 
+class StrongAuthForm(forms.Form):
+    password = forms.CharField(max_length=30, widget=forms.PasswordInput(),
+                               label='Password:')
+
+
 class OpenIDLoginForm(LoginForm):
     auto_logout = forms.BooleanField(required=False,
         label='Log out after answering the OpenID request')

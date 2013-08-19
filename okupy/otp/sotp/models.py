@@ -3,13 +3,21 @@
 from django_otp.models import Device
 
 from ...accounts.models import LDAPUser
-from ..models import RevokedToken
 
 import random
 
 
 class SOTPDevice(Device):
+    """
+    OTP device that verifies against a list of recovery keys in LDAP.
+    """
+
     def gen_keys(self, user, num=10):
+        """
+        Generate new recovery keys for user and store them in LDAP.
+
+        Previous keys (if any) will be removed.
+        """
         new_keys = set()
 
         # generate the new keys the fun way
@@ -23,10 +31,9 @@ class SOTPDevice(Device):
         return new_keys
 
     def verify_token(self, token):
-        # ensure atomic revocation
-        if not RevokedToken.add(self.user, token):
-            return False
-
+        """
+        Verify token against recovery keys.
+        """
         u = LDAPUser.objects.get(username = self.user.username)
         if token in u.otp_recovery_keys:
             u.otp_recovery_keys.remove(token)

@@ -29,7 +29,7 @@ from passlib.hash import ldap_md5_crypt
 from urlparse import urljoin, urlparse, parse_qsl
 
 from .forms import (LoginForm, OpenIDLoginForm, SSLCertLoginForm,
-                    OTPForm, SignupForm, SiteAuthForm)
+                    OTPForm, SignupForm, SiteAuthForm, StrongAuthForm)
 from .models import LDAPUser, OpenID_Attributes, Queue
 from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import (get_bound_ldapuser,
@@ -40,6 +40,7 @@ from ..common.decorators import strong_auth_required
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
 from ..otp import init_otp
+from ..otp.models import RevokedToken
 from ..otp.sotp.models import SOTPDevice
 from ..otp.totp.models import TOTPDevice
 
@@ -84,8 +85,15 @@ def login(request):
     next = request.REQUEST.get('next') or reverse(index)
     is_otp = False
     login_form = None
-    login_form_class = OpenIDLoginForm if oreq else LoginForm
     strong_auth_req = 'strong_auth_requested' in request.session
+
+    if oreq:
+        login_form_class = OpenIDLoginForm
+    elif ('strong_auth_requested' in request.session
+            and request.user.is_authenticated()):
+        login_form_class = StrongAuthForm
+    else:
+        login_form_class = LoginForm
 
     try:
         if request.method != 'POST':
@@ -108,6 +116,9 @@ def login(request):
             else:
                 raise OkupyError('OTP verification failed')
 
+            # prevent replay attacks and race conditions
+            if not RevokedToken.add(request.user, token):
+                raise OkupyError('OTP verification failed')
             dev = django_otp.match_token(request.user, token)
             if not dev:
                 raise OkupyError('OTP verification failed')
@@ -115,7 +126,10 @@ def login(request):
         else:
             login_form = login_form_class(request.POST)
             if login_form.is_valid():
-                username = login_form.cleaned_data['username']
+                if login_form_class != StrongAuthForm:
+                    username = login_form.cleaned_data['username']
+                else:
+                    username = request.user.username
                 password = login_form.cleaned_data['password']
             else:
                 raise OkupyError('Login failed')
@@ -149,13 +163,17 @@ def login(request):
             logger.critical(error, extra=log_extra_data(request))
             logger_mail.exception(error)
             raise OkupyError("Can't contact LDAP server")
-    if (request.user.is_authenticated()
-            and (not strong_auth_req
-                 or 'secondary_password' in request.session)):
-        if request.user.is_verified():
-            return redirect(next)
-        login_form = OTPForm()
-        is_otp = True
+    if request.user.is_authenticated():
+        if (strong_auth_req
+                and not 'secondary_password' in request.session):
+            if request.method != 'POST':
+                messages.info(request, 'You need to type in your password'
+                              + ' again to perform this action')
+        else:
+            if request.user.is_verified():
+                return redirect(next)
+            login_form = OTPForm()
+            is_otp = True
     if login_form is None:
         login_form = login_form_class()
 
@@ -370,6 +388,10 @@ def otp_setup(request):
                 if not conf_form.is_valid():
                     raise OkupyError()
                 token = conf_form.cleaned_data['otp_token']
+
+                # prevent reusing the same token to login
+                if not RevokedToken.add(request.user, token):
+                    raise OkupyError()
                 if not dev.verify_token(token, secret):
                     raise OkupyError()
             except OkupyError:
