@@ -52,7 +52,7 @@ class TOTPDevice(Device):
         """
         Get otpauth:// URI for secret transfer.
         """
-        return 'otpauth://totp/identity.gentoo.org?secret=%s' % secret
+        return 'otpauth://totp/gentoo.org?secret=%s' % secret
 
     def verify_token(self, token=None, secret=None):
         """
