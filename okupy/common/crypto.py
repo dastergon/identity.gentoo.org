@@ -83,6 +83,9 @@ class SessionRefCipher(object):
     security. Only previous encryption result may be used in decrypt().
     """
 
+    cache_key_prefix = 'django.contrib.sessions.cache'
+    session_id_length = 32
+
     def encrypt(self, session):
         """
         Return an encrypted reference to the session. The encrypted
@@ -99,9 +102,9 @@ class SessionRefCipher(object):
 
             # since it always starts with the backend module name
             # and __init__() expects pure id, we can strip that
-            session_mod = 'django.contrib.sessions.cache'
-            assert(session_id.startswith(session_mod))
-            session_id = session_id[len(session_mod):]
+            assert(session_id.startswith(self.cache_key_prefix))
+            session_id = session_id[len(self.cache_key_prefix):]
+            assert(len(session_id) == self.session_id_length)
             session['encrypted_id'] = base64.b64encode(
                 cipher.encrypt(session_id))
             session.save()
@@ -114,7 +117,8 @@ class SessionRefCipher(object):
         """
 
         try:
-            session_id = cipher.decrypt(base64.b64decode(eid), 32)
+            session_id = cipher.decrypt(base64.b64decode(eid),
+                                        self.session_id_length)
         except (TypeError, ValueError):
             pass
         else:
