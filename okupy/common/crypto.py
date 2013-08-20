@@ -13,6 +13,18 @@ import binascii
 import struct
 
 
+def ub32encode(text):
+    """ Encode text as unpadded base32. """
+    return base64.b32encode(text).rstrip('=')
+
+
+def ub32decode(text):
+    """ Decode text from unpadded base32. """
+    # add missing padding if necessary
+    text += '=' * (-len(text) % 8)
+    return base64.b32decode(text, casefold=True)
+
+
 class OkupyCipher(object):
     """ Symmetric cipher using django's SECRET_KEY. """
 

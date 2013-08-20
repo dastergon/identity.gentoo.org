@@ -3,9 +3,8 @@
 from django_otp import oath
 from django_otp.models import Device
 
-from base64 import b32decode, b32encode
-
 from ...accounts.models import LDAPUser
+from ...common.crypto import ub32decode, ub32encode
 
 import Crypto.Random
 
@@ -45,7 +44,7 @@ class TOTPDevice(Device):
         Returns 20-character base32 string (with padding stripped).
         """
         rng = Crypto.Random.new()
-        return b32encode(rng.read(12)).rstrip('=')
+        return ub32encode(rng.read(12))
 
     @staticmethod
     def get_uri(secret):
@@ -67,10 +66,7 @@ class TOTPDevice(Device):
                 return False
             secret = u.otp_secret
 
-        # add missing padding if necessary
-        secret += '=' * (-len(secret) % 8)
-
-        key = b32decode(secret, casefold=True)
+        key = ub32decode(secret)
         try:
             token = int(token)
         except ValueError:
