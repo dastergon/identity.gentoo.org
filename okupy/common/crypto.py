@@ -121,8 +121,8 @@ class SessionRefCipher(object):
 
             data = (cipher.rng.read(self.random_prefix_bytes)
                     + session_id.encode('utf8'))
-            session['encrypted_id'] = base64.b64encode(
-                cipher.encrypt(data))
+            session['encrypted_id'] = ub32encode(
+                cipher.encrypt(data)).lower()
             session.save()
         return session['encrypted_id']
 
@@ -133,7 +133,7 @@ class SessionRefCipher(object):
         """
 
         try:
-            session_id = cipher.decrypt(base64.b64decode(eid),
+            session_id = cipher.decrypt(ub32decode(eid),
                                         self.session_id_length
                                         + self.random_prefix_bytes)
         except (TypeError, ValueError):
