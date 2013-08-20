@@ -3,6 +3,9 @@
 from django import forms
 
 from .models import OpenID_Attributes
+from ..common.crypto import cipher
+
+import base64
 
 
 class LoginForm(forms.Form):
@@ -25,6 +28,16 @@ class SSLCertLoginForm(forms.Form):
     session_id = forms.CharField(max_length=200, widget=forms.HiddenInput())
     next = forms.CharField(max_length=254, widget=forms.HiddenInput())
     login_uri = forms.CharField(max_length=254, widget=forms.HiddenInput())
+
+    def clean_session_id(self):
+        try:
+            session_id = cipher.decrypt(
+                    base64.b64decode(self.cleaned_data['session_id']),
+                    32)
+        except (TypeError, ValueError):
+            raise forms.ValidationError('Invalid session id')
+        else:
+            return session_id
 
 
 class OTPForm(forms.Form):

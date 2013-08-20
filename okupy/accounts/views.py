@@ -221,10 +221,7 @@ def ssl_auth(request):
     if not ssl_auth_form.is_valid():
         return HttpResponseBadRequest('400 Bad Request')
 
-    session_id = cipher.decrypt(
-            base64.b64decode(ssl_auth_form.cleaned_data['session_id']),
-            32)
-
+    session_id = ssl_auth_form.cleaned_data['session_id']
     next_uri = ssl_auth_form.cleaned_data['login_uri']
 
     user = authenticate(request=request)
