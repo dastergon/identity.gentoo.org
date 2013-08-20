@@ -65,3 +65,25 @@ class SessionRefCipherTest(TestCase):
     def test_invalid_ciphertext_raises_valueerror(self):
         data = 'ZHVwYQo='
         self.assertRaises(ValueError, sessionrefcipher.decrypt, data)
+
+    def test_unique_encrypted_are_generated_after_revocation(self):
+        session = SessionStore()
+        session['test'] = 'in-test'
+        session.save()
+
+        eid1 = sessionrefcipher.encrypt(session)
+        session = sessionrefcipher.decrypt(eid1)
+        eid2 = sessionrefcipher.encrypt(session)
+        self.assertNotEqual(eid1, eid2)
+
+    def test_revoked_encrypted_id_raises_valueerror(self):
+        session = SessionStore()
+        session['test'] = 'in-test'
+        session.save()
+
+        eid1 = sessionrefcipher.encrypt(session)
+        session = sessionrefcipher.decrypt(eid1)
+        eid2 = sessionrefcipher.encrypt(session)
+        if eid1 == eid2:
+            raise SkipTest('Non-unique encrypted IDs generated')
+        self.assertRaises(ValueError, sessionrefcipher.decrypt, eid1)

@@ -130,6 +130,9 @@ class SessionRefCipher(object):
             session_id = session_id[self.random_prefix_bytes:]
             session = SessionStore(session_key=session_id)
             if session.get('encrypted_id') == eid:
+                # revoke to prevent replay attacks
+                del session['encrypted_id']
+                session.save()
                 return session
         raise ValueError('Invalid session id')
 
