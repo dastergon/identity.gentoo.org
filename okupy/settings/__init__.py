@@ -50,7 +50,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'okupy.accounts',
-    'okupy.otp',
+    'okupy.common',
     'okupy.otp.sotp',
     'okupy.otp.totp',
 )

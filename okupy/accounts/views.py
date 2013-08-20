@@ -38,8 +38,8 @@ from ..common.crypto import sessionrefcipher
 from ..common.decorators import strong_auth_required, anonymous_required
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
+from ..common.models import RevokedToken
 from ..otp import init_otp
-from ..otp.models import RevokedToken
 from ..otp.sotp.models import SOTPDevice
 from ..otp.totp.models import TOTPDevice
 
@@ -115,7 +115,7 @@ def login(request):
                 raise OkupyError('OTP verification failed')
 
             # prevent replay attacks and race conditions
-            if not RevokedToken.add(request.user, token):
+            if not RevokedToken.add(token, request.user):
                 raise OkupyError('OTP verification failed')
             dev = django_otp.match_token(request.user, token)
             if not dev:
@@ -376,7 +376,7 @@ def otp_setup(request):
                 token = conf_form.cleaned_data['otp_token']
 
                 # prevent reusing the same token to login
-                if not RevokedToken.add(request.user, token):
+                if not RevokedToken.add(token, request.user):
                     raise OkupyError()
                 if not dev.verify_token(token, secret):
                     raise OkupyError()
