@@ -41,8 +41,12 @@ except ImportError:
     # we're probably running from django's built-in server
     pass
 else:
-    from uwsgidecorators import timer
+    from uwsgidecorators import postfork, thread, timer
     from django.utils import autoreload
+
+    from okupy.common.ssh import ssh_main
+
+    postfork(thread(ssh_main))
 
     @timer(5)
     def change_code_gracefull_reload(sig):

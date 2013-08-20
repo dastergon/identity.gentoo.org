@@ -38,6 +38,7 @@ setup(
         'django-compressor>=1.3',
         'django-ldapdb',
         'django-otp>=0.1.7',
+        'paramiko>=1.10.1',
         'passlib>=1.6.1',
         'pycrypto>=2.6',
         'pyopenssl>=0.13',

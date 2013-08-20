@@ -79,3 +79,12 @@ AUTH_LDAP_USER_OBJECTCLASS = ['top', 'person', 'organizationalPerson',
                               'inetOrgPerson', 'posixAccount', 'shadowAccount']
 # additional objectClasses that are used by developers
 AUTH_LDAP_DEV_OBJECTCLASS = ['developerAccount']
+
+# replace with your preferred port
+SSH_BIND = ('0.0.0.0', 8022)
+# paste your *server* private key here
+SSH_SERVER_KEY = '''
+-----BEGIN RSA PRIVATE KEY-----
+...
+-----END RSA PRIVATE KEY-----
+'''

@@ -290,3 +290,21 @@ DATABASES['ldap'] = {
 DATABASE_ROUTERS = ['ldapdb.router.Router']
 
 TEST_RUNNER = 'discover_runner.DiscoverRunner'
+
+# replace with your preferred port
+SSH_BIND = ('0.0.0.0', 8022)
+# paste your *server* private key here
+SSH_SERVER_KEY = '''
+-----BEGIN RSA PRIVATE KEY-----
+MIIBywIBAAJhANlKTt3/R+xVCgQbUNfqVWt28iHXJ+OCtqqVHaiLp9syBEGNiowK
+KQZ3swwuaa5WSPFwrsmd1/+REm2HdnQITSF/HSAPtOpbv4xaJ45iX1S4JhOK88c+
+UuBrg+lOeclIHQIDAQABAmEAm9fr0NTzJNGpKWDeDr4HHdhluVezSD3L/XSNnQDt
+Fw08eDeoEuCGpBjd1fLD4UIIJHBzc+8ybLZCTgE8JebokHGJxkk8tRt7NgVwnUws
+arTKHqb4nOCu6s0re9IkSL0RAjEA9SV9PWk6J+smQQvVWIh6K+PnLrSV9C3LSisK
+U8Zfrffly03j5sanjV5ZKx7bRJsXAjEA4ukYNYz3GPqQaYzDP/OObRZwQ2Iema2B
+fCbBiokfh4w5Hio+UvbgDD+cBYCjcqbrAjAwjYBEjXbLOTOWZnWW11D7KGQ9R977
+QaalxeiBtyR0HEkS/xZIOsgso6cddzsOV3kCMQCpxK4JOsuRE77CSb+3dDkmYvhh
+YeL1JbxQMArz5H4DgyUk7YQtvGmKoHjSIRmo6TsCMH+7CSP/hnzR1GXLwpeQ+dgp
+IwszrV7pBZ5anBHnmPqwqBWF/I/0IIrtouUHzs9XHg==
+-----END RSA PRIVATE KEY-----
+'''
