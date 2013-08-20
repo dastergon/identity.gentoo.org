@@ -3,10 +3,11 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, IntegrityError
+from django.utils.timezone import now
 
 from .crypto import idcipher
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 
 # based on https://gist.github.com/treyhunner/735861
@@ -61,7 +62,7 @@ class RevokedToken(models.Model):
         # for SOTP, we can clean up old tokens quite fast
         # (as soon as .delete() is effective)
         # for TOTP, we should wait till the token drifts away
-        old = datetime.now() - timedelta(minutes=3)
+        old = now() - timedelta(minutes=3)
         cls.objects.filter(ts__lt=old).delete()
 
     @classmethod
