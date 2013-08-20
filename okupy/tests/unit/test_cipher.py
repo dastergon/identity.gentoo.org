@@ -39,3 +39,8 @@ class OkupyCipherTests(TestCase):
         data = self._random_string[:cipher.block_size*2]
         hash = cipher.encrypt(data)[:cipher.block_size]
         self.assertRaises(ValueError, cipher.decrypt, hash, len(data))
+
+    def test_ciphertext_not_multiple_of_block_size_raises_valueerror(self):
+        data = self._random_string[:cipher.block_size/2]
+        hash = cipher.encrypt(data)[:cipher.block_size/2]
+        self.assertRaises(ValueError, cipher.decrypt, hash, len(data))
