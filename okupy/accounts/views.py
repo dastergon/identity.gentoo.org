@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (login as _login, logout as _logout,
                                  authenticate)
-from django.contrib.sessions.backends.cache import SessionStore
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
@@ -193,7 +192,7 @@ def login(request):
         # 1. site is accessed via IP (auth.127.0.0.1),
         # 2. HTTP used on non-standard port (https://...:8000).
         ssl_auth_form = SSLCertLoginForm({
-            'session_id': request.session['encrypted_id'],
+            'session': request.session['encrypted_id'],
             'next': request.build_absolute_uri(next),
             'login_uri': request.build_absolute_uri(request.get_full_path()),
         })
@@ -221,7 +220,7 @@ def ssl_auth(request):
     if not ssl_auth_form.is_valid():
         return HttpResponseBadRequest('400 Bad Request')
 
-    session_id = ssl_auth_form.cleaned_data['session_id']
+    session = ssl_auth_form.cleaned_data['session']
     next_uri = ssl_auth_form.cleaned_data['login_uri']
 
     user = authenticate(request=request)
@@ -235,7 +234,6 @@ def ssl_auth(request):
 
     # so, django will always start a new session for us. we need to copy
     # the data to the original session and preferably flush the new one.
-    session = SessionStore(session_key=session_id)
     session.update(request.session)
 
     # always logout automatically from SSL-based auth

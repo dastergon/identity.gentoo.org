@@ -1,6 +1,7 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from django import forms
+from django.contrib.sessions.backends.cache import SessionStore
 
 from .models import OpenID_Attributes
 from ..common.crypto import cipher
@@ -25,19 +26,22 @@ class OpenIDLoginForm(LoginForm):
 
 
 class SSLCertLoginForm(forms.Form):
-    session_id = forms.CharField(max_length=200, widget=forms.HiddenInput())
+    session = forms.CharField(max_length=200, widget=forms.HiddenInput())
     next = forms.CharField(max_length=254, widget=forms.HiddenInput())
     login_uri = forms.CharField(max_length=254, widget=forms.HiddenInput())
 
-    def clean_session_id(self):
+    def clean_session(self):
+        enc_session_id = self.cleaned_data['session']
         try:
             session_id = cipher.decrypt(
-                    base64.b64decode(self.cleaned_data['session_id']),
-                    32)
+                    base64.b64decode(enc_session_id), 32)
         except (TypeError, ValueError):
-            raise forms.ValidationError('Invalid session id')
+            pass
         else:
-            return session_id
+            session = SessionStore(session_key=session_id)
+            if session.get('encrypted_id') == enc_session_id:
+                return session
+        raise forms.ValidationError('Invalid session id')
 
 
 class OTPForm(forms.Form):
