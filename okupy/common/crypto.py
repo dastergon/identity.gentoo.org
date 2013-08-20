@@ -16,7 +16,6 @@ class OkupyCipher(object):
 
     _hasher_algo = SHA384Hash
     _cipher_algo = BlowfishCipher
-    _cipher_block_size = 8
 
     def __init__(self):
         hasher = self._hasher_algo()
@@ -24,6 +23,13 @@ class OkupyCipher(object):
         key_hash = hasher.digest()
         self.cipher = self._cipher_algo(key_hash)
         self.rng = Crypto.Random.new()
+
+    @property
+    def block_size(self):
+        """
+        Cipher's block size.
+        """
+        return self.cipher.block_size
 
     def encrypt(self, data):
         """
@@ -34,7 +40,7 @@ class OkupyCipher(object):
         # ensure it's bytestring before we append random bits
         data = bytes(data)
         # minus is intentional. (-X % S) == S - (X % S)
-        padding = -len(data) % self._cipher_block_size
+        padding = -len(data) % self.block_size
         if padding:
             data += self.rng.read(padding)
         return self.cipher.encrypt(data)
