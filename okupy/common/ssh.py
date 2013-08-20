@@ -7,8 +7,11 @@ import paramiko
 from io import BytesIO
 
 import asyncore
+import inspect
 import socket
 import threading
+
+from ..accounts.ssh import ssh_handlers
 
 
 LISTEN_BACKLOG = 20
@@ -19,7 +22,20 @@ class SSHServer(paramiko.ServerInterface):
         return 'publickey'
 
     def check_auth_publickey(self, username, key):
-        return paramiko.AUTH_SUCCESSFUL
+        spl = username.split('+')
+        cmd = spl[0]
+        args = spl[1:]
+
+        try:
+            h = ssh_handlers[cmd]
+            # this is an easy way of checking if we have correct args
+            inspect.getcallargs(h, *args, key=key)
+        except (KeyError, TypeError) as e:
+            pass
+        else:
+            if h(*args, key=key):
+                return paramiko.AUTH_SUCCESSFUL
+        return paramiko.AUTH_FAILED
 
     def check_channel_request(self, kind, chanid):
         if kind == 'session':
