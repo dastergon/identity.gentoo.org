@@ -3,8 +3,8 @@
 from django.conf import settings
 from django.contrib.sessions.backends.cache import SessionStore
 
-from Crypto.Cipher.Blowfish import BlowfishCipher
-from Crypto.Hash.SHA384 import SHA384Hash
+from Crypto.Cipher.AES import AESCipher
+from Crypto.Hash.SHA256 import SHA256Hash
 
 import Crypto.Random
 
@@ -27,8 +27,8 @@ def ub32decode(text):
 class OkupyCipher(object):
     """ Symmetric cipher using django's SECRET_KEY. """
 
-    _hasher_algo = SHA384Hash
-    _cipher_algo = BlowfishCipher
+    _hasher_algo = SHA256Hash
+    _cipher_algo = AESCipher
 
     def __init__(self):
         hasher = self._hasher_algo()
