@@ -50,6 +50,8 @@ class OkupyCipher(object):
         Decrypt the data block of given length. Removes padding if any.
         """
 
+        if len(data) < length:
+            raise ValueError('Ciphertext too short for requested length')
         return self.cipher.decrypt(data)[:length]
 
 
