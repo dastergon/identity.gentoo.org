@@ -1,12 +1,14 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from django.conf import settings
+from django.contrib.sessions.backends.cache import SessionStore
 
 from Crypto.Cipher.Blowfish import BlowfishCipher
 from Crypto.Hash.SHA384 import SHA384Hash
 
 import Crypto.Random
 
+import base64
 import binascii
 import struct
 
@@ -55,9 +57,6 @@ class OkupyCipher(object):
         return self.cipher.decrypt(data)[:length]
 
 
-cipher = OkupyCipher()
-
-
 class IDCipher(object):
     """
     A cipher to create 'encrypted database IDs'. It is specifically fit
@@ -76,4 +75,55 @@ class IDCipher(object):
         return id
 
 
+class SessionRefCipher(object):
+    """
+    A cipher to provide encrypted identifiers to sessions.
+
+    The encrypted session ID is stored in session for additional
+    security. Only previous encryption result may be used in decrypt().
+    """
+
+    def encrypt(self, session):
+        """
+        Return an encrypted reference to the session. The encrypted
+        identifier will be stored in the session for verification
+        and caching. Therefore, further calls to this method will reuse
+        the previously cached identifier.
+        """
+
+        if 'encrypted_id' not in session:
+            # .cache_key is a very good property since it ensures
+            # that the cache is actually created, and works from first
+            # request
+            session_id = session.cache_key
+
+            # since it always starts with the backend module name
+            # and __init__() expects pure id, we can strip that
+            session_mod = 'django.contrib.sessions.cache'
+            assert(session_id.startswith(session_mod))
+            session_id = session_id[len(session_mod):]
+            session['encrypted_id'] = base64.b64encode(
+                cipher.encrypt(session_id))
+            session.save()
+        return session['encrypted_id']
+
+    def decrypt(self, eid):
+        """
+        Return the SessionStore to which the encrypted identifier is
+        pointing. Raises ValueError if the identifier is invalid.
+        """
+
+        try:
+            session_id = cipher.decrypt(base64.b64decode(eid), 32)
+        except (TypeError, ValueError):
+            pass
+        else:
+            session = SessionStore(session_key=session_id)
+            if session.get('encrypted_id') == eid:
+                return session
+        raise ValueError('Invalid session id')
+
+
+cipher = OkupyCipher()
 idcipher = IDCipher()
+sessionrefcipher = SessionRefCipher()

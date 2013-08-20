@@ -1,9 +1,11 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from Crypto import Random
-from unittest import TestCase
+from unittest import TestCase, SkipTest
 
-from ...common.crypto import cipher
+from django.contrib.sessions.backends.cache import SessionStore
+
+from ...common.crypto import cipher, sessionrefcipher
 
 
 class OkupyCipherTests(TestCase):
@@ -44,3 +46,22 @@ class OkupyCipherTests(TestCase):
         data = self._random_string[:cipher.block_size/2]
         hash = cipher.encrypt(data)[:cipher.block_size/2]
         self.assertRaises(ValueError, cipher.decrypt, hash, len(data))
+
+
+class SessionRefCipherTest(TestCase):
+    def test_encrypt_decrypt(self):
+        session = SessionStore()
+        session['test'] = 'in-test'
+        session.save()
+
+        eid = sessionrefcipher.encrypt(session)
+        sess = sessionrefcipher.decrypt(eid)
+        self.assertEqual(sess.get('test'), 'in-test')
+
+    def test_invalid_base64_raises_valueerror(self):
+        data = 'Azcd^%'
+        self.assertRaises(ValueError, sessionrefcipher.decrypt, data)
+
+    def test_invalid_ciphertext_raises_valueerror(self):
+        data = 'ZHVwYQo='
+        self.assertRaises(ValueError, sessionrefcipher.decrypt, data)
