@@ -9,7 +9,6 @@ from Crypto.Hash.SHA384 import SHA384Hash
 import Crypto.Random
 
 import base64
-import binascii
 import struct
 
 
@@ -78,10 +77,10 @@ class IDCipher(object):
     def encrypt(self, id):
         byte_id = struct.pack('!I', id)
         byte_eid = cipher.encrypt(byte_id)
-        return binascii.b2a_hex(byte_eid)
+        return ub32encode(byte_eid).lower()
 
     def decrypt(self, eid):
-        byte_eid = binascii.a2b_hex(eid)
+        byte_eid = ub32decode(eid)
         byte_id = cipher.decrypt(byte_eid, 4)
         id = struct.unpack('!I', byte_id)[0]
         return id
