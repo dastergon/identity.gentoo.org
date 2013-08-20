@@ -85,6 +85,7 @@ class SessionRefCipher(object):
 
     cache_key_prefix = 'django.contrib.sessions.cache'
     session_id_length = 32
+    random_prefix_bytes = 4
 
     def encrypt(self, session):
         """
@@ -105,8 +106,11 @@ class SessionRefCipher(object):
             assert(session_id.startswith(self.cache_key_prefix))
             session_id = session_id[len(self.cache_key_prefix):]
             assert(len(session_id) == self.session_id_length)
+
+            data = (cipher.rng.read(self.random_prefix_bytes)
+                    + session_id.encode('utf8'))
             session['encrypted_id'] = base64.b64encode(
-                cipher.encrypt(session_id))
+                cipher.encrypt(data))
             session.save()
         return session['encrypted_id']
 
@@ -118,10 +122,12 @@ class SessionRefCipher(object):
 
         try:
             session_id = cipher.decrypt(base64.b64decode(eid),
-                                        self.session_id_length)
+                                        self.session_id_length
+                                        + self.random_prefix_bytes)
         except (TypeError, ValueError):
             pass
         else:
+            session_id = session_id[self.random_prefix_bytes:]
             session = SessionStore(session_key=session_id)
             if session.get('encrypted_id') == eid:
                 return session
