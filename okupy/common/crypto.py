@@ -24,6 +24,18 @@ def ub32decode(text):
     return base64.b32decode(text, casefold=True)
 
 
+def ub64encode(text):
+    """ Encode text as unpadded base64. """
+    return base64.b64encode(text).rstrip('=')
+
+
+def ub64decode(text):
+    """ decode text from unpadded base64. """
+    # add missing padding if necessary
+    text += '=' * (-len(text) % 4)
+    return base64.b64decode(text)
+
+
 class OkupyCipher(object):
     """ Symmetric cipher using django's SECRET_KEY. """
 
@@ -97,6 +109,7 @@ class SessionRefCipher(object):
     cache_key_prefix = 'django.contrib.sessions.cache'
     session_id_length = 32
     random_prefix_bytes = 4
+    ciphertext_length = session_id_length*3/4 + random_prefix_bytes
 
     def encrypt(self, session):
         """
@@ -118,8 +131,17 @@ class SessionRefCipher(object):
             session_id = session_id[len(self.cache_key_prefix):]
             assert(len(session_id) == self.session_id_length)
 
+            # now's another curious trick: session id consists
+            # of [a-z][0-9]. it's basically base36 but since decoding
+            # that is harsh, let's just treat it as base64. that's
+            # going to pack it into 3/4 original size, that is 24 bytes.
+            # then, with random prefix prepended we will fit into one
+            # block of ciphertext less.
+            session_id = ub64decode(session_id)
+
             data = (cipher.rng.read(self.random_prefix_bytes)
-                    + session_id.encode('utf8'))
+                    + session_id)
+            assert(len(data) == self.ciphertext_length)
             session['encrypted_id'] = ub32encode(
                 cipher.encrypt(data)).lower()
             session.save()
@@ -133,12 +155,12 @@ class SessionRefCipher(object):
 
         try:
             session_id = cipher.decrypt(ub32decode(eid),
-                                        self.session_id_length
-                                        + self.random_prefix_bytes)
+                                        self.ciphertext_length)
         except (TypeError, ValueError):
             pass
         else:
             session_id = session_id[self.random_prefix_bytes:]
+            session_id = ub64encode(session_id)
             session = SessionStore(session_key=session_id)
             if session.get('encrypted_id') == eid:
                 # circular import
