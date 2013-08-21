@@ -34,11 +34,11 @@ from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import (get_bound_ldapuser,
                                    set_secondary_password,
                                    remove_secondary_password)
-from ..common.crypto import sessionrefcipher
 from ..common.decorators import strong_auth_required, anonymous_required
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
-from ..common.models import RevokedToken
+from ..crypto.ciphers import sessionrefcipher
+from ..crypto.models import RevokedToken
 from ..otp import init_otp
 from ..otp.sotp.models import SOTPDevice
 from ..otp.totp.models import TOTPDevice

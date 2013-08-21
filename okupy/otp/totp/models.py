@@ -4,7 +4,7 @@ from django_otp import oath
 from django_otp.models import Device
 
 from ...accounts.models import LDAPUser
-from ...common.crypto import ub32decode, ub32encode
+from ...crypto.codecs import ub32decode, ub32encode
 
 import Crypto.Random
 

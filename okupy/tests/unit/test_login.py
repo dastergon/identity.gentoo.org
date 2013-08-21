@@ -15,8 +15,8 @@ from mockldap import MockLdap
 from .. import vars
 from ...accounts.views import login, logout
 from ...accounts.forms import LoginForm
-from ...common.crypto import cipher
 from ...common.test_helpers import OkupyTestCase, set_request, no_database, ldap_users, set_search_seed
+from ...crypto.ciphers import cipher
 
 
 class LoginUnitTests(OkupyTestCase):

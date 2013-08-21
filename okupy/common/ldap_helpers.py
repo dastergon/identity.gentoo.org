@@ -4,7 +4,7 @@ from base64 import b64encode
 from Crypto import Random
 from passlib.hash import ldap_md5_crypt
 
-from .crypto import cipher
+from ..crypto.ciphers import cipher
 from ..accounts.models import LDAPUser
 
 

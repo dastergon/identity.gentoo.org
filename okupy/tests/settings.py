@@ -53,7 +53,7 @@ INSTALLED_APPS = (
     'django_otp',
     'discover_runner',
     'okupy.accounts',
-    'okupy.common',
+    'okupy.crypto',
     'okupy.otp.sotp',
     'okupy.otp.totp',
     'okupy.tests',

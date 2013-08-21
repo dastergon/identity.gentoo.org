@@ -5,7 +5,7 @@ from unittest import TestCase, SkipTest
 
 from django.contrib.sessions.backends.cache import SessionStore
 
-from ...common.crypto import cipher, sessionrefcipher
+from ...crypto.ciphers import cipher, sessionrefcipher
 
 
 class OkupyCipherTests(TestCase):

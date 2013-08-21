@@ -8,32 +8,9 @@ from Crypto.Hash.SHA256 import SHA256Hash
 
 import Crypto.Random
 
-import base64
 import struct
 
-
-def ub32encode(text):
-    """ Encode text as unpadded base32. """
-    return base64.b32encode(text).rstrip('=')
-
-
-def ub32decode(text):
-    """ Decode text from unpadded base32. """
-    # add missing padding if necessary
-    text += '=' * (-len(text) % 8)
-    return base64.b32decode(text, casefold=True)
-
-
-def ub64encode(text):
-    """ Encode text as unpadded base64. """
-    return base64.b64encode(text).rstrip('=')
-
-
-def ub64decode(text):
-    """ decode text from unpadded base64. """
-    # add missing padding if necessary
-    text += '=' * (-len(text) % 4)
-    return base64.b64decode(text)
+from .codecs import ub32encode, ub32decode, ub64encode, ub64decode
 
 
 class OkupyCipher(object):

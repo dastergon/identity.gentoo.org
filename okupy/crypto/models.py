@@ -1,11 +1,10 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, IntegrityError
 from django.utils.timezone import now
 
-from .crypto import idcipher
+from .ciphers import idcipher
 
 from datetime import timedelta
 

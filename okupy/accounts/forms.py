@@ -3,7 +3,7 @@
 from django import forms
 
 from .models import OpenID_Attributes
-from ..common.crypto import sessionrefcipher
+from ..crypto.ciphers import sessionrefcipher
 
 
 class LoginForm(forms.Form):
