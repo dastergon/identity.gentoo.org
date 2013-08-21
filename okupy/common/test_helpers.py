@@ -51,14 +51,17 @@ def ldap_users(username=None, all=False, clean=False,
     return result
 
 
-def set_search_seed(value=None, attr='uid'):
+def set_search_seed(value=None, attr='uid', neg=False):
     """ Create the filterstr of the search_s seed part of the mocked
     ldap object """
     search_item = '(&'
     for item in settings.AUTH_LDAP_USER_OBJECTCLASS:
         search_item += '(objectClass=%s)' % item
     if value:
-        search_item += '(%s=%s)' % (attr, value)
+        if neg:
+            search_item += '(!(%s=%s))' % (attr, value)
+        else:
+            search_item += '(%s=%s)' % (attr, value)
     return search_item + ')'
 
 
