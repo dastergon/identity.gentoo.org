@@ -27,7 +27,11 @@ DIRECTORY = {
         "gidNumber": ["1000"],
         "givenName": ["Alice"],
         "sn": ["Adams"],
+        "cn": ["Alice Adams"],
         "mail": ["alice@test.com"],
+        "gentooRoles": ["kde, qt, cluster"],
+        "gentooLocation": ["City1, Country1"],
+        "gentooACL": ["user.group", "developer.group"],
     },
     "uid=bob,ou=people,o=test": {
         "uid": ["bob"],
@@ -37,8 +41,26 @@ DIRECTORY = {
         "gidNumber": ["50"],
         "givenName": ["Robert"],
         "sn": ["Barker"],
+        "cn": ["Robert Barker"],
         "mail": ["bob@test.com"],
-    }
+        "gentoRoles": ["nothing"],
+        "gentooLocation": ["City2, Country2"],
+        "gentooACL": ["user.group", "foundation.group"]
+    },
+    "uid=jack,ou=people,o=test": {
+        "uid": ["jack"],
+        "gentooACL": ["user.group", "developer.group", "foundation.group"],
+    },
+    "uid=john,ou=people,o=test": {
+        "uid": ["john"],
+        "cn": ["John Smith"],
+        "gentooLocation": ["City3, Country3"],
+        "gentooRoles": ["kernel, security"],
+        "gentooACL": ["user.group", "retired.group"],
+    },
+    "uid=matt,ou=people,o=test": {
+        "gentooACL": ["user.group", "retired.group"],
+    },
 }
 
 # User objects
