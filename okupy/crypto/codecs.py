@@ -16,12 +16,12 @@ def ub32decode(text):
 
 
 def ub64encode(text):
-    """ Encode text as unpadded base64. """
-    return base64.b64encode(text).rstrip('=')
+    """ Encode text as unpadded, url-safe base64. """
+    return base64.urlsafe_b64encode(text).rstrip('=')
 
 
 def ub64decode(text):
-    """ decode text from unpadded base64. """
+    """ decode text from unpadded, url-safe base64. """
     # add missing padding if necessary
     text += '=' * (-len(text) % 4)
-    return base64.b64decode(text)
+    return base64.urlsafe_b64decode(bytes(text))

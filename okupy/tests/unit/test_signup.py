@@ -137,7 +137,7 @@ class SignupUnitTests(OkupyTestCase):
         self.assertEqual(vars.QUEUEDUSER.email, vars.SIGNUP_TESTUSER['email'])
         self.assertEqual(vars.QUEUEDUSER.password, vars.SIGNUP_TESTUSER['password_origin'])
         # note: this needs to be kept in line with used cipher
-        self.assertRegexpMatches(vars.QUEUEDUSER.encrypted_id, '^[a-z2-7]{26}$')
+        self.assertRegexpMatches(vars.QUEUEDUSER.encrypted_id, '^[a-zA-Z0-9_-]{22}$')
 
     @no_database()
     def test_no_database_connection_raises_error_in_signup(self):

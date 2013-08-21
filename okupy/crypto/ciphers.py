@@ -10,7 +10,7 @@ import Crypto.Random
 
 import struct
 
-from .codecs import ub32encode, ub32decode, ub64encode, ub64decode
+from .codecs import ub64encode, ub64decode
 
 
 class OkupyCipher(object):
@@ -66,10 +66,10 @@ class IDCipher(object):
     def encrypt(self, id):
         byte_id = struct.pack('!I', id)
         byte_eid = cipher.encrypt(byte_id)
-        return ub32encode(byte_eid).lower()
+        return ub64encode(byte_eid)
 
     def decrypt(self, eid):
-        byte_eid = ub32decode(eid)
+        byte_eid = ub64decode(eid)
         byte_id = cipher.decrypt(byte_eid, 4)
         id = struct.unpack('!I', byte_id)[0]
         return id
@@ -119,8 +119,8 @@ class SessionRefCipher(object):
             data = (cipher.rng.read(self.random_prefix_bytes)
                     + session_id)
             assert(len(data) == self.ciphertext_length)
-            session['encrypted_id'] = ub32encode(
-                cipher.encrypt(data)).lower()
+            session['encrypted_id'] = ub64encode(
+                cipher.encrypt(data))
             session.save()
         return session['encrypted_id']
 
@@ -131,7 +131,7 @@ class SessionRefCipher(object):
         """
 
         try:
-            session_id = cipher.decrypt(ub32decode(eid),
+            session_id = cipher.decrypt(ub64decode(eid),
                                         self.ciphertext_length)
         except (TypeError, ValueError):
             pass
