@@ -6,7 +6,7 @@ from ldapdb.models.fields import (CharField, IntegerField, ListField,
                                   FloatField, ACLField, DateField)
 import ldapdb.models
 
-from ..common.models import EncryptedPKModel
+from ..crypto.models import EncryptedPKModel
 
 
 class Queue(EncryptedPKModel):

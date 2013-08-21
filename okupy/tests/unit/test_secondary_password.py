@@ -9,9 +9,9 @@ from mockldap import MockLdap
 from passlib.hash import ldap_md5_crypt
 
 from .. import vars
-from ...common.crypto import cipher
 from ...common.ldap_helpers import set_secondary_password, remove_secondary_password
 from ...common.test_helpers import set_request, set_search_seed, ldap_users
+from ...crypto.ciphers import cipher
 
 
 class SecondaryPassword(TestCase):

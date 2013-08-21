@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (login as _login, logout as _logout,
                                  authenticate)
-from django.contrib.sessions.backends.cache import SessionStore
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
@@ -35,19 +34,18 @@ from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import (get_bound_ldapuser,
                                    set_secondary_password,
                                    remove_secondary_password)
-from ..common.crypto import cipher
 from ..common.decorators import strong_auth_required, anonymous_required
 from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
+from ..crypto.ciphers import sessionrefcipher
+from ..crypto.models import RevokedToken
 from ..otp import init_otp
-from ..otp.models import RevokedToken
 from ..otp.sotp.models import SOTPDevice
 from ..otp.totp.models import TOTPDevice
 
 # the following two are for exceptions
 import openid.yadis.discover
 import openid.fetchers
-import base64
 import django_otp
 import io
 import ldap
@@ -117,7 +115,7 @@ def login(request):
                 raise OkupyError('OTP verification failed')
 
             # prevent replay attacks and race conditions
-            if not RevokedToken.add(request.user, token):
+            if not RevokedToken.add(token, request.user):
                 raise OkupyError('OTP verification failed')
             dev = django_otp.match_token(request.user, token)
             if not dev:
@@ -176,24 +174,13 @@ def login(request):
         ssl_auth_form = None
         ssl_auth_uri = None
     else:
-        if 'encrypted_id' not in request.session:
-            # .cache_key is a very good property since it ensures
-            # that the cache is actually created, and works from first
-            # request
-            session_id = request.session.cache_key
-
-            # since it always starts with the backend module name
-            # and __init__() expects pure id, we can strip that
-            assert(session_id.startswith('django.contrib.sessions.cache'))
-            session_id = session_id[29:]
-            request.session['encrypted_id'] = base64.b64encode(
-                cipher.encrypt(session_id))
+        encrypted_id = sessionrefcipher.encrypt(request.session)
 
         # TODO: it fails when:
         # 1. site is accessed via IP (auth.127.0.0.1),
         # 2. HTTP used on non-standard port (https://...:8000).
         ssl_auth_form = SSLCertLoginForm({
-            'session_id': request.session['encrypted_id'],
+            'session': encrypted_id,
             'next': request.build_absolute_uri(next),
             'login_uri': request.build_absolute_uri(request.get_full_path()),
         })
@@ -221,10 +208,7 @@ def ssl_auth(request):
     if not ssl_auth_form.is_valid():
         return HttpResponseBadRequest('400 Bad Request')
 
-    session_id = cipher.decrypt(
-            base64.b64decode(ssl_auth_form.cleaned_data['session_id']),
-            32)
-
+    session = ssl_auth_form.cleaned_data['session']
     next_uri = ssl_auth_form.cleaned_data['login_uri']
 
     user = authenticate(request=request)
@@ -238,7 +222,6 @@ def ssl_auth(request):
 
     # so, django will always start a new session for us. we need to copy
     # the data to the original session and preferably flush the new one.
-    session = SessionStore(session_key=session_id)
     session.update(request.session)
 
     # always logout automatically from SSL-based auth
@@ -393,7 +376,7 @@ def otp_setup(request):
                 token = conf_form.cleaned_data['otp_token']
 
                 # prevent reusing the same token to login
-                if not RevokedToken.add(request.user, token):
+                if not RevokedToken.add(token, request.user):
                     raise OkupyError()
                 if not dev.verify_token(token, secret):
                     raise OkupyError()
