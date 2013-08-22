@@ -18,10 +18,18 @@ LISTEN_BACKLOG = 20
 
 
 class SSHServer(paramiko.ServerInterface):
+    def __init__(self):
+        paramiko.ServerInterface.__init__(self)
+        self._message = None
+
     def get_allowed_auths(self, username):
         return 'publickey'
 
     def check_auth_publickey(self, username, key):
+        # for some reason, this is called twice...
+        if self._message:
+            return paramiko.AUTH_SUCCESSFUL
+
         spl = username.split('+')
         cmd = spl[0]
         args = spl[1:]
@@ -33,7 +41,9 @@ class SSHServer(paramiko.ServerInterface):
         except (KeyError, TypeError) as e:
             pass
         else:
-            if h(*args, key=key):
+            ret = h(*args, key=key)
+            if ret is not None:
+                self._message = ret
                 return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
@@ -46,15 +56,17 @@ class SSHServer(paramiko.ServerInterface):
         return False
 
     def check_channel_exec_request(self, channel, command):
-        channel.send('Not yet implemented, sorry.\r\n')
+        channel.send('%s\r\n' % self._message)
         channel.shutdown(2)
         channel.close()
+        self._message = None
         return True
 
     def check_channel_shell_request(self, channel):
-        channel.send('Not yet implemented, sorry.\r\n')
+        channel.send('%s\r\n' % self._message)
         channel.shutdown(2)
         channel.close()
+        self._message = None
         return True
 
     def check_channel_pty_request(self, channel, term, width, height,

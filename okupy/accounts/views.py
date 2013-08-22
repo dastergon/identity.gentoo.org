@@ -173,6 +173,7 @@ def login(request):
     if is_otp or strong_auth_req:
         ssl_auth_form = None
         ssl_auth_uri = None
+        ssh_auth_command = None
     else:
         encrypted_id = sessionrefcipher.encrypt(request.session)
 
@@ -189,12 +190,23 @@ def login(request):
         ssl_auth_path = reverse(ssl_auth)
         ssl_auth_uri = urljoin('https://' + ssl_auth_host, ssl_auth_path)
 
+        if settings.SSH_BIND[1] == 22:
+            ssh_port_opt = ''
+        else:
+            ssh_port_opt = '-p %d ' % settings.SSH_BIND[1]
+
+        ssh_auth_command = 'ssh %sauth+%s@%s' % (
+            ssh_port_opt,
+            encrypted_id,
+            request.get_host().split(':')[0])
+
     return render(request, 'login.html', {
         'login_form': login_form,
         'openid_request': oreq,
         'next': next,
         'ssl_auth_uri': ssl_auth_uri,
         'ssl_auth_form': ssl_auth_form,
+        'ssh_auth_command': ssh_auth_command,
         'is_otp': is_otp,
     })
 

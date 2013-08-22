@@ -28,6 +28,7 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
     'okupy.common.auth.SSLCertAuthBackend',
+    'okupy.common.auth.SSHKeyAuthBackend',
 )
 
 MIDDLEWARE_CLASSES = (

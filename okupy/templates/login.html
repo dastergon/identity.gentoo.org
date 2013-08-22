@@ -37,6 +37,13 @@
                 </form>
             </p>
         {% endif %}
+        {% if ssh_auth_command %}
+            <p>
+                Login via SSH:
+                <code>{{ ssh_auth_command }}</code>
+                and <a href="{{ next }}">continue</a>
+            </p>
+        {% endif %}
         {% if not is_otp %}
             <a href="/recover">Forgot your password?</a>
         {% endif %}
