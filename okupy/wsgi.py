@@ -46,7 +46,13 @@ else:
 
     from okupy.common.ssh import ssh_main
 
+    import Crypto.Random
+
     postfork(thread(ssh_main))
+
+    @postfork
+    def reset_rng():
+        Crypto.Random.atfork()
 
     @timer(5)
     def change_code_gracefull_reload(sig):
