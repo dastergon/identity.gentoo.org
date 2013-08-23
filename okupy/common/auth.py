@@ -15,10 +15,7 @@ class SSLCertAuthBackend(ModelBackend):
     It requires one of owner e-mails to match in LDAP.
     """
 
-    def authenticate(self, request=None):
-        if request is None:
-            return None
-
+    def authenticate(self, request):
         # it can be: SUCCESS, NONE and likely some string for failure ;)
         cert_verify = request.META.get('SSL_CLIENT_VERIFY', None)
         if cert_verify != 'SUCCESS':
