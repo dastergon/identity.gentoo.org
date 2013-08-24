@@ -237,22 +237,13 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'syslog_v': {
-            'level': 'INFO',
-            'class': 'logging.handlers.SysLogHandler',
-            'formatter': 'verbose',
-            'address': '/dev/log',
-        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
-        'syslog': {
-            'level': 'INFO',
-            'class': 'logging.handlers.SysLogHandler',
-            'formatter': 'simple',
-            'address': '/dev/log',
+        'null': {
+            'class': 'logging.NullHandler',
         },
     },
     'loggers': {
@@ -262,15 +253,15 @@ LOGGING = {
             'propagate': True,
         },
         'okupy': {
-            'handlers': ['console_v' if DEBUG else 'syslog_v'],
+            'handlers': ['console_v' if DEBUG else 'null'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
         'okupy_simple': {
-            'handlers': ['console' if DEBUG else 'syslog'],
+            'handlers': ['console' if DEBUG else 'null'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
         'django_auth_ldap': {
-            'handlers': ['console' if DEBUG else 'syslog'],
+            'handlers': ['console' if DEBUG else 'null'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
     }
