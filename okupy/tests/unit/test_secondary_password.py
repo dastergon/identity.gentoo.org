@@ -27,13 +27,11 @@ class SecondaryPassword(TestCase):
         self.mockldap.stop()
 
     def test_secondary_password_gets_added_in_session(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         request = set_request(uri='/', user=vars.USER_ALICE)
         set_secondary_password(request, 'ldaptest')
         self.assertEqual(len(request.session['secondary_password']), 48)
 
     def test_secondary_password_gets_added_in_ldap(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         request = set_request(uri='/', user=vars.USER_ALICE)
         self.assertEqual(len(ldap_users('alice')[1]['userPassword']), 1)
         set_secondary_password(request, 'ldaptest')
@@ -42,7 +40,6 @@ class SecondaryPassword(TestCase):
     def test_remove_leftovers_before_adding_secondary_password(self):
         leftover = ldap_md5_crypt.encrypt('leftover_password')
         self.ldapobject.directory[ldap_users('alice')[0]]['userPassword'].append(leftover)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice', directory=self.ldapobject.directory)])
         request = set_request(uri='/', user=vars.USER_ALICE)
         set_secondary_password(request, 'ldaptest')
         self.assertNotIn(leftover, ldap_users('alice', directory=self.ldapobject.directory)[1]['userPassword'])
@@ -50,7 +47,6 @@ class SecondaryPassword(TestCase):
     def test_dont_remove_primary_password_while_cleaning_leftovers(self):
         leftover = ldap_md5_crypt.encrypt('leftover_password')
         self.ldapobject.directory[ldap_users('alice')[0]]['userPassword'].append(leftover)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice', directory=self.ldapobject.directory)])
         request = set_request(uri='/', user=vars.USER_ALICE)
         set_secondary_password(request, 'ldaptest')
         self.assertTrue(ldap_md5_crypt.verify('ldaptest', ldap_users('alice', directory=self.ldapobject.directory)[1]['userPassword'][0]))
@@ -60,13 +56,11 @@ class SecondaryPassword(TestCase):
         self.ldapobject.directory[ldap_users('alice')[0]]['userPassword'].append(leftover)
         leftover2 = 'plain_leftover2'
         self.ldapobject.directory[ldap_users('alice')[0]]['userPassword'].append(leftover2)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice', directory=self.ldapobject.directory)])
         request = set_request(uri='/', user=vars.USER_ALICE)
         set_secondary_password(request, 'ldaptest')
         self.assertIn(leftover2, ldap_users('alice', directory=self.ldapobject.directory)[1]['userPassword'])
 
     def test_session_and_ldap_secondary_passwords_match(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         request = set_request(uri='/', user=vars.USER_ALICE)
         set_secondary_password(request, 'ldaptest')
         self.assertTrue(ldap_md5_crypt.verify(b64encode(cipher.decrypt(request.session['secondary_password'], 48)), ldap_users('alice', directory=self.ldapobject.directory)[1]['userPassword'][1]))
@@ -75,7 +69,6 @@ class SecondaryPassword(TestCase):
         secondary_password = Random.get_random_bytes(48)
         secondary_password_crypt = ldap_md5_crypt.encrypt(b64encode(secondary_password))
         self.ldapobject.directory[ldap_users('alice')[0]]['userPassword'].append(secondary_password_crypt)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice', directory=self.ldapobject.directory)])
         request = set_request(uri='/', user=vars.USER_ALICE)
         request.session['secondary_password'] = cipher.encrypt(secondary_password)
         remove_secondary_password(request)
@@ -85,7 +78,6 @@ class SecondaryPassword(TestCase):
         secondary_password = Random.get_random_bytes(48)
         secondary_password_crypt = ldap_md5_crypt.encrypt(b64encode(secondary_password))
         self.ldapobject.directory[ldap_users('alice')[0]]['userPassword'].append(secondary_password_crypt)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice', directory=self.ldapobject.directory)])
         request = set_request(uri='/', user=vars.USER_ALICE)
         request.session['secondary_password'] = cipher.encrypt(secondary_password)
         remove_secondary_password(request)
@@ -96,7 +88,6 @@ class SecondaryPassword(TestCase):
         secondary_password_crypt = ldap_md5_crypt.encrypt(b64encode(secondary_password))
         self.ldapobject.directory[ldap_users('alice')[0]]['userPassword'].append('unknown_hash')
         self.ldapobject.directory[ldap_users('alice')[0]]['userPassword'].append(secondary_password_crypt)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice', directory=self.ldapobject.directory)])
         request = set_request(uri='/', user=vars.USER_ALICE)
         request.session['secondary_password'] = cipher.encrypt(secondary_password)
         remove_secondary_password(request)

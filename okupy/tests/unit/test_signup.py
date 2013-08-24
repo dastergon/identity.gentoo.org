@@ -12,7 +12,7 @@ from .. import vars
 from ...accounts.forms import SignupForm
 from ...accounts.models import LDAPUser, Queue
 from ...accounts.views import signup, activate
-from ...common.test_helpers import OkupyTestCase, set_request, set_search_seed, ldap_users, no_database
+from ...common.test_helpers import OkupyTestCase, set_request, no_database, ldap_users
 
 
 class SignupUnitTests(OkupyTestCase):
@@ -28,7 +28,6 @@ class SignupUnitTests(OkupyTestCase):
         self.mockldap.stop()
 
     def test_username_already_exists_in_ldap(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         _form = vars.SIGNUP_TESTUSER.copy()
         _form['username'] = 'alice'
         request = set_request(uri='/signup', post=_form, messages=True)
@@ -37,8 +36,6 @@ class SignupUnitTests(OkupyTestCase):
         self.assertMessage(response, 'Username already exists', 40)
 
     def test_email_already_exists_in_ldap(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('testuser'))(LDAPUser.DoesNotExist)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice@test.com', attr='mail'))([ldap_users('alice')])
         _form = vars.SIGNUP_TESTUSER.copy()
         _form['email'] = 'alice@test.com'
         request = set_request(uri='/signup', post=_form, messages=True)
@@ -49,8 +46,6 @@ class SignupUnitTests(OkupyTestCase):
     def test_username_already_pending_activation(self):
         _form = vars.SIGNUP_TESTUSER.copy()
         _form['username'] = 'queueduser'
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('queueduser'))(LDAPUser.DoesNotExist)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('test@test.com', attr='mail'))(LDAPUser.DoesNotExist)
         vars.QUEUEDUSER.save()
         request = set_request(uri='/signup', post=_form, messages=True)
         response = signup(request)
@@ -60,8 +55,6 @@ class SignupUnitTests(OkupyTestCase):
     def test_email_already_pending_activation(self):
         _form = vars.SIGNUP_TESTUSER.copy()
         _form['email'] = 'queued_user@test.com'
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('testuser'))(LDAPUser.DoesNotExist)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('queued_user@test.com', attr='mail'))(LDAPUser.DoesNotExist)
         vars.QUEUEDUSER.save()
         request = set_request(uri='/signup', post=_form, messages=True)
         response = signup(request)
@@ -69,7 +62,6 @@ class SignupUnitTests(OkupyTestCase):
         self.assertMessage(response, 'Account is already pending activation', 40)
 
     def test_add_queued_account_to_ldap_prints_success_message(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed())(ldap_users(all=True))
         vars.QUEUEDUSER.save()
         activate_url = '/activate/%s/' % vars.QUEUEDUSER.encrypted_id
         request = set_request(uri=activate_url, messages=True)
@@ -78,7 +70,6 @@ class SignupUnitTests(OkupyTestCase):
         self.assertMessage(response, 'Your account has been activated successfully', 25)
 
     def test_queued_account_gets_added_to_ldap(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed())(ldap_users(all=True))
         vars.QUEUEDUSER.save()
         activate_url = '/activate/%s/' % vars.QUEUEDUSER.encrypted_id
         request = set_request(activate_url, messages=True)
@@ -99,7 +90,6 @@ class SignupUnitTests(OkupyTestCase):
         self.assertEqual(ldap_account['gentooACL'][0], 'user.group')
 
     def test_add_queued_account_remove_from_queue(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed())(ldap_users(all=True))
         vars.QUEUEDUSER.save()
         activate_url = '/activate/%s/' % vars.QUEUEDUSER.encrypted_id
         request = set_request(activate_url, messages=True)
@@ -107,16 +97,12 @@ class SignupUnitTests(OkupyTestCase):
         self.assertEqual(Queue.objects.count(), 0)
 
     def test_valid_data_to_signup_form_prints_info_message(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('testuser'))(LDAPUser.DoesNotExist)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('test@test.com', attr='mail'))(LDAPUser.DoesNotExist)
         request = set_request(uri='/signup', post=vars.SIGNUP_TESTUSER, messages=True)
         response = signup(request)
         response.context = RequestContext(request)
         self.assertMessage(response, 'You will shortly receive an activation mail', 20)
 
     def test_valid_data_to_signup_form_sends_activation_mail(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('testuser'))(LDAPUser.DoesNotExist)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('test@test.com', attr='mail'))(LDAPUser.DoesNotExist)
         request = set_request(uri='/signup', post=vars.SIGNUP_TESTUSER, messages=True)
         response = signup(request)
         response.context = RequestContext(request)
@@ -124,8 +110,6 @@ class SignupUnitTests(OkupyTestCase):
         self.assertEqual(mail.outbox[0].subject, '%sAccount Activation' % settings.EMAIL_SUBJECT_PREFIX)
 
     def test_valid_data_to_signup_form_adds_user_to_queue(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('testuser'))(LDAPUser.DoesNotExist)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('test@test.com', attr='mail'))(LDAPUser.DoesNotExist)
         request = set_request(uri='/signup', post=vars.SIGNUP_TESTUSER, messages=True)
         response = signup(request)
         response.context = RequestContext(request)
@@ -141,8 +125,6 @@ class SignupUnitTests(OkupyTestCase):
 
     @no_database()
     def test_no_database_connection_raises_error_in_signup(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('testuser'))(LDAPUser.DoesNotExist)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('test@test.com', attr='mail'))(LDAPUser.DoesNotExist)
         request = set_request(uri='/signup', post=vars.SIGNUP_TESTUSER, messages=True)
         response = signup(request)
         response.context = RequestContext(request)
@@ -150,8 +132,6 @@ class SignupUnitTests(OkupyTestCase):
 
     @no_database()
     def test_no_database_connection_sends_notification_mail_in_signup(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('testuser'))(LDAPUser.DoesNotExist)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('test@test.com', attr='mail'))(LDAPUser.DoesNotExist)
         request = set_request(uri='/signup', post=vars.SIGNUP_TESTUSER, messages=True)
         response = signup(request)
         response.context = RequestContext(request)
@@ -160,7 +140,6 @@ class SignupUnitTests(OkupyTestCase):
 
     @no_database()
     def test_no_database_connection_raises_error_in_activation(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed())(ldap_users(all=True))
         request = set_request('/activate/test', messages=True)
         response = activate(request, vars.QUEUEDUSER.encrypted_id)
         response.context = RequestContext(request)
@@ -168,7 +147,6 @@ class SignupUnitTests(OkupyTestCase):
 
     @no_database()
     def test_no_database_connection_sends_notification_mail_in_activation(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed())(ldap_users(all=True))
         request = set_request('/activate/test', messages=True)
         activate(request, vars.QUEUEDUSER.encrypted_id)
         self.assertEqual(len(mail.outbox), 1)
@@ -178,7 +156,6 @@ class SignupUnitTests(OkupyTestCase):
         vars.QUEUEDUSER.save()
         activate_url = '/activate/%s/' % vars.QUEUEDUSER.encrypted_id
         self.ldapobject.directory = ldap_users(clean=True)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed())(ldap_users(all=True, directory=self.ldapobject.directory))
         request = set_request(activate_url, messages=True)
         activate(request, vars.QUEUEDUSER.encrypted_id)
         self.assertTrue(ldap_users(vars.QUEUEDUSER.username, directory=self.ldapobject.directory))

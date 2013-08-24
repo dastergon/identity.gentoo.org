@@ -49,16 +49,20 @@ DIRECTORY = {
     },
     "uid=jack,ou=people,o=test": {
         "uid": ["jack"],
+        "objectClass": settings.AUTH_LDAP_USER_OBJECTCLASS +
+        settings.AUTH_LDAP_DEV_OBJECTCLASS,
         "gentooACL": ["user.group", "developer.group", "foundation.group"],
     },
     "uid=john,ou=people,o=test": {
         "uid": ["john"],
+        "objectClass": settings.AUTH_LDAP_USER_OBJECTCLASS,
         "cn": ["John Smith"],
         "gentooLocation": ["City3, Country3"],
         "gentooRoles": ["kernel, security"],
         "gentooACL": ["user.group", "retired.group"],
     },
     "uid=matt,ou=people,o=test": {
+        "objectClass": settings.AUTH_LDAP_USER_OBJECTCLASS,
         "gentooACL": ["user.group", "retired.group"],
     },
 }
