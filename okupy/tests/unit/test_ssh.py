@@ -10,8 +10,8 @@ import socket
 import paramiko
 
 from ..vars import TEST_SSH_KEY_FOR_NO_USER
+from ... import OkupyError
 from ...common.ssh import ssh_handler, SSHServer
-from ...common.exceptions import OkupyError
 
 
 @override_settings(SSH_HANDLERS={})

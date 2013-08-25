@@ -34,8 +34,8 @@ from .openid_store import DjangoDBOpenIDStore
 from ..common.ldap_helpers import (get_bound_ldapuser,
                                    set_secondary_password,
                                    remove_secondary_password)
+from .. import OkupyError
 from ..common.decorators import strong_auth_required, anonymous_required
-from ..common.exceptions import OkupyError
 from ..common.log import log_extra_data
 from ..crypto.ciphers import sessionrefcipher
 from ..crypto.models import RevokedToken
