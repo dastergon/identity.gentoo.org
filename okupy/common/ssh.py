@@ -31,7 +31,8 @@ class SSHServer(paramiko.ServerInterface):
         return 'publickey'
 
     def check_auth_publickey(self, username, key):
-        # for some reason, this is called twice...
+        # for some reason, this is called twice... therefore, we need
+        # to cache the result since token will be revoked on first use
         if self._message:
             return paramiko.AUTH_SUCCESSFUL
 

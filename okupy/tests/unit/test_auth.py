@@ -4,21 +4,17 @@ from mockldap import MockLdap
 
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.test import TestCase
 
 from .. import vars
-from ...common.test_helpers import OkupyTestCase, set_request
+from ...common.test_helpers import ldap_users, set_request
 
 import base64
 
 import paramiko
 
 
-def get_ssh_key(person, number=0):
-    keystr = person['sshPublicKey'][number]
-    return base64.b64decode(keystr.split()[1])
-
-
-class AuthUnitTests(OkupyTestCase):
+class AuthSSLUnitTests(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.mockldap = MockLdap(vars.DIRECTORY)
@@ -70,21 +66,39 @@ class AuthUnitTests(OkupyTestCase):
         u = authenticate(request=request)
         self.assertIs(u, None)
 
+
+class AuthSSHUnitTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mockldap = MockLdap(vars.DIRECTORY)
+
+    def setUp(self):
+        self.mockldap.start()
+        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
+
+    def tearDown(self):
+        self.mockldap.stop()
+
+    @staticmethod
+    def get_ssh_key(person, number=0):
+        keystr = person['sshPublicKey'][number]
+        return base64.b64decode(keystr.split()[1])
+
     def test_valid_rsa_ssh_key_authenticates_alice(self):
-        alice = vars.DIRECTORY['uid=alice,ou=people,o=test']
-        key = paramiko.RSAKey(data=get_ssh_key(alice))
+        dn, alice = ldap_users('alice')
+        key = paramiko.RSAKey(data=self.get_ssh_key(alice))
         u = authenticate(ssh_key=key)
         self.assertEqual(u.username, alice['uid'][0])
 
     def test_valid_dss_ssh_key_authenticates_bob(self):
-        bob = vars.DIRECTORY['uid=bob,ou=people,o=test']
-        key = paramiko.DSSKey(data=get_ssh_key(bob, 1))
+        dn, bob = ldap_users('bob')
+        key = paramiko.DSSKey(data=self.get_ssh_key(bob, 1))
         u = authenticate(ssh_key=key)
         self.assertEqual(u.username, bob['uid'][0])
 
     def test_valid_rsa_key_with_comment_authenticates_bob(self):
-        bob = vars.DIRECTORY['uid=bob,ou=people,o=test']
-        key = paramiko.RSAKey(data=get_ssh_key(bob))
+        dn, bob = ldap_users('bob')
+        key = paramiko.RSAKey(data=self.get_ssh_key(bob))
         u = authenticate(ssh_key=key)
         self.assertEqual(u.username, bob['uid'][0])
 
