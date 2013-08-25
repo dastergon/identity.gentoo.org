@@ -34,7 +34,7 @@ class SOTPDevice(Device):
         """
         Verify token against recovery keys.
         """
-        u = LDAPUser.objects.get(username = self.user.username)
+        u = LDAPUser.objects.get(username=self.user.username)
         if token in u.otp_recovery_keys:
             u.otp_recovery_keys.remove(token)
             u.save()

@@ -4,8 +4,9 @@ from base64 import b64encode
 from Crypto import Random
 from passlib.hash import ldap_md5_crypt
 
-from okupy.crypto.ciphers import cipher
+from okupy import OkupyError
 from okupy.accounts.models import LDAPUser
+from okupy.crypto.ciphers import cipher
 
 
 def get_bound_ldapuser(request, password=None):
@@ -20,7 +21,8 @@ def get_bound_ldapuser(request, password=None):
             password = b64encode(cipher.decrypt(
                 request.session['secondary_password'], 48))
         except KeyError:
-            raise OkupyError('Secondary password not available (no strong auth?)')
+            raise OkupyError(
+                'Secondary password not available (no strong auth?)')
 
     bound_cls = LDAPUser.bind_as(
         alias='ldap_%s' % username,

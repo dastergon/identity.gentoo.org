@@ -7,6 +7,7 @@ from django_otp.middleware import OTPMiddleware
 from okupy.otp.sotp.models import SOTPDevice
 from okupy.otp.totp.models import TOTPDevice
 
+
 def init_otp(request):
     """
     Initialize OTP after login. This sets up OTP devices

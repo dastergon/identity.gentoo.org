@@ -8,12 +8,12 @@ import time
 
 
 class OpenIDStoreTests(TestCase):
-	def setUp(self):
-		self.store = DjangoDBOpenIDStore()
+    def setUp(self):
+        self.store = DjangoDBOpenIDStore()
 
-	def test_nonce_integrity(self):
-		nonce = ('http://example.com', time.time(), 'pepper')
-		# first one should succeed, the second one should fail because
-		# of reused nonce
-		self.assertTrue(self.store.useNonce(*nonce))
-		self.assertFalse(self.store.useNonce(*nonce))
+    def test_nonce_integrity(self):
+        nonce = ('http://example.com', time.time(), 'pepper')
+        # first one should succeed, the second one should fail because
+        # of reused nonce
+        self.assertTrue(self.store.useNonce(*nonce))
+        self.assertFalse(self.store.useNonce(*nonce))

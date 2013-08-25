@@ -1,14 +1,14 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 
 from django.conf import settings
+from django.test import TestCase
 from django.test.client import Client
 from mockldap import MockLdap
 
-from okupy.common.test_helpers import OkupyTestCase, ldap_users, set_search_seed
 from okupy.tests import vars
 
 
-class IndexIntegrationTests(OkupyTestCase):
+class IndexIntegrationTests(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.mockldap = MockLdap(vars.DIRECTORY)
@@ -26,7 +26,7 @@ class IndexIntegrationTests(OkupyTestCase):
         self.assertRedirects(response, '/login/?next=/')
 
     def test_index_page_uses_correct_template(self):
-        response = self.client.post('/login/', {'username': 'alice', 'password': 'ldaptest'})
+        response = self.client.post('/login/', vars.LOGIN_ALICE)
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'base.html')
         self.assertTemplateUsed(response, 'index.html')

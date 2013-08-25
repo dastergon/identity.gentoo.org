@@ -18,7 +18,8 @@ class StrongAuthForm(forms.Form):
 
 
 class OpenIDLoginForm(LoginForm):
-    auto_logout = forms.BooleanField(required=False,
+    auto_logout = forms.BooleanField(
+        required=False,
         label='Log out after answering the OpenID request')
 
 

@@ -3,6 +3,7 @@ from django.conf.urls import patterns, include
 
 from okupy.accounts.urls import accounts_urlpatterns
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     (r'^', include(accounts_urlpatterns)),
 )

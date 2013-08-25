@@ -45,7 +45,6 @@ else:
     from django.utils import autoreload
 
     # autodiscover SSH handlers
-    import okupy.accounts.ssh
     from okupy.common.ssh import ssh_main
 
     import Crypto.Random

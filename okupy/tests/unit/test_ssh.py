@@ -6,7 +6,6 @@ from django.test.utils import override_settings
 
 import base64
 import socket
-
 import paramiko
 
 from okupy import OkupyError
@@ -104,8 +103,8 @@ class SSHUnitTests(TestCase):
         def onearg(key):
             raise TypeError
 
-        self.assertRaises(TypeError,
-            self._server.check_auth_publickey, 'onearg', self._key)
+        self.assertRaises(
+            TypeError, self._server.check_auth_publickey, 'onearg', self._key)
 
     def test_result_caching_works(self):
         class Cache(object):
@@ -120,6 +119,7 @@ class SSHUnitTests(TestCase):
                     return None
 
         cache = Cache()
+
         @ssh_handler
         def cached(key):
             return cache(key)
@@ -170,6 +170,7 @@ class SSHUnitTests(TestCase):
                     return None
 
         cache = Cache()
+
         @ssh_handler
         def cached(key):
             return cache(key)

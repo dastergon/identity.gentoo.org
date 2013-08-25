@@ -59,10 +59,10 @@ class TOTPDevice(Device):
         past and future tokens to include clock drift.
         """
         if not secret:
-            u = LDAPUser.objects.get(username = self.user.username)
+            u = LDAPUser.objects.get(username=self.user.username)
             if not u.otp_secret:
                 return True
-            elif not token: # (we're just being probed)
+            elif not token:  # (we're just being probed)
                 return False
             secret = u.otp_secret
 
