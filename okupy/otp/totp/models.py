@@ -3,8 +3,8 @@
 from django_otp import oath
 from django_otp.models import Device
 
-from ...accounts.models import LDAPUser
-from ...crypto.codecs import ub32decode, ub32encode
+from okupy.accounts.models import LDAPUser
+from okupy.crypto.codecs import ub32decode, ub32encode
 
 import Crypto.Random
 

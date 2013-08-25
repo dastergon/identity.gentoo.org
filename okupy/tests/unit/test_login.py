@@ -12,11 +12,11 @@ from Crypto import Random
 from passlib.hash import ldap_md5_crypt
 from mockldap import MockLdap
 
-from .. import vars
-from ...accounts.views import login, logout
-from ...accounts.forms import LoginForm
-from ...common.test_helpers import OkupyTestCase, set_request, no_database, ldap_users
-from ...crypto.ciphers import cipher
+from okupy.accounts.views import login, logout
+from okupy.accounts.forms import LoginForm
+from okupy.common.test_helpers import OkupyTestCase, set_request, no_database, ldap_users
+from okupy.crypto.ciphers import cipher
+from okupy.tests import vars
 
 
 class LoginUnitTests(OkupyTestCase):

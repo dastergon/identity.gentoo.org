@@ -8,11 +8,11 @@ from django.template import RequestContext
 from mockldap import MockLdap
 from passlib.hash import ldap_md5_crypt
 
-from .. import vars
-from ...accounts.forms import SignupForm
-from ...accounts.models import LDAPUser, Queue
-from ...accounts.views import signup, activate
-from ...common.test_helpers import OkupyTestCase, set_request, no_database, ldap_users
+from okupy.accounts.forms import SignupForm
+from okupy.accounts.models import LDAPUser, Queue
+from okupy.accounts.views import signup, activate
+from okupy.common.test_helpers import OkupyTestCase, set_request, ldap_users, no_database
+from okupy.tests import vars
 
 
 class SignupUnitTests(OkupyTestCase):

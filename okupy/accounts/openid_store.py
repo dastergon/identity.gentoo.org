@@ -12,7 +12,7 @@ from openid.store.interface import OpenIDStore
 from openid.association import Association
 from openid.store import nonce
 
-from . import models as db_models
+from okupy.accounts import models as db_models
 
 
 class DjangoDBOpenIDStore(OpenIDStore):

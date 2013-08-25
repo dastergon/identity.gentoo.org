@@ -4,8 +4,8 @@ from django.conf import settings
 from django.test.client import Client
 from mockldap import MockLdap
 
-from .. import vars
-from ...common.test_helpers import OkupyTestCase, ldap_users, set_search_seed
+from okupy.common.test_helpers import OkupyTestCase, ldap_users, set_search_seed
+from okupy.tests import vars
 
 
 class IndexIntegrationTests(OkupyTestCase):

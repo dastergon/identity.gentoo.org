@@ -2,10 +2,10 @@
 
 from django.contrib.auth import authenticate, login
 
-from ..common.ssh import ssh_handler
-from ..common.test_helpers import set_request
-from ..crypto.ciphers import sessionrefcipher
-from ..otp import init_otp
+from okupy.common.ssh import ssh_handler
+from okupy.common.test_helpers import set_request
+from okupy.crypto.ciphers import sessionrefcipher
+from okupy.otp import init_otp
 
 
 ssh_handlers = {}

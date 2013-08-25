@@ -5,7 +5,8 @@ from django.test import TestCase
 from django.test.client import Client
 from mockldap import MockLdap
 
-from .. import vars
+from okupy.accounts.models import LDAPUser
+from okupy.tests import vars
 
 
 class SignupIntegrationTests(TestCase):

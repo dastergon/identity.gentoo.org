@@ -5,7 +5,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 
-from ..accounts.models import Queue
+from okupy.accounts.models import Queue
 
 
 # LDAP directory

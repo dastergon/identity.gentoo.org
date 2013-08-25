@@ -9,9 +9,9 @@ import socket
 
 import paramiko
 
-from ..vars import TEST_SSH_KEY_FOR_NO_USER
-from ... import OkupyError
-from ...common.ssh import ssh_handler, SSHServer
+from okupy import OkupyError
+from okupy.common.ssh import ssh_handler, SSHServer
+from okupy.tests.vars import TEST_SSH_KEY_FOR_NO_USER
 
 
 @override_settings(SSH_HANDLERS={})

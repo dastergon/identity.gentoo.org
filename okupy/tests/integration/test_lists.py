@@ -7,8 +7,8 @@ from django.test.client import Client
 
 from mockldap import MockLdap
 
-from .. import vars
-from ...common.test_helpers import ldap_users, set_search_seed
+from okupy.common.test_helpers import ldap_users, set_search_seed
+from okupy.tests import vars
 
 class ListsIntegrationTests(TestCase):
     @classmethod

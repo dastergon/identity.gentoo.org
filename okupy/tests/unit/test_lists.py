@@ -5,9 +5,9 @@ from django.core.urlresolvers import resolve
 
 from mockldap import MockLdap
 
-from .. import vars
-from ...accounts.views import lists
-from ...common.test_helpers import OkupyTestCase, set_request
+from okupy.accounts.views import lists
+from okupy.common.test_helpers import OkupyTestCase, set_request
+from okupy.tests import vars
 
 
 class ListsUnitTests(OkupyTestCase):

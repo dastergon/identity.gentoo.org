@@ -4,8 +4,8 @@ from base64 import b64encode
 from Crypto import Random
 from passlib.hash import ldap_md5_crypt
 
-from ..crypto.ciphers import cipher
-from ..accounts.models import LDAPUser
+from okupy.crypto.ciphers import cipher
+from okupy.accounts.models import LDAPUser
 
 
 def get_bound_ldapuser(request, password=None):

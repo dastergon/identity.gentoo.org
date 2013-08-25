@@ -27,21 +27,22 @@ from openid.server.server import (Server, ProtocolError, EncodingError,
 from passlib.hash import ldap_md5_crypt
 from urlparse import urljoin, urlparse, parse_qsl
 
-from .forms import (LoginForm, OpenIDLoginForm, SSLCertLoginForm,
-                    OTPForm, SignupForm, SiteAuthForm, StrongAuthForm)
-from .models import LDAPUser, OpenID_Attributes, Queue
-from .openid_store import DjangoDBOpenIDStore
-from ..common.ldap_helpers import (get_bound_ldapuser,
-                                   set_secondary_password,
-                                   remove_secondary_password)
-from .. import OkupyError
-from ..common.decorators import strong_auth_required, anonymous_required
-from ..common.log import log_extra_data
-from ..crypto.ciphers import sessionrefcipher
-from ..crypto.models import RevokedToken
-from ..otp import init_otp
-from ..otp.sotp.models import SOTPDevice
-from ..otp.totp.models import TOTPDevice
+from okupy import OkupyError
+from okupy.accounts.forms import (LoginForm, OpenIDLoginForm, SSLCertLoginForm,
+                                  OTPForm, SignupForm, SiteAuthForm,
+                                  StrongAuthForm)
+from okupy.accounts.models import LDAPUser, OpenID_Attributes, Queue
+from okupy.accounts.openid_store import DjangoDBOpenIDStore
+from okupy.common.ldap_helpers import (get_bound_ldapuser,
+                                       set_secondary_password,
+                                       remove_secondary_password)
+from okupy.common.decorators import strong_auth_required, anonymous_required
+from okupy.common.log import log_extra_data
+from okupy.crypto.ciphers import sessionrefcipher
+from okupy.crypto.models import RevokedToken
+from okupy.otp import init_otp
+from okupy.otp.sotp.models import SOTPDevice
+from okupy.otp.totp.models import TOTPDevice
 
 # the following two are for exceptions
 import openid.yadis.discover

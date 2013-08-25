@@ -2,7 +2,7 @@
 
 from django_otp.models import Device
 
-from ...accounts.models import LDAPUser
+from okupy.accounts.models import LDAPUser
 
 import random
 

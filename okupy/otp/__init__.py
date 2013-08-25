@@ -4,8 +4,8 @@ from django.db import IntegrityError
 from django_otp import login as otp_login
 from django_otp.middleware import OTPMiddleware
 
-from .sotp.models import SOTPDevice
-from .totp.models import TOTPDevice
+from okupy.otp.sotp.models import SOTPDevice
+from okupy.otp.totp.models import TOTPDevice
 
 def init_otp(request):
     """

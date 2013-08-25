@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 
-from ...accounts.openid_store import DjangoDBOpenIDStore
+from okupy.accounts.openid_store import DjangoDBOpenIDStore
 
 import time
 

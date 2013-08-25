@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.db import models, IntegrityError
 from django.utils.timezone import now
 
-from .ciphers import idcipher
+from okupy.crypto.ciphers import idcipher
 
 from datetime import timedelta
 

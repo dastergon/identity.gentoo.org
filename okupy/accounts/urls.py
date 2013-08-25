@@ -1,7 +1,7 @@
 # vim:fileencoding=utf8:et:ts=4:sts=4:sw=4:ft=python
 from django.conf.urls import patterns, url
 
-from . import views as v
+from okupy.accounts import views as v
 
 accounts_urlpatterns = patterns('',
     url(r'^$', v.index, name="index"),
