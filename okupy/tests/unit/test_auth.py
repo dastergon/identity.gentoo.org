@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 
 from .. import vars
-from ...common.test_helpers import OkupyTestCase, set_request, ldap_users, set_search_seed
+from ...common.test_helpers import OkupyTestCase, set_request
 
 
 class AuthUnitTests(OkupyTestCase):
@@ -26,7 +26,6 @@ class AuthUnitTests(OkupyTestCase):
         request.META['SSL_CLIENT_VERIFY'] = 'SUCCESS'
         request.META['SSL_CLIENT_RAW_CERT'] = vars.TEST_CERTIFICATE
 
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice@test.com', 'mail'))([ldap_users('alice')])
         u = authenticate(request=request)
         self.assertEqual(u.username, vars.LOGIN_ALICE['username'])
 
@@ -36,8 +35,6 @@ class AuthUnitTests(OkupyTestCase):
         request.META['SSL_CLIENT_RAW_CERT'] = (
             vars.TEST_CERTIFICATE_WITH_TWO_EMAIL_ADDRESSES)
 
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('test@test.com', 'mail'))([])
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice@test.com', 'mail'))([ldap_users('alice')])
         u = authenticate(request=request)
         self.assertEqual(u.username, vars.LOGIN_ALICE['username'])
 
@@ -53,7 +50,6 @@ class AuthUnitTests(OkupyTestCase):
         request.META['SSL_CLIENT_VERIFY'] = 'FAILURE'
         request.META['SSL_CLIENT_RAW_CERT'] = vars.TEST_CERTIFICATE
 
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice@test.com', 'mail'))([ldap_users('alice')])
         u = authenticate(request=request)
         self.assertIs(u, None)
 
@@ -62,6 +58,5 @@ class AuthUnitTests(OkupyTestCase):
         request.META['SSL_CLIENT_VERIFY'] = 'SUCCESS'
         request.META['SSL_CLIENT_RAW_CERT'] = vars.TEST_CERTIFICATE_WRONG_EMAIL
 
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('wrong@test.com', 'mail'))([])
         u = authenticate(request=request)
         self.assertIs(u, None)

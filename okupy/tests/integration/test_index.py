@@ -26,7 +26,6 @@ class IndexIntegrationTests(OkupyTestCase):
         self.assertRedirects(response, '/login/?next=/')
 
     def test_index_page_uses_correct_template(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         response = self.client.post('/login/', {'username': 'alice', 'password': 'ldaptest'})
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'base.html')

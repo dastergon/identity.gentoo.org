@@ -15,7 +15,7 @@ from mockldap import MockLdap
 from .. import vars
 from ...accounts.views import login, logout
 from ...accounts.forms import LoginForm
-from ...common.test_helpers import OkupyTestCase, set_request, no_database, ldap_users, set_search_seed
+from ...common.test_helpers import OkupyTestCase, set_request, no_database, ldap_users
 from ...crypto.ciphers import cipher
 
 
@@ -64,20 +64,17 @@ class LoginUnitTests(OkupyTestCase):
         self.assertTrue(mail.outbox[0].subject.startswith('%sERROR:' % settings.EMAIL_SUBJECT_PREFIX))
 
     def test_correct_user_gets_transferred_in_db(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         request = set_request(uri='/login', post=vars.LOGIN_ALICE)
         login(request)
         self.assertEqual(User.objects.count(), 1)
 
     def test_authenticate_account_that_is_already_in_db(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         vars.USER_ALICE.save()
         request = set_request(uri='/login', post=vars.LOGIN_ALICE)
         login(request)
         self.assertEqual(User.objects.count(), 1)
 
     def test_secondary_password_is_added_in_login(self):
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice')])
         request = set_request(uri='/login', post=vars.LOGIN_ALICE)
         login(request)
         self.assertEqual(len(ldap_users('alice', directory=self.ldapobject.directory)[1]['userPassword']), 2)
@@ -87,7 +84,6 @@ class LoginUnitTests(OkupyTestCase):
         secondary_password = Random.get_random_bytes(48)
         secondary_password_crypt = ldap_md5_crypt.encrypt(b64encode(secondary_password))
         self.ldapobject.directory[ldap_users('alice')[0]]['userPassword'].append(secondary_password_crypt)
-        self.ldapobject.search_s.seed(settings.AUTH_LDAP_USER_BASE_DN, 2, set_search_seed('alice'))([ldap_users('alice', directory=self.ldapobject.directory)])
         request = set_request(uri='/login', post=vars.LOGIN_ALICE, user=vars.USER_ALICE)
         request.session['secondary_password'] = cipher.encrypt(secondary_password)
         logout(request)
