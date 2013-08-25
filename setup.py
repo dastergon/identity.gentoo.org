@@ -16,6 +16,7 @@ setup(
     keywords='django, ldap, gentoo',
     packages=find_packages(),
     include_package_data=True,
+    test_suite='okupy.tests.runtests',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
