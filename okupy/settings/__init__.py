@@ -28,6 +28,7 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 AUTHENTICATION_BACKENDS = (
     'django_auth_ldap.backend.LDAPBackend',
     'okupy.common.auth.SSLCertAuthBackend',
+    'okupy.common.auth.SSHKeyAuthBackend',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -143,6 +144,10 @@ LOGGING = {
             'handlers': ['console' if DEBUG else 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
+        'paramiko': {
+            'handlers': ['console' if DEBUG else 'syslog'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        }
     }
 }
 

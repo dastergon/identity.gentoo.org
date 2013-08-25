@@ -6,6 +6,7 @@ django-otp>=0.1.7
 git+https://github.com/tampakrap/django-ldapdb@okupy#egg=django-ldapdb
 mock>=1.0.1
 hg+https://bitbucket.org/psagers/mockldap#egg=mockldap
+paramiko>=1.10.1
 passlib>=1.6.1
 pycrypto>=2.6
 pyopenssl>=0.13

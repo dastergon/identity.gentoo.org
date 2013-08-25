@@ -41,8 +41,20 @@ except ImportError:
     # we're probably running from django's built-in server
     pass
 else:
-    from uwsgidecorators import timer
+    from uwsgidecorators import postfork, thread, timer
     from django.utils import autoreload
+
+    # autodiscover SSH handlers
+    import okupy.accounts.ssh
+    from okupy.common.ssh import ssh_main
+
+    import Crypto.Random
+
+    postfork(thread(ssh_main))
+
+    @postfork
+    def reset_rng():
+        Crypto.Random.atfork()
 
     @timer(5)
     def change_code_gracefull_reload(sig):

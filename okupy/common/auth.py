@@ -8,6 +8,10 @@ from ..accounts.models import LDAPUser
 
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 
+import paramiko
+
+import base64
+
 
 class SSLCertAuthBackend(ModelBackend):
     """
@@ -35,6 +39,48 @@ class SSLCertAuthBackend(ModelBackend):
                 except LDAPUser.DoesNotExist:
                     pass
                 else:
+                    UserModel = get_user_model()
+                    attr_dict = {
+                        UserModel.USERNAME_FIELD: u.username
+                    }
+
+                    user = UserModel(**attr_dict)
+                    try:
+                        user.save()
+                    except IntegrityError:
+                        user = UserModel.objects.get(**attr_dict)
+                    return user
+        return None
+
+
+class SSHKeyAuthBackend(ModelBackend):
+    """
+    Authentication backend that uses SSH keys stored in LDAP.
+    """
+
+    def authenticate(self, ssh_key=None):
+        for u in LDAPUser.objects.all():
+            for k in u.ssh_key:
+                spl = k.split()
+                if len(spl) < 2:
+                    continue
+
+                form, user_key = spl[:2]
+                if form == 'ssh-rsa':
+                    key_class = paramiko.RSAKey
+                elif form == 'ssh-dss':
+                    key_class = paramiko.DSSKey
+                else:
+                    # key format not supported
+                    continue
+
+                try:
+                    user_key = key_class(data=base64.b64decode(user_key))
+                except (TypeError, paramiko.SSHException):
+                    continue
+
+                # paramiko reconstructs the key, so simple match should be fine
+                if ssh_key == user_key:
                     UserModel = get_user_model()
                     attr_dict = {
                         UserModel.USERNAME_FIELD: u.username
