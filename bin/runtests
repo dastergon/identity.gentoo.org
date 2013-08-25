@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts sa:dcf arg; do
+while getopts sdcf2 arg; do
     case ${arg} in
         s) SETTINGS="--settings=okupy.tests.settings" ;;
         d) TDAEMON="tdaemon -t django" ;;
