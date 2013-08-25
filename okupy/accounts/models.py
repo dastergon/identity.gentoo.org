@@ -83,9 +83,6 @@ class LDAPUser(ldapdb.models.Model):
     is_infra = ACLField(db_column='gentooACL')
     is_retired = ACLField(db_column='gentooACL')
 
-    def __str__(self):
-        return self.username
-
     def __unicode__(self):
         return self.username
 
