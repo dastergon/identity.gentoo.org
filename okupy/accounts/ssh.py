@@ -2,17 +2,13 @@
 
 from django.contrib.auth import authenticate, login
 
+from ..common.ssh import ssh_handler
 from ..common.test_helpers import set_request
 from ..crypto.ciphers import sessionrefcipher
 from ..otp import init_otp
 
 
 ssh_handlers = {}
-
-
-def ssh_handler(f):
-    ssh_handlers[f.__name__] = f
-    return f
 
 
 @ssh_handler

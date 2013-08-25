@@ -11,10 +11,15 @@ import inspect
 import socket
 import threading
 
-from ..accounts.ssh import ssh_handlers
-
 
 LISTEN_BACKLOG = 20
+
+
+def ssh_handler(f):
+    if not hasattr(settings, 'SSH_HANDLERS'):
+        settings.SSH_HANDLERS = {}
+    settings.SSH_HANDLERS[f.__name__] = f
+    return f
 
 
 class SSHServer(paramiko.ServerInterface):
@@ -35,7 +40,7 @@ class SSHServer(paramiko.ServerInterface):
         args = spl[1:]
 
         try:
-            h = ssh_handlers[cmd]
+            h = settings.SSH_HANDLERS[cmd]
             # this is an easy way of checking if we have correct args
             inspect.getcallargs(h, *args, key=key)
         except (KeyError, TypeError) as e:
