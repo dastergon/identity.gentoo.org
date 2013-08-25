@@ -57,7 +57,6 @@ INSTALLED_APPS = (
     'okupy.crypto',
     'okupy.otp.sotp',
     'okupy.otp.totp',
-    'okupy.tests',
 )
 
 #Compressor settings
