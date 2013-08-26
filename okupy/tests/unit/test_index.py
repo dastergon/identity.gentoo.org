@@ -6,9 +6,9 @@ from django.test import TestCase
 
 from mockldap import MockLdap
 
-from .. import vars
-from ...accounts.views import index
-from ...common.test_helpers import set_request
+from okupy.accounts.views import index
+from okupy.common.test_helpers import set_request
+from okupy.tests import vars
 
 
 class IndexUnitTests(TestCase):

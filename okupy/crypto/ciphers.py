@@ -10,7 +10,7 @@ import Crypto.Random
 
 import struct
 
-from .codecs import ub64encode, ub64decode
+from okupy.crypto.codecs import ub64encode, ub64decode
 
 
 class OkupyCipher(object):

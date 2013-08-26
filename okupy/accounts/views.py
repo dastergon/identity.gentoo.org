@@ -11,10 +11,8 @@ from django.forms.models import model_to_dict
 from django.http import (HttpResponse, HttpResponseForbidden,
                          HttpResponseBadRequest)
 from django.views.decorators.cache import cache_page
-from django.views.generic.base import View
 from django.shortcuts import redirect, render
 from django.utils.html import format_html
-from django.utils.http import urlencode
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django_otp.decorators import otp_required
@@ -25,36 +23,36 @@ from openid.server.server import (Server, ProtocolError, EncodingError,
                                   CheckIDRequest, ENCODE_URL,
                                   ENCODE_KVFORM, ENCODE_HTML_FORM)
 from passlib.hash import ldap_md5_crypt
-from urlparse import urljoin, urlparse, parse_qsl
+from urlparse import urljoin
 
-from .forms import (LoginForm, OpenIDLoginForm, SSLCertLoginForm,
-                    OTPForm, SignupForm, SiteAuthForm, StrongAuthForm)
-from .models import LDAPUser, OpenID_Attributes, Queue
-from .openid_store import DjangoDBOpenIDStore
-from ..common.ldap_helpers import (get_bound_ldapuser,
-                                   set_secondary_password,
-                                   remove_secondary_password)
-from ..common.decorators import strong_auth_required, anonymous_required
-from ..common.exceptions import OkupyError
-from ..common.log import log_extra_data
-from ..crypto.ciphers import sessionrefcipher
-from ..crypto.models import RevokedToken
-from ..otp import init_otp
-from ..otp.sotp.models import SOTPDevice
-from ..otp.totp.models import TOTPDevice
+from okupy import OkupyError
+from okupy.accounts.forms import (LoginForm, OpenIDLoginForm, SSLCertLoginForm,
+                                  OTPForm, SignupForm, SiteAuthForm,
+                                  StrongAuthForm)
+from okupy.accounts.models import LDAPUser, OpenID_Attributes, Queue
+from okupy.accounts.openid_store import DjangoDBOpenIDStore
+from okupy.common.ldap_helpers import (get_bound_ldapuser,
+                                       set_secondary_password,
+                                       remove_secondary_password)
+from okupy.common.decorators import strong_auth_required, anonymous_required
+from okupy.common.log import log_extra_data
+from okupy.crypto.ciphers import sessionrefcipher
+from okupy.crypto.models import RevokedToken
+from okupy.otp import init_otp
+from okupy.otp.sotp.models import SOTPDevice
+from okupy.otp.totp.models import TOTPDevice
 
 # the following two are for exceptions
 import openid.yadis.discover
 import openid.fetchers
 import django_otp
 import io
-import ldap
-import ldap.modlist as modlist
 import logging
 import qrcode
 
 logger = logging.getLogger('okupy')
 logger_mail = logging.getLogger('mail_okupy')
+
 
 @cache_page(60 * 20)
 def lists(request, acc_list):
@@ -66,6 +64,7 @@ def lists(request, acc_list):
     elif acc_list == 'foundation-members':
         devlist = devlist.filter(is_foundation=True)
     return render(request, '%s.html' % acc_list, {'devlist': devlist})
+
 
 @otp_required
 def index(request):
@@ -227,7 +226,7 @@ def ssl_auth(request):
     if user and user.is_active:
         _login(request, user)
         init_otp(request)
-        if request.user.is_verified(): # OTP disabled
+        if request.user.is_verified():  # OTP disabled
             next_uri = ssl_auth_form.cleaned_data['next']
     else:
         messages.error(request, 'Certificate authentication failed')
@@ -267,7 +266,7 @@ def signup(request):
         if signup_form.is_valid():
             try:
                 try:
-                    user = LDAPUser.objects.get(
+                    LDAPUser.objects.get(
                         username=signup_form.cleaned_data['username'])
                 except LDAPUser.DoesNotExist:
                     pass
@@ -278,7 +277,7 @@ def signup(request):
                 else:
                     raise OkupyError('Username already exists')
                 try:
-                    user = LDAPUser.objects.get(
+                    LDAPUser.objects.get(
                         email__contains=signup_form.cleaned_data['email'])
                 except LDAPUser.DoesNotExist:
                     pass
@@ -326,7 +325,7 @@ def activate(request, token):
     """
     try:
         try:
-            queued_user = Queue.objects.get(encrypted_id=token)
+            queued = Queue.objects.get(encrypted_id=token)
         except (Queue.DoesNotExist, OverflowError, TypeError, ValueError):
             raise OkupyError('Invalid URL')
         except Exception as error:
@@ -345,21 +344,21 @@ def activate(request, token):
         # add account to ldap
         new_user = LDAPUser(
             object_class=settings.AUTH_LDAP_USER_OBJECTCLASS,
-            last_name=queued_user.last_name,
-            full_name='%s %s' % (queued_user.first_name, queued_user.last_name),
-            password=[ldap_md5_crypt.encrypt(queued_user.password)],
-            first_name=queued_user.first_name,
-            email=[queued_user.email],
-            username=queued_user.username,
+            last_name=queued.last_name,
+            full_name='%s %s' % (queued.first_name, queued.last_name),
+            password=[ldap_md5_crypt.encrypt(queued.password)],
+            first_name=queued.first_name,
+            email=[queued.email],
+            username=queued.username,
             uid=uidnumber,
             gid=100,
-            gecos='%s %s' % (queued_user.first_name, queued_user.last_name),
-            home_directory='/home/%s' % queued_user.username,
+            gecos='%s %s' % (queued.first_name, queued.last_name),
+            home_directory='/home/%s' % queued.username,
             ACL=['user.group'],
         )
         new_user.save()
         # remove queued account from DB
-        queued_user.delete()
+        queued.delete()
         messages.success(
             request, "Your account has been activated successfully")
     except OkupyError as error:
@@ -411,11 +410,12 @@ def otp_setup(request):
             skeys = sdev.gen_keys(user)
             messages.info(request, 'Your old recovery keys have been revoked.')
         elif 'cancel' in request.POST:
-            messages.info(request, 'Secret change aborted. Previous settings are in effect.')
+            messages.info(request, 'Secret change aborted. Previous settings'
+                          'are in effect.')
 
     if secret:
         # into groups of four characters
-        secret = ' '.join([secret[i:i+4]
+        secret = ' '.join([secret[i:i + 4]
                            for i in range(0, len(secret), 4)])
     if skeys:
         # xxx xx xxx

@@ -6,8 +6,8 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.test import TestCase
 
-from .. import vars
-from ...common.test_helpers import ldap_users, set_request
+from okupy.common.test_helpers import ldap_users, set_request
+from okupy.tests import vars
 
 import base64
 

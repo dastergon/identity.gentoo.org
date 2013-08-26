@@ -2,8 +2,8 @@
 
 from django import forms
 
-from .models import OpenID_Attributes
-from ..crypto.ciphers import sessionrefcipher
+from okupy.accounts.models import OpenID_Attributes
+from okupy.crypto.ciphers import sessionrefcipher
 
 
 class LoginForm(forms.Form):
@@ -18,7 +18,8 @@ class StrongAuthForm(forms.Form):
 
 
 class OpenIDLoginForm(LoginForm):
-    auto_logout = forms.BooleanField(required=False,
+    auto_logout = forms.BooleanField(
+        required=False,
         label='Log out after answering the OpenID request')
 
 

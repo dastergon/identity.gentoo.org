@@ -1,10 +1,11 @@
 #!/bin/bash
 
-while getopts sa:dc arg; do
+while getopts sdcf2 arg; do
     case ${arg} in
         s) SETTINGS="--settings=okupy.tests.settings" ;;
         d) TDAEMON="tdaemon -t django" ;;
         c) COVERAGE="coverage" ;;
+        f) FLAKE8="flake8 . --exclude=./okupy/tests/settings.py,./okupy/settings,setup.py" ;;
         2) SUFFIX="2" ;;
     esac
 done
@@ -20,3 +21,5 @@ else
     echo "Executing: $COMMAND"
     $COMMAND
 fi
+
+${FLAKE8}

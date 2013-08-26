@@ -6,8 +6,7 @@ from django.test.client import Client
 
 from mockldap import MockLdap
 
-from .. import vars
-from ...common.test_helpers import ldap_users, set_search_seed
+from okupy.tests import vars
 
 
 class LoginIntegrationTests(TestCase):
@@ -56,5 +55,6 @@ class LoginIntegrationTests(TestCase):
         self.mockldap.start()
 
     def test_redirect_to_requested_page_after_login(self):
-        response = self.client.post('/login/?next=/otp-setup/', vars.LOGIN_ALICE)
+        response = self.client.post('/login/?next=/otp-setup/',
+                                    vars.LOGIN_ALICE)
         self.assertRedirects(response, '/otp-setup/', 302, 200)

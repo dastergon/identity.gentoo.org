@@ -2,7 +2,7 @@
 
 from django_otp.models import Device
 
-from ...accounts.models import LDAPUser
+from okupy.accounts.models import LDAPUser
 
 import random
 
@@ -34,7 +34,7 @@ class SOTPDevice(Device):
         """
         Verify token against recovery keys.
         """
-        u = LDAPUser.objects.get(username = self.user.username)
+        u = LDAPUser.objects.get(username=self.user.username)
         if token in u.otp_recovery_keys:
             u.otp_recovery_keys.remove(token)
             u.save()

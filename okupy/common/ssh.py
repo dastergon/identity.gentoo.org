@@ -44,7 +44,7 @@ class SSHServer(paramiko.ServerInterface):
             h = settings.SSH_HANDLERS[cmd]
             # this is an easy way of checking if we have correct args
             inspect.getcallargs(h, *args, key=key)
-        except (KeyError, TypeError) as e:
+        except (KeyError, TypeError):
             pass
         else:
             ret = h(*args, key=key)
@@ -76,7 +76,7 @@ class SSHServer(paramiko.ServerInterface):
         return True
 
     def check_channel_pty_request(self, channel, term, width, height,
-            pixelwidth, pixelheight, modes):
+                                  pixelwidth, pixelheight, modes):
         return True
 
 
@@ -107,6 +107,6 @@ class SSHDispatcher(asyncore.dispatcher):
 def ssh_main():
     server_key = paramiko.RSAKey(file_obj=BytesIO(settings.SSH_SERVER_KEY))
 
-    disp = SSHDispatcher(server_key)
+    SSHDispatcher(server_key)
     asyncore.loop()
     raise SystemError('SSH server loop exited')

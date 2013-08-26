@@ -3,7 +3,6 @@
 import base64
 import calendar
 import datetime
-import time
 
 from django.db import IntegrityError
 from django.utils import timezone
@@ -12,7 +11,7 @@ from openid.store.interface import OpenIDStore
 from openid.association import Association
 from openid.store import nonce
 
-from . import models as db_models
+from okupy.accounts import models as db_models
 
 
 class DjangoDBOpenIDStore(OpenIDStore):
@@ -66,7 +65,7 @@ class DjangoDBOpenIDStore(OpenIDStore):
         assert(server_uri is not None)
         assert(handle is not None)
 
-        objs = self._db_getAssocs(server_uri, handle)
+        self._db_getAssocs(server_uri, handle)
 
         # determining whether something was deleted is a waste of time
         # and django doesn't give us explicit 'affected rows'

@@ -5,7 +5,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 
-from ..accounts.models import Queue
+from okupy.accounts.models import Queue
 
 
 # LDAP directory
@@ -32,7 +32,15 @@ DIRECTORY = {
         "gentooRoles": ["kde, qt, cluster"],
         "gentooLocation": ["City1, Country1"],
         "gentooACL": ["user.group", "developer.group"],
-        "sshPublicKey": ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCbtxfr9vRO4xkDuUnsu02rL7BtBiABADkWdugnMxRAV6nKokitytgLGDhjY6iB8C87K8mCxz/ksMO+uct/lUEHMf1M2P1rPEStrJoXQuTXQbtVl7iF5cySbXhtd7Nu7DcXe1cIynVkbFosB2mznr8Db3633DnEslppUGvHdjHYoCAWsjv5juHESkBy62HhYgc1ZoGFj6ilrJhOdHs2ji2YBHJXPG2sB3uQleY5/KfAeSwESBH7D36VqRXf22Ya0nExnVh3h9jtzZmwIll35VHH/G9NmTmW/8lpl7BGV7fx10tByfvSLrQg2ZniiY3SfXdbraVm/FEuJ9+X81jpNQDd", "invalid-key-too-short", "ssh-rsa $$$INVALID%", "invalid-key-type AAAA=="],
+        "sshPublicKey": ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCbtxfr9vRO4xkD"
+                         "uUnsu02rL7BtBiABADkWdugnMxRAV6nKokitytgLGDhjY6iB8C87"
+                         "K8mCxz/ksMO+uct/lUEHMf1M2P1rPEStrJoXQuTXQbtVl7iF5cyS"
+                         "bXhtd7Nu7DcXe1cIynVkbFosB2mznr8Db3633DnEslppUGvHdjHY"
+                         "oCAWsjv5juHESkBy62HhYgc1ZoGFj6ilrJhOdHs2ji2YBHJXPG2s"
+                         "B3uQleY5/KfAeSwESBH7D36VqRXf22Ya0nExnVh3h9jtzZmwIll3"
+                         "5VHH/G9NmTmW/8lpl7BGV7fx10tByfvSLrQg2ZniiY3SfXdbraVm"
+                         "/FEuJ9+X81jpNQDd", "invalid-key-too-short",
+                         "ssh-rsa $$$INVALID%", "invalid-key-type AAAA=="],
     },
     "uid=bob,ou=people,o=test": {
         "uid": ["bob"],
@@ -47,7 +55,27 @@ DIRECTORY = {
         "gentoRoles": ["nothing"],
         "gentooLocation": ["City2, Country2"],
         "gentooACL": ["user.group", "foundation.group"],
-        "sshPublicKey": ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUSOgwQ6uljefD9BiwhiGzRGn+sg7D3AKcqU8PWrB+p74n9GBIccc/iSuG458iid08FvUqHjY0RLwMQADND7NOGaEEW0NXbyblA6xZhZu6BgnFC4LZBHy5eok+sWIZddAgT8qAYXMW8GYzUZSPchtOFbMkyzaQlWYkjx1Z0usOdnl/QRPuabFTQjWtJ+lw8hrPydl1ZYP+FIUZy9NU/SxC2qgufmh3+nTzfnfQgupfQc6I9lXNR98vm/t5saVsuQReIIc4sR3mOmT5AnH6uCyjRBKnxq8ndcInfGagwpcx80o6+/V0QNIdr5NP1jRiXDbc/BT8NP/X4mWIpJNEIujj bob@example.com", "ssh-dss AAAAB3NzaC1kc3MAAACBAOpXehglYVU5efZoBGrRKHcsQvlS4jDAFGgsqNRQwM4F7anFIhaEYxs8REEhKNOUXEalFCUegtBxgKjvNRH+MBMJ5o6BAsDuTobwhFS7imcj5JO7QA6kfyNokNkULbqCOfmS9xmFozj2bk0zpKcvW54Zf91dHHT+NsmAXrcIw1onAAAAFQDLARFN4O0wquVKl/XGItngEeQGdwAAAIEAtTP8JkR9XZHkqb0s/uRA+2Wh9uOipc1+IgJn+UX15or2/zuudcG5loaVpDepuLuzhjrn/BZwj1GAncv/AFo4YraATU77HxNEXstHwkf5K8FaJ2f/6bVs7i/P9NS9rXys+HdOiPmAbvv9Hm69jw/Xbwnz752O7gvSNJPWjrC2460AAACBAItwlTJ2aUD7BSgjgaqGOrjUamnIMOi833RCc2XN9F9aY2z8DNr3O7KN5qzTUuLU4ltQbBO9Ct5CZmx785COTkJMXjoYVC7ObfKc8T0xB1FZzf7bIaqcC0dDmfrCzmcQdOTIJvKNlniRBG1XAQ7lf7YvX0We+C14oVU2FhyueoEe", "invalid-key-too-short", "ssh-rsa $$$INVALID%", "invalid-key-type AAAA=="],
+        "sshPublicKey": ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDUSOgwQ6uljefD"
+                         "9BiwhiGzRGn+sg7D3AKcqU8PWrB+p74n9GBIccc/iSuG458iid08"
+                         "FvUqHjY0RLwMQADND7NOGaEEW0NXbyblA6xZhZu6BgnFC4LZBHy5"
+                         "eok+sWIZddAgT8qAYXMW8GYzUZSPchtOFbMkyzaQlWYkjx1Z0usO"
+                         "dnl/QRPuabFTQjWtJ+lw8hrPydl1ZYP+FIUZy9NU/SxC2qgufmh3"
+                         "+nTzfnfQgupfQc6I9lXNR98vm/t5saVsuQReIIc4sR3mOmT5AnH6"
+                         "uCyjRBKnxq8ndcInfGagwpcx80o6+/V0QNIdr5NP1jRiXDbc/BT8"
+                         "NP/X4mWIpJNEIujj bob@example.com",
+                         "ssh-dss AAAAB3NzaC1kc3MAAACBAOpXehglYVU5efZoBGrRKHcs"
+                         "QvlS4jDAFGgsqNRQwM4F7anFIhaEYxs8REEhKNOUXEalFCUegtBx"
+                         "gKjvNRH+MBMJ5o6BAsDuTobwhFS7imcj5JO7QA6kfyNokNkULbqC"
+                         "OfmS9xmFozj2bk0zpKcvW54Zf91dHHT+NsmAXrcIw1onAAAAFQDL"
+                         "ARFN4O0wquVKl/XGItngEeQGdwAAAIEAtTP8JkR9XZHkqb0s/uRA"
+                         "+2Wh9uOipc1+IgJn+UX15or2/zuudcG5loaVpDepuLuzhjrn/BZw"
+                         "j1GAncv/AFo4YraATU77HxNEXstHwkf5K8FaJ2f/6bVs7i/P9NS9"
+                         "rXys+HdOiPmAbvv9Hm69jw/Xbwnz752O7gvSNJPWjrC2460AAACB"
+                         "AItwlTJ2aUD7BSgjgaqGOrjUamnIMOi833RCc2XN9F9aY2z8DNr3"
+                         "O7KN5qzTUuLU4ltQbBO9Ct5CZmx785COTkJMXjoYVC7ObfKc8T0x"
+                         "B1FZzf7bIaqcC0dDmfrCzmcQdOTIJvKNlniRBG1XAQ7lf7YvX0We"
+                         "+C14oVU2FhyueoEe", "invalid-key-too-short",
+                         "ssh-rsa $$$INVALID%", "invalid-key-type AAAA=="],
     },
     "uid=jack,ou=people,o=test": {
         "uid": ["jack"],
@@ -150,4 +178,6 @@ vj3k/SSqj6qjnxryY6QSKWOTRbKhwmRHrrsFRuR2rCZWYZUJ6ohCDYrwVKvs7i2R
 VNG3Q7+oqLajmyDfZmHkENQ0rCdc
 -----END CERTIFICATE-----'''
 
-TEST_SSH_KEY_FOR_NO_USER = 'AAAAB3NzaC1yc2EAAAADAQABAAAAYQCXMUpwxMi/01Th94+pP9r3bPGOEejSic7eH1VXHnqHPRFh9rOenSbhWLXwCUcM+0ZMoLmkJ3gMz3IKq2HTJfEwBcW/v/cm5b2lT6biO0u9Q5br4KosNhrvJBZ0f6trkCk='
+TEST_SSH_KEY_FOR_NO_USER = '''AAAAB3NzaC1yc2EAAAADAQABAAAAYQCXMUp
+wxMi/01Th94+pP9r3bPGOEejSic7eH1VXHnqHPRFh9rOenSbhWLXwCUcM+0ZMoLmk
+J3gMz3IKq2HTJfEwBcW/v/cm5b2lT6biO0u9Q5br4KosNhrvJBZ0f6trkCk='''

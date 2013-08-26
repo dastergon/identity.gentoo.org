@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
 
-from ..accounts.models import LDAPUser
+from okupy.accounts.models import LDAPUser
 
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 
