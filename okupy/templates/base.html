@@ -65,7 +65,9 @@
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ user.username }}<b class="caret"></b></a>
                         <ul class="dropdown-menu">
                             <li><a href="{% url 'index' %}" title="View Profile">View Profile</a></li>
-                            <li><a href="#" title="Edit Profile">Edit Profile</a></li>
+                            <li><a href="{% url 'profile-settings' %}" title="Edit Profile">Edit Profile</a></li>
+                            <li><a href="{% url 'contact-settings' %}" title="Contact Settings">Contact Settings</a></li>
+                            <li><a href="{% url 'gentoo-dev-settings' %}" title="Gentoo Account Settings">Gentoo Account Settings</a></li>
                             <li><a href="#" title="Invite others">Invite</a></li>
                             <li><a href="{% url 'logout' %}" title="Logout">Logout</a></li>
                         </ul>
