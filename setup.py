@@ -46,6 +46,7 @@ setup(
         'python-ldap>=2.4.10',
         'python-memcached>=1.53',
         'python-openid>=2.2.5',
+        'pytz>=2012j',
         'qrcode>=3.0',
     ],
     setup_requires=[

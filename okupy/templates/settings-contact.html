@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="pageRow" class="container">
+    <div class="row">
+        <div id="page" class="span10">
+            <div>
+                <h1>Contact Settings</h1>
+                <h3>Change your contact to details.</h3>
+                <div class="form well">
+                    <form action="." method="POST">{% csrf_token %}
+                        {{ contact_settings.errors }}
+                        {{ contact_settings.non_field_errors }}
+                        <div class="row-fluid">
+                            {{ contact_settings.website.label_tag }}
+                            <input name="website" type="text" value="{{ user_profile_info.website.0 }}" /> {{ contact_settings.website.errors|striptags }}
+                        </div>
+                        <div class="row-fluid">
+                            {{ contact_settings.im.label_tag }}
+                            <input name="im" type="text" value="{{ user_profile_info.im.0 }}" /> {{ contact_settings.im.errors|striptags }}  
+                        </div>
+                        <div class="row-fluid">
+                            {{ contact_settings.location.label_tag }}
+                            <input name="location" type="text" value="{{ user_profile_info.location }}" /> {{ contact_settings.location.errors|striptags }}
+                        </div>
+                        <div class="row-fluid">
+                            {{ contact_settings.longitude.label_tag }}
+                            <input name="longitude" type="text" value="{{ user_profile_info.longitude }}" /> {{ contact_settings.longitude.errors|striptags }}
+                        </div>
+                        <div class="row-fluid">
+                            {{ contact_settings.latitude.label_tag }}
+                            <input name="latitude" type="text" value="{{ user_profile_info.latitude }}" /> {{ contact_settings.latitude.errors|striptags }}
+                        </div>
+                        <div class="row-fluid">
+                            {{ contact_settings.phone.label_tag }}
+                            <input name="phone" type="text" value="{{ user_profile_info.phone }}" /> {{ contact_settings.phone.errors|striptags }}
+                        </div>
+                        <div class="row-fluid">
+                            {{ contact_settings.gpg_fingerprint.label_tag }}
+                            <input name="gpg_fingerprint" type="text" value="{{ user_profile_info.gpg_fingerprint.0 }}" /> {{ contact_settings.gpg_fingerprint.errors|striptags }}
+ 
+                        </div>
+                        <div class="row-fluid buttons">
+                            <input class="btn btn-primary" type="submit" value="Save" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+{% endblock %}
+
+{# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}

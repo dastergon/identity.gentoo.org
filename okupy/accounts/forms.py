@@ -5,6 +5,8 @@ from django import forms
 from okupy.accounts.models import OpenID_Attributes
 from okupy.crypto.ciphers import sessionrefcipher
 
+import pytz
+
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=100, label='Username:')
@@ -59,7 +61,69 @@ class SignupForm(forms.Form):
         return password_verify
 
 
+#Settings
+
+class ProfileSettingsForm(forms.Form):
+    first_name = forms.CharField(
+        max_length=100, label='First Name', required=False)
+    last_name = forms.CharField(
+        max_length=100, label='Last Name', required=False)
+    birthday = forms.DateField(
+        input_formats='%m/%d/%Y', label='Birthday (format: month/day/year)', required=False)
+    timezone = forms.ChoiceField(
+        choices=[(x, x) for x in pytz.common_timezones])
+
+
+class PasswordSettingsForm(forms.Form):
+    old_password = forms.CharField(max_length=30, widget=forms.PasswordInput(
+    ), label='Old Password', required=False)
+    new_password = forms.CharField(max_length=30, widget=forms.PasswordInput(
+    ), label='New Password', required=False)
+    new_password_verify = forms.CharField(max_length=30, widget=forms.PasswordInput(), label='Repeat New Password', required=False)
+
+    def clean(self):
+        cleaned_data = super(PasswordSettingsForm, self).clean()
+        new_password = cleaned_data.get('new_password')
+        new_password_verify = cleaned_data.get('new_password_verify')
+        old_password = cleaned_data.get('old_password')
+        if (new_password or new_password_verify) and (not old_password):
+            raise forms.ValidationError(
+                'Please enter your current password to change the password.')
+        elif new_password != new_password_verify:
+            raise forms.ValidationError('Passsword verification failed. Please re-enter the new password.')
+        elif (old_password and new_password) and (not new_password_verify):
+            raise forms.ValidationError('Password verification failed. Please repeat your new password.')
+        return cleaned_data
+
+
+class EmailSettingsForm(forms.Form):
+    email = forms.EmailField(max_length=254, label='Add Email', help_text='A valid email address, please.', required=False)
+
+
+class ContactSettingsForm(forms.Form):
+    website = forms.URLField(label='Website', required=False)
+    im = forms.CharField(max_length=100, label='IM', required=False)
+    location = forms.CharField(label='Location', required=False)
+    longitude = forms.FloatField(label='Longitude', required=False)
+    latitude = forms.FloatField(label='Latitude', required=False)
+    phone = forms.CharField(label='Home Phone', required=False)
+    gpg_fingerprint = forms.CharField(label='GPG Fingerprint', required=False)
+
+
+class GentooAccountSettingsForm(forms.Form):
+    gentoo_join_date = forms.CharField(
+        label='Gentoo Join Date', required=False)
+    gentoo_retire_date = forms.CharField(
+        label='Gentoo Retire Date', required=False)
+    developer_bug = forms.CharField(
+        label='Developer Bugs (Bug Number)', required=False)
+    mentor = forms.CharField(max_length=100, label='Mentor', required=False)
+    ssh_key = forms.CharField(widget=forms.Textarea(
+        attrs={'cols': 50, 'rows': 8}), label='SSH Key', required=False)
+
+
 # OpenID forms.
+
 
 class SiteAuthForm(forms.ModelForm):
     class Meta:

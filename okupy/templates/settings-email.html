@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="pageRow" class="container">
+    <div class="row">
+        <div id="page" class="span10">
+            <div>
+                <h1>Email Settings</h1>
+				<h3>Manage your emails.</h3>
+                <div class="form well">
+					{{ email_settings.errors }}
+                    {{ email_settings.non_field_errors }}
+                    <div class="row-fluid ">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>Email</th>
+									<th> </th>
+								</tr>
+							</thead>
+							<tbody>
+							{% for mail in user_profile_info.email%}
+							<form action="." method="POST">{% csrf_token %}
+								<tr>
+									<td><input type="hidden" name="email" value="{{ mail }}" />{{mail}}</td>
+									<td><input class="btn" type="submit" name="delete" value="Delete" /></td>
+								</tr>
+								</form>
+							{% endfor %}
+							</tbody>
+						</table>
+						<form action="." method="POST">{% csrf_token %}
+							{{ email_settings.email.label_tag }}
+                            <input name="email" type="text" /> {{ email_settings.email.errors|striptags }}
+                        <div class="row-fluid buttons">
+                            <input class="btn btn-primary" type="submit" value="Add email" />
+                        </div>
+						</form>
+					</div>
+                </div>
+            </div>
+        </div>
+{% endblock %}
+
+{# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}

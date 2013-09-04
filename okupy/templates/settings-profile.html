@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="pageRow" class="container">
+    <div class="row">
+        <div id="page" class="span10">
+            <div>
+                <h1>Profile Information</h1>
+                <h3>Change your basic account information</h3>
+                <div class="form well">
+                    <form action="." method="POST">{% csrf_token %}
+                        {{ profile_settings.errors }}
+                        {{ profile_settings.non_field_errors }}
+                        <div class="row-fluid">
+                            {{ profile_settings.first_name.label_tag }}
+                            <input name="first_name" type="text" value="{{ user_profile_info.first_name }}" /> {{ profile_settings.first_name.errors|striptags }}
+                        </div>
+                        <div class="row-fluid">
+                            {{ profile_settings.last_name.label_tag }}
+                            <input name="last_name" type="text" value="{{ user_profile_info.last_name }}" /> {{ profile_settings.last_name.errors|striptags }}
+                        </div>
+                        <div class="row-fluid">
+                            {{ profile_settings.email.label_tag }}
+                            <input name="email" type="text" value="{{ user_profile_info.email.0 }}" /> {{ profile_settings.email.errors|striptags }}
+                        </div>
+                       <!-- <div class="row-fluid">
+                            {{ profile_settings.birthday.label_tag }}
+                            <input name="birthday" type="text" value="{{ user_profile_info.birthday }}" /> {{ profile_settings.birthday.errors|striptags }}
+                        </div> -->
+                        <div class="row-fluid">
+                            {{ profile_settings.timezone.label_tag }}
+                            {{ profile_settings.timezone }}
+                        <div class="row-fluid">
+                            {{ profile_settings.old_password.label_tag }}
+                            {{ profile_settings.old_password }} {{ profile_settings.old_password.non_field_errors|striptags }}
+                        </div>
+                        <div class="row-fluid">
+                            {{ profile_settings.new_password.label_tag }}
+                            {{ profile_settings.new_password }} {{ profile_settings.new_password.errors|striptags }}
+                        </div>
+                        <div class="row-fluid">
+                            {{ profile_settings.new_password_verify.label_tag }}
+                            {{ profile_settings.new_password_verify }} {{ profile_settings.new_password_verify.errors|striptags }}
+                        </div>
+                        <div class="row-fluid buttons">
+                            <input class="btn btn-primary" type="submit" value="Update Profile" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+{% endblock %}
+
+{# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}
