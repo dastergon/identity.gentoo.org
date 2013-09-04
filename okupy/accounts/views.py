@@ -28,7 +28,9 @@ from urlparse import urljoin
 from okupy import OkupyError
 from okupy.accounts.forms import (LoginForm, OpenIDLoginForm, SSLCertLoginForm,
                                   OTPForm, SignupForm, SiteAuthForm,
-                                  StrongAuthForm, ProfileSettingsForm, ContactSettingsForm, GentooAccountSettingsForm)
+                                  StrongAuthForm, ProfileSettingsForm,
+                                  ContactSettingsForm, EmailSettingsForm,
+                                  GentooAccountSettingsForm, PasswordSettingsForm)
 from okupy.accounts.models import LDAPUser, OpenID_Attributes, Queue
 from okupy.accounts.openid_store import DjangoDBOpenIDStore
 from okupy.common.ldap_helpers import (get_bound_ldapuser,
@@ -380,12 +382,8 @@ def profile_settings(request):
         if profile_settings.is_valid():
             try:
                 #birthday = profile_settings.cleaned_data['birthday']
-                email = profile_settings.cleaned_data['email']
                 first_name = profile_settings.cleaned_data['first_name']
                 last_name = profile_settings.cleaned_data['last_name']
-                new_password = profile_settings.cleaned_data['new_password']
-                new_password_verify = profile_settings.cleaned_data['new_password_verify']
-                old_password = profile_settings.cleaned_data['old_password']
 
                 if user_profile_info.first_name != first_name:
                     user_profile_info.first_name = first_name
@@ -400,9 +398,38 @@ def profile_settings(request):
                 if user_profile_info.birthday != birthday:
                     user_profile_info.birthday = birthday
                 """
-                if user_profile_info.email != email:
-                    user_profile_info.email.pop()
-                    user_profile_info.email.append(email)
+                try:
+                    user_profile_info.save()
+                except IntegrityError:
+                    pass
+            except ldap.TYPE_OR_VALUE_EXISTS:
+                pass
+            except Exception as error:
+                logger.critical(error, extra=log_extra_data(request))
+                logger_mail.exception(error)
+                raise OkupyError("Can't contact LDAP server")
+    else:
+        profile_settings = ProfileSettingsForm()
+
+    return render(request, 'settings-profile.html', {
+        'profile_settings': profile_settings,
+        'user_profile_info': user_profile_info,
+    })
+
+
+@strong_auth_required
+@otp_required
+def password_settings(request):
+    """ Password settings """
+    user_profile_info = get_bound_ldapuser(request)
+    password_settings = None
+    if request.method == "POST":
+        password_settings = PasswordSettingsForm(request.POST)
+        if password_settings.is_valid():
+            try:
+                new_password = password_settings.cleaned_data['new_password']
+                new_password_verify = password_settings.cleaned_data['new_password_verify']
+                old_password = password_settings.cleaned_data['old_password']
 
                 if old_password and (new_password == new_password_verify):
                     for hash in list(user_profile_info.password):
@@ -426,10 +453,46 @@ def profile_settings(request):
                 logger_mail.exception(error)
                 raise OkupyError("Can't contact LDAP server")
     else:
-        profile_settings = ProfileSettingsForm()
+        password_settings = PasswordSettingsForm()
 
-    return render(request, 'settings-profile.html', {
-        'profile_settings': profile_settings,
+    return render(request, 'settings-password.html', {
+        'password_settings': password_settings,
+        'user_profile_info': user_profile_info,
+    })
+
+
+@strong_auth_required
+@otp_required
+def email_settings(request):
+    """ Email Settings """
+    user_profile_info = get_bound_ldapuser(request)
+    email_settings = None
+    if request.method == "POST":
+        email_settings = EmailSettingsForm(request.POST)
+        if email_settings.is_valid():
+            try:
+                email = email_settings.cleaned_data['email']
+
+                if request.POST.get('delete'):
+                    user_profile_info.email.remove(email)
+                else:
+                    user_profile_info.email.append(email)
+
+                try:
+                    user_profile_info.save()
+                except IntegrityError:
+                    pass
+            except ldap.TYPE_OR_VALUE_EXISTS:
+                pass
+            except Exception as error:
+                logger.critical(error, extra=log_extra_data(request))
+                logger_mail.exception(error)
+                raise OkupyError("Can't contact LDAP server")
+    else:
+        email_settings = EmailSettingsForm()
+
+    return render(request, 'settings-email.html', {
+        'email_settings': email_settings,
         'user_profile_info': user_profile_info,
     })
 
@@ -525,7 +588,8 @@ def gentoo_dev_settings(request):
                 if user_profile_info.is_retired or user_profile_info.gentoo_retire_date:
                     gentoo_retire_date = gentoo_account_settings.cleaned_data['gentoo_retire_date']
                     if user_profile_info.gentoo_retire_date != gentoo_retire_date:
-                        user_profile_info.gentoo_retire_date.append(gentoo_retire_date)
+                        user_profile_info.gentoo_retire_date.append(
+                            gentoo_retire_date)
 
                 try:
                     user_profile_info.save()

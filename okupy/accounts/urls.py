@@ -15,6 +15,8 @@ accounts_urlpatterns = patterns(
     url(r'^contact-settings/$', v.contact_settings, name="contact-settings"),
     url(r'^gentoo-dev-settings/$', v.gentoo_dev_settings, name="gentoo-dev-settings"),
     url(r'^profile-settings/$', v.profile_settings, name="profile-settings"),
+    url(r'^password-settings/$', v.password_settings, name="password-settings"),
+    url(r'^email-settings/$', v.email_settings, name="email-settings"),
     url(r'^signup/$', v.signup),
     url(r'^activate/(?P<token>[a-zA-Z0-9-_]+)/$', v.activate),
     url(r'^otp-setup/$', v.otp_setup),

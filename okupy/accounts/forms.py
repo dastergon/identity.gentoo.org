@@ -68,11 +68,13 @@ class ProfileSettingsForm(forms.Form):
         max_length=100, label='First Name', required=False)
     last_name = forms.CharField(
         max_length=100, label='Last Name', required=False)
-    email = forms.EmailField(max_length=254, label='Email', help_text='A valid email address, please.', required=False)
     birthday = forms.DateField(
         input_formats='%m/%d/%Y', label='Birthday (format: month/day/year)', required=False)
     timezone = forms.ChoiceField(
         choices=[(x, x) for x in pytz.common_timezones])
+
+
+class PasswordSettingsForm(forms.Form):
     old_password = forms.CharField(max_length=30, widget=forms.PasswordInput(
     ), label='Old Password', required=False)
     new_password = forms.CharField(max_length=30, widget=forms.PasswordInput(
@@ -80,7 +82,7 @@ class ProfileSettingsForm(forms.Form):
     new_password_verify = forms.CharField(max_length=30, widget=forms.PasswordInput(), label='Repeat New Password', required=False)
 
     def clean(self):
-        cleaned_data = super(ProfileSettingsForm, self).clean()
+        cleaned_data = super(PasswordSettingsForm, self).clean()
         new_password = cleaned_data.get('new_password')
         new_password_verify = cleaned_data.get('new_password_verify')
         old_password = cleaned_data.get('old_password')
@@ -92,6 +94,10 @@ class ProfileSettingsForm(forms.Form):
         elif (old_password and new_password) and (not new_password_verify):
             raise forms.ValidationError('Password verification failed. Please repeat your new password.')
         return cleaned_data
+
+
+class EmailSettingsForm(forms.Form):
+    email = forms.EmailField(max_length=254, label='Add Email', help_text='A valid email address, please.', required=False)
 
 
 class ContactSettingsForm(forms.Form):
