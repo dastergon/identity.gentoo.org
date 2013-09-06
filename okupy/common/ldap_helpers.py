@@ -25,7 +25,7 @@ def get_bound_ldapuser(request, password=None):
                 'Secondary password not available (no strong auth?)')
 
     bound_cls = LDAPUser.bind_as(
-        alias='ldap_%s' % username,
+        alias='ldap_%s' % request.session.cache_key,
         username=username,
         password=password,
     )
@@ -37,7 +37,8 @@ def set_secondary_password(request, password):
     user = get_bound_ldapuser(request, password)
 
     secondary_password = Random.get_random_bytes(48)
-    request.session['secondary_password'] = cipher.encrypt(secondary_password)
+    request.session['secondary_password'] = (
+        cipher.encrypt(secondary_password))
     # Clean up possible leftover secondary passwords from the LDAP account
     if len(user.password) > 1:
         for hash in list(user.password):
@@ -48,7 +49,8 @@ def set_secondary_password(request, password):
                 # don't remove unknown hashes
                 pass
     # Add a new generated encrypted password to LDAP
-    user.password.append(ldap_md5_crypt.encrypt(b64encode(secondary_password)))
+    user.password.append(
+        ldap_md5_crypt.encrypt(b64encode(secondary_password)))
     user.save()
 
 

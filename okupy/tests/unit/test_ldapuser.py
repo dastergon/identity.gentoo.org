@@ -57,13 +57,15 @@ class LDAPUserUnitTests(TestCase):
         request.session['secondary_password'] = cipher.encrypt(
             secondary_password)
         get_bound_ldapuser(request)
-        self.assertEqual(settings.DATABASES['ldap_alice']['PASSWORD'],
+        db_alias = 'ldap_%s' % request.session.cache_key
+        self.assertEqual(settings.DATABASES[db_alias]['PASSWORD'],
                          b64encode(secondary_password))
 
     def test_get_bound_ldapuser_bind_as_is_properly_set_from_password(self):
         request = set_request('/', user=vars.USER_ALICE)
         get_bound_ldapuser(request, password='ldaptest')
-        self.assertTrue(ldap_md5_crypt.verify(settings.DATABASES['ldap_alice'][
+        db_alias = 'ldap_%s' % request.session.cache_key
+        self.assertTrue(ldap_md5_crypt.verify(settings.DATABASES[db_alias][
             'PASSWORD'], ldap_users('alice')[1]['userPassword'][0]))
 
     def test_get_bound_ldapuser_password_set(self):
