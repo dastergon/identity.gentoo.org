@@ -34,24 +34,21 @@ def get_bound_ldapuser(request, password=None):
 
 def set_secondary_password(request, password):
     """ Generate a secondary passsword and encrypt it in the session """
-    user = get_bound_ldapuser(request, password)
-
-    secondary_password = Random.get_random_bytes(48)
-    request.session['secondary_password'] = (
-        cipher.encrypt(secondary_password))
-    # Clean up possible leftover secondary passwords from the LDAP account
-    if len(user.password) > 1:
-        for hash in list(user.password):
-            try:
-                if not ldap_md5_crypt.verify(password, hash):
-                    user.password.remove(hash)
-            except ValueError:
-                # don't remove unknown hashes
-                pass
-    # Add a new generated encrypted password to LDAP
-    user.password.append(
-        ldap_md5_crypt.encrypt(b64encode(secondary_password)))
-    user.save()
+    with get_bound_ldapuser(request, password) as user:
+        secondary_password = Random.get_random_bytes(48)
+        request.session['secondary_password'] = cipher.encrypt(secondary_password)
+        # Clean up possible leftover secondary passwords from the LDAP account
+        if len(user.password) > 1:
+            for hash in list(user.password):
+                try:
+                    if not ldap_md5_crypt.verify(password, hash):
+                        user.password.remove(hash)
+                except ValueError:
+                    # don't remove unknown hashes
+                    pass
+        # Add a new generated encrypted password to LDAP
+        user.password.append(ldap_md5_crypt.encrypt(b64encode(secondary_password)))
+        user.save()
 
 
 def remove_secondary_password(request):
@@ -61,15 +58,15 @@ def remove_secondary_password(request):
             request.session['secondary_password'], 48))
     except KeyError:
         return
-    user = get_bound_ldapuser(request, password)
 
-    if len(user.password) > 1:
-        for hash in list(user.password):
-            try:
-                if ldap_md5_crypt.verify(password, hash):
-                    user.password.remove(hash)
-                    break
-            except ValueError:
-                # ignore unknown hashes
-                pass
-    user.save()
+    with get_bound_ldapuser(request, password) as user:
+        if len(user.password) > 1:
+            for hash in list(user.password):
+                try:
+                    if ldap_md5_crypt.verify(password, hash):
+                        user.password.remove(hash)
+                        break
+                except ValueError:
+                    # ignore unknown hashes
+                    pass
+        user.save()
