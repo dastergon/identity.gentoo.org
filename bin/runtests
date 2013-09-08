@@ -1,15 +1,16 @@
 #!/bin/bash
 
-while getopts dcf2 arg; do
+while getopts dcf2v: arg; do
     case ${arg} in
         d) TDAEMON="tdaemon -t django" ;;
         c) COVERAGE="coverage" ;;
         f) FLAKE8="flake8 . --exclude=./okupy/tests/settings.py,./okupy/settings,setup.py,.virtualenv" ;;
         2) SUFFIX="2" ;;
+        v) VERBOSE="-v ${OPTARG}" ;;
     esac
 done
 
-ARGS="--settings=okupy.tests.settings --traceback"
+ARGS="--settings=okupy.tests.settings --traceback ${VERBOSE}"
 
 if [[ -n ${TDAEMON} ]]; then
     [[ -n ${COVERAGE} ]] && COVERAGE="-c"
