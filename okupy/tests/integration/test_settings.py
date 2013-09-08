@@ -56,22 +56,22 @@ class SettingsIntegrationTests(TestCase):
         self.assertTemplateUsed(response, 'base.html')
         self.assertTemplateUsed(response, 'settings-gentoo.html')
 
-    def test_profile_settings_page_returns_404_for_non_authenticated_users(self):
+    def test_profile_settings_page_returns_404_for_non_auth_users(self):
         response = self.client.get('/profile-settings/')
         self.assertTrue(response.status_code, 404)
 
-    def test_password_settings_page_returns_404_for_non_authenticated_users(self):
+    def test_password_settings_page_returns_404_for_non_auth_users(self):
         response = self.client.get('/password-settings/')
         self.assertTrue(response.status_code, 404)
 
-    def test_email_settings_page_returns_404_for_non_authenticated_users(self):
+    def test_email_settings_page_returns_404_for_non_auth_users(self):
         response = self.client.get('/email-settings/')
         self.assertTrue(response.status_code, 404)
 
-    def test_contact_setttings_page_returns_404_for_non_authenticated_users(self):
+    def test_contact_setttings_page_returns_404_for_non_auth_users(self):
         response = self.client.get('/contact-settings/')
         self.assertTrue(response.status_code, 404)
 
-    def test_gentoo_account_settings_page_returns_404_for_non_authenticated_users(self):
+    def test_gentoo_account_settings_page_returns_404_for_non_auth_users(self):
         response = self.client.get('/gentoo-dev-settings/')
         self.assertTrue(response.status_code, 404)
