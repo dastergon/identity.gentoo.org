@@ -19,7 +19,7 @@
 								</tr>
 							</thead>
 							<tbody>
-							{% for mail in user_profile_info.email%}
+							{% for mail in user_info.email%}
 							<form action="." method="POST">{% csrf_token %}
 								<tr>
 									<td><input type="hidden" name="email" value="{{ mail }}" />{{mail}}</td>

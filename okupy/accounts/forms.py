@@ -69,7 +69,7 @@ class ProfileSettingsForm(forms.Form):
     last_name = forms.CharField(
         max_length=100, label='Last Name', required=False)
     birthday = forms.DateField(
-        input_formats='%m/%d/%Y', label='Birthday (format: month/day/year)', required=False)
+        input_formats='%m/%d/%Y', label='Birthday', required=False)
     timezone = forms.ChoiceField(
         choices=[(x, x) for x in pytz.common_timezones])
 
@@ -79,7 +79,10 @@ class PasswordSettingsForm(forms.Form):
     ), label='Old Password', required=False)
     new_password = forms.CharField(max_length=30, widget=forms.PasswordInput(
     ), label='New Password', required=False)
-    new_password_verify = forms.CharField(max_length=30, widget=forms.PasswordInput(), label='Repeat New Password', required=False)
+    new_password_verify = forms.CharField(max_length=30,
+                                          widget=forms.PasswordInput(),
+                                          label='Repeat New Password',
+                                          required=False)
 
     def clean(self):
         cleaned_data = super(PasswordSettingsForm, self).clean()
@@ -90,14 +93,18 @@ class PasswordSettingsForm(forms.Form):
             raise forms.ValidationError(
                 'Please enter your current password to change the password.')
         elif new_password != new_password_verify:
-            raise forms.ValidationError('Passsword verification failed. Please re-enter the new password.')
+            raise forms.ValidationError(
+                "Paswords don't match. Please enter passwords again.")
         elif (old_password and new_password) and (not new_password_verify):
-            raise forms.ValidationError('Password verification failed. Please repeat your new password.')
+            raise forms.ValidationError(
+                'Password verification failed. Please repeat your passwords.')
         return cleaned_data
 
 
 class EmailSettingsForm(forms.Form):
-    email = forms.EmailField(max_length=254, label='Add Email', help_text='A valid email address, please.', required=False)
+    email = forms.EmailField(max_length=254, label='Add Email',
+                             help_text='A valid email address, please.',
+                             required=False)
 
 
 class ContactSettingsForm(forms.Form):

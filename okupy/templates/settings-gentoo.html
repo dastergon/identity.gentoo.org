@@ -7,24 +7,24 @@
             <div>
                 <h1>Gentoo Developer Information</h1>
                 <h3>Change your Gentoo related details</h3>
-                {% if user_profile_info.is_developer %}
+                {% if user_info.is_developer %}
                 <div class="form well">
                     <form action="." method="POST">{% csrf_token %}
                         <div class="row-fluid">
                             {{ gentoo_account_settings.developer_bug.label_tag }}
-                            <input name="developer_bug" type="text" value="{{ user_profile_info.developer_bug.0 }}" /> {{ gentoo_account_settings.developer_bug.errors|striptags }}
+                            <input name="developer_bug" type="text" value="{{ user_info.developer_bug.0 }}" /> {{ gentoo_account_settings.developer_bug.errors|striptags }}
                         </div>
                         <div class="row-fluid">
                             {{ gentoo_account_settings.mentor.label_tag }}
-                            <input name="mentor" type="text" value="{{ user_profile_info.mentor.0 }}" /> {{ gentoo_account_settings.mentor.errors|striptags }}
+                            <input name="mentor" type="text" value="{{ user_info.mentor.0 }}" /> {{ gentoo_account_settings.mentor.errors|striptags }}
                         </div>
                         <div class="row-fluid">
                             {{ gentoo_account_settings.gentoo_join_date.label_tag }}
-                            <input name="gentoo_join_date" type="text" value="{{ user_profile_info.gentoo_join_date.0 }}" /> {{ gentoo_account_settings.gentoo_join_date.errors|striptags }}
+                            <input name="gentoo_join_date" type="text" value="{{ user_info.gentoo_join_date.0 }}" /> {{ gentoo_account_settings.gentoo_join_date.errors|striptags }}
                         </div>
                         <div class="row-fluid">
                             {{ gentoo_account_settings.gentoo_retire_date.label_tag }}
-                            <input name="gentoo_retire_date" type="text" value="{{ user_profile_info.gentoo_retire_date.0 }}" /> {{ gentoo_account_settings.gentoo_retire_date.errors|striptags }}
+                            <input name="gentoo_retire_date" type="text" value="{{ user_info.gentoo_retire_date.0 }}" /> {{ gentoo_account_settings.gentoo_retire_date.errors|striptags }}
                         </div>
                         <div class="row-fluid">
                             {{ gentoo_account_settings.ssh_key.label_tag }} {{ gentoo_account_settings.ssh_key.errors|striptags }}
