@@ -1,8 +1,7 @@
 #!/bin/bash
 
-while getopts sdcf2 arg; do
+while getopts dcf2 arg; do
     case ${arg} in
-        s) SETTINGS="--settings=okupy.tests.settings" ;;
         d) TDAEMON="tdaemon -t django" ;;
         c) COVERAGE="coverage" ;;
         f) FLAKE8="flake8 . --exclude=./okupy/tests/settings.py,./okupy/settings,setup.py,.virtualenv" ;;
@@ -10,14 +9,16 @@ while getopts sdcf2 arg; do
     esac
 done
 
+ARGS="--settings=okupy.tests.settings --traceback"
+
 if [[ -n ${TDAEMON} ]]; then
     [[ -n ${COVERAGE} ]] && COVERAGE="-c"
-    ${TDAEMON} ${COVERAGE} --custom-args="${SETTINGS} ${*:${OPTIND}}"
+    ${TDAEMON} ${COVERAGE} --custom-args="${ARGS} ${*:${OPTIND}}"
 elif [[ -n ${COVERAGE} ]]; then
-    ${COVERAGE} run manage.py test --traceback ${SETTINGS} "${@:${OPTIND}}"
+    ${COVERAGE} run manage.py test ${ARGS} "${@:${OPTIND}}"
     ${COVERAGE} report -m
 else
-    COMMAND="python${SUFFIX} manage.py test --traceback ${SETTINGS} ${*:${OPTIND}}"
+    COMMAND="python${SUFFIX} manage.py test ${ARGS} ${*:${OPTIND}}"
     echo "Executing: $COMMAND"
     $COMMAND
 fi
