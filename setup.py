@@ -19,13 +19,6 @@ with open('requirements/base.txt', 'r') as f:
         else:
             base_deps.append(line.split('\n')[0])
 
-with open('requirements/tests.txt', 'r') as f:
-    test_deps = []
-    for line in f:
-        if line.startswith('git+') or line.startswith('hg+'):
-            test_deps.append(line.split('#egg=')[1])
-        else:
-            test_deps.append(line.split('\n')[0])
 setup(
     name='okupy',
     version=okupy.__version__,
@@ -59,6 +52,6 @@ setup(
     setup_requires=[
         'setuptools>=0.6c11',
     ],
-    tests_require=test_deps,
+    tests_require=open('requirements/tests.txt').read().split(),
     extras_require=extra_deps,
 )
