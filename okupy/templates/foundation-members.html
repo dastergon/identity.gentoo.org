@@ -9,18 +9,18 @@
     <div class="span10">
         <h2>Foundation Members</h2><br />
         <table class="table table-striped sortable" >
-        <tr>
-            <td class="infohead"><b>Username</b></td>
-            <td class="infohead"><b>Name</b></td>
-            <td class="infohead"><b>Location</b></td>
-        </tr>
-        {% for user in devlist %}
             <tr>
-                <td style="color:#5c4f85;"><b>{{ user.username }}</b></td>
-                <td>{{ user.full_name }}</td>
-                <td><a href="http://maps.google.com/maps?q={{ user.location }}">{{ user.location }}</a></td>
+                <td class="infohead"><b>Username</b></td>
+                <td class="infohead"><b>Name</b></td>
+                <td class="infohead"><b>Location</b></td>
             </tr>
-        {% endfor %}
+            {% for user in devlist %}
+                <tr>
+                    <td style="color:#5c4f85;"><b>{{ user.username }}</b></td>
+                    <td>{{ user.full_name }}</td>
+                    <td><a href="http://maps.google.com/maps?q={{ user.location }}">{{ user.location }}</a></td>
+                </tr>
+            {% endfor %}
         </table>
     </div>
 </div>
