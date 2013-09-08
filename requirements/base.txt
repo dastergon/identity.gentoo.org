@@ -1,11 +1,8 @@
 django>=1.5
 django-auth-ldap>=1.1.4
 django-compressor>=1.3
-django-discover-runner>=1.0
 django-otp>=0.1.7
 git+https://github.com/tampakrap/django-ldapdb@okupy#egg=django-ldapdb
-mock>=1.0.1
-hg+https://bitbucket.org/psagers/mockldap#egg=mockldap
 paramiko>=1.10.1
 passlib>=1.6.1
 pycrypto>=2.6
