@@ -17,7 +17,7 @@
                         </div>
                         <div class="row-fluid">
                             {{ contact_settings.im.label_tag }}
-                            <input name="im" type="text" value="{{ user_info.im.0 }}" /> {{ contact_settings.im.errors|striptags }}  
+                            <input name="im" type="text" value="{{ user_info.im.0 }}" /> {{ contact_settings.im.errors|striptags }}
                         </div>
                         <div class="row-fluid">
                             {{ contact_settings.location.label_tag }}
@@ -38,7 +38,6 @@
                         <div class="row-fluid">
                             {{ contact_settings.gpg_fingerprint.label_tag }}
                             <input name="gpg_fingerprint" type="text" value="{{ user_info.gpg_fingerprint.0 }}" /> {{ contact_settings.gpg_fingerprint.errors|striptags }}
- 
                         </div>
                         <div class="row-fluid buttons">
                             <input class="btn btn-primary" type="submit" value="Save" />
@@ -47,6 +46,8 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
 {% endblock %}
 
 {# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}

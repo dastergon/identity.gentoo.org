@@ -204,9 +204,7 @@ class SignupunitTestsNoLDAP(OkupyTestCase):
     def test_rendered_signup_form(self):
         request = set_request(uri='/signup')
         response = signup(request)
-        signup_form_part = '<label for="id_first_name">First Name:</label>'
-        '<input id="id_first_name" maxlength="100" name="first_name"'
-        'type="text" />'
+        signup_form_part = '<label for="id_first_name">First Name:</label><input id="id_first_name" maxlength="100" name="first_name" type="text" />'  # noqa
         self.assertIn(signup_form_part, response.content)
 
     def test_empty_signup_form_raises_form_error_messages(self):

@@ -23,7 +23,7 @@
                             {{ profile_settings.email.label_tag }}
                             <input name="email" type="text" value="{{ user_info.email.0 }}" /> {{ profile_settings.email.errors|striptags }}
                         </div>
-                       <!-- <div class="row-fluid">
+                        <!-- <div class="row-fluid">
                             {{ profile_settings.birthday.label_tag }}
                             <input name="birthday" type="text" value="{{ user_info.birthday }}" /> {{ profile_settings.birthday.errors|striptags }}
                         </div> -->
@@ -49,6 +49,8 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
 {% endblock %}
 
 {# vim:se fileencoding=utf8 et ts=4 sts=4 sw=4 ft=htmldjango : #}
