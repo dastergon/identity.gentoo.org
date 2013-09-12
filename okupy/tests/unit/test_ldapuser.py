@@ -90,6 +90,13 @@ class LDAPUserUnitTests(TestCase):
         self.assertRaises(ldap.INVALID_CREDENTIALS, get_bound_ldapuser,
                           request, 'test')
 
+    def test_get_bound_ldapuser_invalid_password_cleans_up_settings(self):
+        request = set_request('/', user=vars.USER_ALICE)
+        self.assertRaises(ldap.INVALID_CREDENTIALS, get_bound_ldapuser,
+                          request, 'test')
+        db_alias = 'ldap_%s' % request.session.cache_key
+        self.assertNotIn(db_alias, settings.DATABASES)
+
     def test_get_bound_ldapuser_context_manager_cleans_up_settings(self):
         secondary_password = Random.get_random_bytes(48)
         secondary_password_crypt = ldap_md5_crypt.encrypt(b64encode(
