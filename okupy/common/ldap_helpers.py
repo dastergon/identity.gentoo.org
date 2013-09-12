@@ -29,7 +29,11 @@ def get_bound_ldapuser(request, password=None):
         username=username,
         password=password,
     )
-    return bound_cls.objects.get(username=username)
+    try:
+        return bound_cls.objects.get(username=username)
+    except Exception as e:
+        bound_cls.restore_alias()
+        raise e
 
 
 def set_secondary_password(request, password):
