@@ -5,12 +5,46 @@ from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
 
 from okupy.accounts.models import LDAPUser
+from okupy.common.ldap_helpers import get_bound_ldapuser
 
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 
+import ldap
 import paramiko
 
 import base64
+
+
+class LDAPAuthBackend(ModelBackend):
+    """
+    Authentication backend that authenticates against LDAP password.
+    If authentication succeeds, it sets up secondary password
+    for the session.
+    """
+
+    def authenticate(self, request, username, password):
+        try:
+            bound_ldapuser = get_bound_ldapuser(
+                request=request,
+                username=username,
+                password=password)
+
+            with bound_ldapuser as u:
+                UserModel = get_user_model()
+                attr_dict = {
+                    UserModel.USERNAME_FIELD: u.username
+                }
+
+                user = UserModel(**attr_dict)
+                try:
+                    user.save()
+                except IntegrityError:
+                    user = UserModel.objects.get(**attr_dict)
+                return user
+        except ldap.INVALID_CREDENTIALS:
+            return None
+        except ldap.STRONG_AUTH_REQUIRED:
+            return None
 
 
 class SSLCertAuthBackend(ModelBackend):

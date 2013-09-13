@@ -26,7 +26,7 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Custom authentication backend
 AUTHENTICATION_BACKENDS = (
-    'django_auth_ldap.backend.LDAPBackend',
+    'okupy.common.auth.LDAPAuthBackend',
     'okupy.common.auth.SSLCertAuthBackend',
     'okupy.common.auth.SSHKeyAuthBackend',
 )

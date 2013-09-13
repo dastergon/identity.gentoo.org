@@ -139,7 +139,10 @@ def login(request):
             it was successful. If it retrieves None then it failed to login
             """
             try:
-                user = authenticate(username=username, password=password)
+                user = authenticate(
+                    request=request,
+                    username=username,
+                    password=password)
             except Exception as error:
                 logger.critical(error, extra=log_extra_data(request))
                 logger_mail.exception(error)
