@@ -95,7 +95,8 @@ class LDAPUserUnitTests(TestCase):
         self.assertRaises(ldap.INVALID_CREDENTIALS, get_bound_ldapuser,
                           request, 'test')
         db_alias = 'ldap_%s' % request.session.cache_key
-        self.assertNotIn(db_alias, settings.DATABASES)
+        self.assertNotIn('USER', settings.DATABASES.get(db_alias, {}))
+        self.assertNotIn('PASSWORD', settings.DATABASES.get(db_alias, {}))
 
     def test_get_bound_ldapuser_context_manager_cleans_up_settings(self):
         secondary_password = Random.get_random_bytes(48)
@@ -109,4 +110,5 @@ class LDAPUserUnitTests(TestCase):
         with get_bound_ldapuser(request) as user:  # noqa
             pass
         db_alias = 'ldap_%s' % request.session.cache_key
-        self.assertNotIn(db_alias, settings.DATABASES)
+        self.assertNotIn('USER', settings.DATABASES.get(db_alias, {}))
+        self.assertNotIn('PASSWORD', settings.DATABASES.get(db_alias, {}))
