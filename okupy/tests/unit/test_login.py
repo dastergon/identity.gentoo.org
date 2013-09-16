@@ -52,7 +52,7 @@ class LoginUnitTests(OkupyTestCase):
 
     @no_database()
     @override_settings(AUTHENTICATION_BACKENDS=(
-        'django_auth_ldap.backend.LDAPBackend',
+        'okupy.common.auth.LDAPAuthBackend',
         'django.contrib.auth.backends.ModelBackend'))
     def test_no_database_raises_critical(self):
         request = set_request(uri='/login', post=vars.LOGIN_ALICE,
@@ -64,7 +64,7 @@ class LoginUnitTests(OkupyTestCase):
 
     @no_database()
     @override_settings(AUTHENTICATION_BACKENDS=(
-        'django_auth_ldap.backend.LDAPBackend',
+        'okupy.common.auth.LDAPAuthBackend',
         'django.contrib.auth.backends.ModelBackend'))
     def test_no_database_sends_notification_mail(self):
         request = set_request(uri='/login', post=vars.LOGIN_ALICE,

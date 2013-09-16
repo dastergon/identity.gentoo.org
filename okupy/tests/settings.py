@@ -50,7 +50,6 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_auth_ldap',
     'django_otp',
     'discover_runner',
     'okupy.accounts',
@@ -257,10 +256,6 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
         'okupy_simple': {
-            'handlers': ['console' if DEBUG else 'null'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-        },
-        'django_auth_ldap': {
             'handlers': ['console' if DEBUG else 'null'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },

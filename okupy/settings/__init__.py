@@ -140,10 +140,6 @@ LOGGING = {
             'handlers': ['console' if DEBUG else 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
-        'django_auth_ldap': {
-            'handlers': ['console' if DEBUG else 'syslog'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-        },
         'paramiko': {
             'handlers': ['console' if DEBUG else 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
