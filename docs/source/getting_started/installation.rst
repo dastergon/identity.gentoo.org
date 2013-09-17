@@ -1,0 +1,304 @@
+Installation
+************
+
+Basic Requirements
+------------------
+You need `Python 2.7`_, `Django 1.6`_, `git`_, `virtualenv`_, `OpenLDAP`_, `Python-LDAP`_, `SQLite3`_, `Memcached`_ and a Unix like OS.
+
+.. _`Python 2.7`: http://docs.python.org/2/ 
+.. _`Django 1.6`: https://docs.djangoproject.com/en/1.6/  
+.. _`git`: http://git-scm.com/  
+.. _`virtualenv`: http://www.virtualenv.org/en/latest/ 
+.. _`OpenLDAP`: http://www.openldap.org/
+.. _`Python-LDAP`: http://www.python-ldap.org/ 
+.. _`SQLite3`: https://www.sqlite.org/ 
+.. _`Memcached`: http://memcached.org/  
+
+Development Environment
+------------------------
+
+Installing okupy by hand
+~~~~~~~~~~~~~~~~~~~~~~~~
+* Clone somewhere the gentoo-identity-bootstrap repository:: 
+
+        git clone git://github.com/dastergon/gentoo-identity-bootstrap
+
+* Clone (in a different directory) the identity.gentoo.org repository::
+
+        git clone git://github.com/gentoo/identity.gentoo.org
+
+* Get the dependencies (choose one of the followings): 
+
+* With pip:
+  
+  * Optional: setup virtualenv
+  * Install the dependencies::
+        
+        pip install -r requirements/base.txt --use-mirrors
+
+* With setup.py
+  
+  * Optional: setup virtualenv
+  * Install the dependencies::
+        
+    ./setup.py install
+
+Installing the Gentoo way
+~~~~~~~~~~~~~~~~~~~~~~~~~
+* Add the ``okupy`` overlay::
+  
+    layman -a okupy
+
+* Install the dependencies::
+    
+    ACCEPT_KEYWORDS="**" emerge --onlydeps okupy
+
+Configuration
+~~~~~~~~~~~~~
+
+* Copy the sample settings files:: 
+    
+        $ cd identity.gentoo.org
+        $ cp okupy/settings/development.py.sample okupy/settings/development.py
+        $ cp okupy/settings/local_settings.py.sample okupy/settings/local_settings.py
+
+* Edit ``development.py``:
+  
+  * In `STATICFILES_DIRS`, replace ``/path/to/gentoo-identity-bootstrap`` with the absolute path that you cloned the gentoo-identity-bootstrap repository earlier. 
+
+* Edit ``local_settings.py``:
+  
+  #. Add **sqlite3** db (sufficient for testing)
+  #. Add LDAP configuration (if applicable) 
+  #. Configure **Memcached**
+  #. Sync the database:: 
+          
+        python manage.py syncdb
+
+
+Production Environment
+----------------------
+* Create the dedicated user that will run okupy::
+  
+    useradd -m okupy
+
+* Perform the same setup as for Development environment (using the okupy user).
+
+uWSGI setup
+~~~~~~~~~~~
+    * Install ``www-servers/uwsgi`` with ``USE=python``
+    * Copy /etc/conf.d/uwsgi to /etc/conf.d/uwsgi.okupy
+    * Put the following options in ``/etc/conf.d/uwsgi.okupy``::
+
+        UWSGI_SOCKET=/home/okupy/okupy.wsgi
+        UWSGI_LOG_FILE=/home/okupy/uwsgi.okupy.log
+        UWSGI_DIR=/home/okupy/identity.gentoo.org
+        UWSGI_USER=okupy
+        UWSGI_GROUP=okupy
+        # buffer-size is necessary to pass SSL certificates
+        UWSGI_EXTRA_OPTIONS='--buffer-size 65536 --plugins python27 --wsgi okupy.wsgi'
+
+    * Symlink ``/etc/init.d/uwsgi.okupy`` to ``/etc/init.d/uwsgi``, and start it:: 
+
+            ln -s /etc/init.d/uwsgi.okupy /etc/init.d/uwsgi
+            /etc/init.d/uwsgi.okupy start
+
+NGINX setup
+~~~~~~~~~~~
+* Install ``www-servers/nginx``:: 
+  
+    emerge -av www-servers/nginx
+
+* Copy the server certificates and private keys to ``/etc/ssl/nginx/``
+* Concatenate all the allowed CA certificates for client auth:: 
+  
+    cat /etc/ssl/* > /etc/ssl/nginx/all_certs.pem
+
+* Add the following options in ``/etc/nginx/nginx.conf``::
+
+        http {
+            ssl_session_cache  shared:SSL:10m;
+
+            upstream okupy {
+            # connect to uWSGI
+            server unix:///home/okupy/okupy.wsgi;
+            }
+
+            server {
+                listen 0.0.0.0;
+                server_name identity.example.gr;
+
+                access_log /var/log/nginx/localhost.access_log main;
+                error_log /var/log/nginx/localhost.error_log info;
+
+                root /var/www/localhost/htdocs;
+
+                # redirect all http traffic to https://
+                location / {
+                    rewrite     ^ https://$http_HOST$request_uri permanent;
+                }
+            }
+
+            server {
+                listen 0.0.0.0:443;
+                server_name identity.example.gr;
+
+                ssl on;
+                # certificates for the main domain
+                ssl_certificate /etc/ssl/nginx/identity_example_gr_cacert.crt;
+                ssl_certificate_key /etc/ssl/nginx/identity_example_gr.key;
+                ssl_session_timeout 10m;
+
+                access_log /var/log/nginx/localhost.ssl_access_log main;
+                error_log /var/log/nginx/localhost.ssl_error_log info;
+
+                root /var/www/localhost/htdocs;
+
+                location /static {
+                    alias /home/identity/identity.gentoo.org/static;
+                }
+
+                location / {
+                    uwsgi_pass okupy;
+                    include /etc/nginx/uwsgi_params;
+                }
+            }
+
+            server {
+                listen 0.0.0.0:443;
+                server_name auth.identity.example.gr;
+
+                ssl on;
+                # certificates for auth. subdomain
+                ssl_certificate /etc/ssl/nginx/auth_identity_example_gr_cacert.crt;
+                ssl_certificate_key /etc/ssl/nginx/auth_identity_example_gr.key;
+                ssl_client_certificate /etc/ssl/nginx/all_certs.pem;
+
+                # verify_client == ask for user certificate
+                ssl_session_timeout 30s;
+                ssl_verify_client optional;
+
+                access_log /var/log/nginx/localhost.ssl_access_log main;
+                error_log /var/log/nginx/localhost.ssl_error_log info;
+
+                root /var/www/localhost/htdocs;
+
+                location /static {
+                    alias /home/identity/identity.gentoo.org/static;
+                }
+
+                location / {
+                    uwsgi_pass okupy;
+                    include /etc/nginx/uwsgi_params;
+
+                    # pass certificate verification result
+                    # and the certificate (so we could extract e-mails)
+                    uwsgi_param SSL_CLIENT_VERIFY $ssl_client_verify;
+                    uwsgi_param SSL_CLIENT_RAW_CERT $ssl_client_raw_cert;
+                }
+            }
+        }
+
+Additional
+----------
+
+virtualenv
+~~~~~~~~~~
+* Install virtualenv (replace the following command with an equivalent in case you are working in a non-Gentoo distro):: 
+      
+        emerge -av dev-python/virtualenv
+        virtualenv .virtualenv
+        source .virtualenv/bin/activate
+
+* The ``.virtualenv`` directory is already in ``.gitignore``, so please prefer this name.
+* The ``deactivate`` command will exit the virtual environment.
+
+memcached
+~~~~~~~~~
+* Copy ``/etc/conf.d/memcached`` to ``/etc/conf.d/memcached.okupy``:: 
+        
+        cp /etc/conf.d/memcached /etc/conf.d/memcached.okupy
+
+* Symlink ``/etc/init.d/memcached.okupy`` to ``/etc/init.d/memcached``:: 
+
+        ln -s /etc/init.d/memcached /etc/init.d/memcached.okupy
+
+* Put the following data in ``/etc/conf.d/memcached.okupy``::
+
+        # The user that will be running okupy
+        MEMCACHED_RUNAS="okupy"
+        # disable TCP/IP
+        LISTENON=""
+        PORT=""
+        # enable UNIX socket (put correct path here as well)
+        MISC_OPTS="-s /home/okupy/memcached.sock"
+
+* Edit ``okupy/settings/local.py`` and put the same path in CACHES:: 
+
+        CACHES = {
+            'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': 'unix://home/okupy/memcached.sock',
+            }
+        }
+
+
+* Start memcached:: 
+
+        /etc/init.d/memcached.okupy start
+
+openLDAP
+~~~~~~~~
+
+.. note::
+    We have a testing instance on ldap://evidence.tamapkrap.gr
+    If you want to contribute, contact <okupy AT gentoo DOT org> to get the certificates and the rootDN credentials.
+
+* openLDAP Server
+
+    (TODO) 
+
+* OpenLDAP client only
+
+  * Install OpenLDAP package::
+   
+        USE="minimal" emerge -av openldap
+
+  * Put the certificates in ``/etc/openldap/ssl``
+  * Put the following content in ``/etc/openldap/ldap.conf``:: 
+
+        BASE        dc=example, dc=gr
+        SIZELIMIT   0
+        TIMELIMIT   10
+        TLS_REQCERT demand
+        TLS_CACERT  /etc/openldap/ssl/cacert.pem
+        TLS_CERT    /etc/openldap/ssl/identity.example.gr.crt
+        TLS_KEY     /etc/openldap/ssl/identity.example.gr.key
+        URI         ldap://identity.example.gr
+
+  * In ``settings/local.py``:: 
+
+        AUTH_LDAP_SERVER_URI = 'ldap://identity.example.gr'
+        AUTH_LDAP_CONNECTION_OPTIONS = {
+            ldap.OPT_X_TLS_DEMAND: False,
+        }
+
+        AUTH_LDAP_BIND_DN = 
+        AUTH_LDAP_BIND_PASSWORD = 
+
+        AUTH_LDAP_ADMIN_BIND_DN = '(the rootDN you got from example)'
+        AUTH_LDAP_ADMIN_BIND_PASSWORD = '(the rootpw you got from example)'
+
+        AUTH_LDAP_USER_ATTR = 'uid'
+        AUTH_LDAP_USER_BASE_DN = 'ou=users,dc=example,dc=gr'
+
+        AUTH_LDAP_PERMIT_EMPTY_PASSWORD = False
+
+        AUTH_LDAP_START_TLS = True
+
+        # objectClasses that are used by any user
+        AUTH_LDAP_USER_OBJECTCLASS = ['top', 'person', 'organizationalPerson',
+                                'inetOrgPerson', 'posixAccount', 'shadowAccount', 'ldapPublicKey', 'gentooGroup']
+        # additional objectClasses that are used by developers
+        AUTH_LDAP_DEV_OBJECTCLASS = ['gentooDevGroup']
+
