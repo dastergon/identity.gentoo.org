@@ -15,9 +15,8 @@ with open('requirements/base.txt', 'r') as f:
     base_deps = []
     for line in f:
         if line.startswith('git+') or line.startswith('hg+'):
-            base_deps.append(line.split('#egg=')[1])
-        else:
-            base_deps.append(line.split('\n')[0])
+            line = line.split('#egg=')[1]
+        base_deps.append(line.replace('\n', ''))
 
 setup(
     name='okupy',
