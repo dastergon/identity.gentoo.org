@@ -44,9 +44,6 @@ setup(
         'Topic :: Software Development',
     ],
 
-    dependency_links=[
-        'https://github.com/tampakrap/django-ldapdb/archive/okupy.tar.gz#egg=django-ldapdb',
-    ],
     install_requires=base_deps,
     setup_requires=[
         'setuptools>=0.6c11',
