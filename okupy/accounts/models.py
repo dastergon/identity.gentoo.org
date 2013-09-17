@@ -3,9 +3,10 @@
 from django.conf import settings
 from django.db import models
 from ldapdb.models.fields import (CharField, IntegerField, ListField,
-                                  FloatField, ACLField, DateField)
+                                  FloatField, DateField)
 import ldapdb.models
 
+from okupy.common.fields import ACLField
 from okupy.crypto.models import EncryptedPKModel
 
 
