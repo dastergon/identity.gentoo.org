@@ -1,9 +1,11 @@
+recursive-include docs/source *.py *.rst
 recursive-include okupy/static *
 recursive-include okupy/templates *
 recursive-include okupy/tests/fixtures *.json
 include manage.py
 include LICENSE
 include README.md
+include docs/source/Makefile
 include okupy/settings/local.py.sample
 include okupy/settings/development.py.sample
 exclude okupy/settings/local.py
