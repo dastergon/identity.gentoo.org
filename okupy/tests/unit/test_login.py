@@ -25,12 +25,17 @@ class LoginUnitTests(OkupyTestCase):
     def setUpClass(cls):
         cls.mockldap = MockLdap(vars.DIRECTORY)
 
+    @classmethod
+    def tearDownClass(cls):
+        del cls.mockldap
+
     def setUp(self):
         self.mockldap.start()
-        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
+        self.ldapobj = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_incorrect_user_raises_login_failed(self):
         request = set_request(uri='/login', post=vars.LOGIN_WRONG,
@@ -86,14 +91,14 @@ class LoginUnitTests(OkupyTestCase):
         login(request)
         self.assertEqual(len(ldap_users(
             'alice',
-            directory=self.ldapobject.directory)[1]['userPassword']), 2)
+            directory=self.ldapobj.directory)[1]['userPassword']), 2)
         self.assertEqual(len(request.session['secondary_password']), 48)
 
     def test_secondary_password_is_removed_in_logout(self):
         secondary_password = Random.get_random_bytes(48)
         secondary_password_crypt = ldap_md5_crypt.encrypt(b64encode(
             secondary_password))
-        self.ldapobject.directory[ldap_users('alice')[0]][
+        self.ldapobj.directory[ldap_users('alice')[0]][
             'userPassword'].append(secondary_password_crypt)
         request = set_request(uri='/login', post=vars.LOGIN_ALICE,
                               user=vars.USER_ALICE)
@@ -102,7 +107,7 @@ class LoginUnitTests(OkupyTestCase):
         logout(request)
         self.assertEqual(len(ldap_users(
             'alice',
-            directory=self.ldapobject.directory)[1]['userPassword']), 1)
+            directory=self.ldapobj.directory)[1]['userPassword']), 1)
 
 
 class LoginUnitTestsNoLDAP(OkupyTestCase):

@@ -16,12 +16,17 @@ class IndexUnitTests(TestCase):
     def setUpClass(cls):
         cls.mockldap = MockLdap(vars.DIRECTORY)
 
+    @classmethod
+    def tearDownClass(cls):
+        del cls.mockldap
+
     def setUp(self):
         self.mockldap.start()
-        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
+        self.ldapobj = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_index_url_resolves_to_index_view(self):
         found = resolve('/')
