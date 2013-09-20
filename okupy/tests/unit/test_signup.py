@@ -23,7 +23,7 @@ class SignupUnitTests(OkupyTestCase):
 
     def setUp(self):
         self.mockldap.start()
-        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
+        self.ldapobj = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
     def tearDown(self):
         self.mockldap.stop()
@@ -79,9 +79,9 @@ class SignupUnitTests(OkupyTestCase):
         request = set_request(activate_url, messages=True)
         activate(request, vars.QUEUEDUSER.encrypted_id)
         self.assertTrue(ldap_users(vars.QUEUEDUSER.username,
-                        directory=self.ldapobject.directory))
+                        directory=self.ldapobj.directory))
         ldap_account = ldap_users(vars.QUEUEDUSER.username,
-                                  directory=self.ldapobject.directory)[1]
+                                  directory=self.ldapobj.directory)[1]
         self.assertEqual(ldap_account['objectClass'],
                          settings.AUTH_LDAP_USER_OBJECTCLASS)
         self.assertEqual(ldap_account['sn'][0], vars.QUEUEDUSER.last_name)
@@ -181,14 +181,14 @@ class SignupUnitTests(OkupyTestCase):
     def test_add_first_user_in_empty_ldap_directory(self):
         vars.QUEUEDUSER.save()
         activate_url = '/activate/%s/' % vars.QUEUEDUSER.encrypted_id
-        self.ldapobject.directory = ldap_users(clean=True)
+        self.ldapobj.directory = ldap_users(clean=True)
         request = set_request(activate_url, messages=True)
         activate(request, vars.QUEUEDUSER.encrypted_id)
         self.assertTrue(ldap_users(vars.QUEUEDUSER.username,
-                        directory=self.ldapobject.directory))
+                        directory=self.ldapobj.directory))
         self.assertEqual(ldap_users(
             vars.QUEUEDUSER.username,
-            directory=self.ldapobject.directory)[1]['uidNumber'][0], '1')
+            directory=self.ldapobj.directory)[1]['uidNumber'][0], '1')
 
 
 class SignupunitTestsNoLDAP(OkupyTestCase):

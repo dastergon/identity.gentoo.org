@@ -25,7 +25,7 @@ class LDAPUserUnitTests(TestCase):
 
     def setUp(self):
         self.mockldap.start()
-        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
+        self.ldapobj = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
     def tearDown(self):
         self.mockldap.stop()
@@ -39,7 +39,7 @@ class LDAPUserUnitTests(TestCase):
         secondary_password = Random.get_random_bytes(48)
         secondary_password_crypt = ldap_md5_crypt.encrypt(b64encode(
             secondary_password))
-        self.ldapobject.directory[ldap_users('alice')[0]][
+        self.ldapobj.directory[ldap_users('alice')[0]][
             'userPassword'].append(secondary_password_crypt)
         request = set_request('/', user=vars.USER_ALICE)
         request.session['secondary_password'] = cipher.encrypt(
@@ -51,7 +51,7 @@ class LDAPUserUnitTests(TestCase):
         secondary_password = Random.get_random_bytes(48)
         secondary_password_crypt = ldap_md5_crypt.encrypt(b64encode(
             secondary_password))
-        self.ldapobject.directory[ldap_users('alice')[0]][
+        self.ldapobj.directory[ldap_users('alice')[0]][
             'userPassword'].append(secondary_password_crypt)
         request = set_request('/', user=vars.USER_ALICE)
         request.session['secondary_password'] = cipher.encrypt(
@@ -102,7 +102,7 @@ class LDAPUserUnitTests(TestCase):
         secondary_password = Random.get_random_bytes(48)
         secondary_password_crypt = ldap_md5_crypt.encrypt(b64encode(
             secondary_password))
-        self.ldapobject.directory[ldap_users('alice')[0]][
+        self.ldapobj.directory[ldap_users('alice')[0]][
             'userPassword'].append(secondary_password_crypt)
         request = set_request('/', user=vars.USER_ALICE)
         request.session['secondary_password'] = cipher.encrypt(

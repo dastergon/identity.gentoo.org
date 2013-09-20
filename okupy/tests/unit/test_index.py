@@ -18,7 +18,7 @@ class IndexUnitTests(TestCase):
 
     def setUp(self):
         self.mockldap.start()
-        self.ldapobject = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
+        self.ldapobj = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
 
     def tearDown(self):
         self.mockldap.stop()
