@@ -23,6 +23,10 @@ class LoginIntegrationTests(TestCase):
         self.mockldap.stop()
         del self.ldapobj
 
+    @classmethod
+    def tearDownClass(cls):
+        del cls.mockldap
+
     def test_login_page_uses_correct_template(self):
         response = self.client.get('/login/')
         self.assertTemplateUsed(response, 'base.html')

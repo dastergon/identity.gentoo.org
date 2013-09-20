@@ -14,6 +14,10 @@ class ListsIntegrationTests(TestCase):
     def setUpClass(cls):
         cls.mockldap = MockLdap(vars.DIRECTORY)
 
+    @classmethod
+    def tearDownClass(cls):
+        del cls.mockldap
+
     def setUp(self):
         self.client = Client()
         self.mockldap.start()

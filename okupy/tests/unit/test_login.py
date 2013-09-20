@@ -25,6 +25,10 @@ class LoginUnitTests(OkupyTestCase):
     def setUpClass(cls):
         cls.mockldap = MockLdap(vars.DIRECTORY)
 
+    @classmethod
+    def tearDownClass(cls):
+        del cls.mockldap
+
     def setUp(self):
         self.mockldap.start()
         self.ldapobj = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
