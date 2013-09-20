@@ -31,6 +31,7 @@ class LoginUnitTests(OkupyTestCase):
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_incorrect_user_raises_login_failed(self):
         request = set_request(uri='/login', post=vars.LOGIN_WRONG,

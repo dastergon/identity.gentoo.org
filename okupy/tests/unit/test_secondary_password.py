@@ -26,6 +26,7 @@ class SecondaryPassword(TestCase):
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_secondary_password_gets_added_in_session(self):
         request = set_request(uri='/', user=vars.USER_ALICE)

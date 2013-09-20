@@ -27,6 +27,7 @@ class SignupUnitTests(OkupyTestCase):
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_username_already_exists_in_ldap(self):
         _form = vars.SIGNUP_TESTUSER.copy()

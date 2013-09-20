@@ -20,6 +20,7 @@ class SettingsIntegrationTests(TestCase):
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_profile_settings_page_uses_correct_template(self):
         response = self.client.post('/login/', vars.LOGIN_ALICE)

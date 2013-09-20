@@ -20,6 +20,7 @@ class SignupIntegrationTests(TestCase):
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_signup_page_uses_correct_template(self):
         response = self.client.get('/signup/')

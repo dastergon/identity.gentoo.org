@@ -22,6 +22,7 @@ class IndexUnitTests(TestCase):
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_index_url_resolves_to_index_view(self):
         found = resolve('/')

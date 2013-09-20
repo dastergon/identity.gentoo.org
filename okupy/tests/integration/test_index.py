@@ -20,6 +20,7 @@ class IndexIntegrationTests(TestCase):
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_redirect_to_login_for_anonymous(self):
         response = self.client.get('/')

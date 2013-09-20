@@ -21,6 +21,7 @@ class ListsUnitTests(OkupyTestCase):
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_devlist_url_resolves_to_lists_view(self):
         found = resolve('/devlist/')

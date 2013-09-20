@@ -25,6 +25,7 @@ class AuthSSLUnitTests(TestCase):
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_valid_certificate_authenticates_alice(self):
         request = set_request(uri='/login')

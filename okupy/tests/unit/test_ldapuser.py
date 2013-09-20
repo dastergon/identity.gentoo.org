@@ -29,6 +29,7 @@ class LDAPUserUnitTests(TestCase):
 
     def tearDown(self):
         self.mockldap.stop()
+        del self.ldapobj
 
     def test_return_unicode_username(self):
         alice = LDAPUser.objects.get(username='alice')
