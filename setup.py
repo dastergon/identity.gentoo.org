@@ -26,7 +26,7 @@ setup(
     author_email='identity@gentoo.org',
     url='http://github.com/gentoo/identity.gentoo.org',
     description='Django LDAP webUI and OpenID provider for the Gentoo Linux project',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     keywords='django, ldap, gentoo',
     packages=find_packages(),
     include_package_data=True,
@@ -34,7 +34,7 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
-        'Intended Audience :: Students',
+        'Intended Audience :: System Administrators',
         'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
         'Natural Language :: English',
         'Operating System :: OS Independent',
