@@ -4,6 +4,7 @@ from mockldap import MockLdap
 
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 from okupy.common.test_helpers import ldap_users, set_request
@@ -112,3 +113,75 @@ class AuthSSHUnitTests(TestCase):
             data=base64.b64decode(vars.TEST_SSH_KEY_FOR_NO_USER))
         u = authenticate(ssh_key=key)
         self.assertIs(u, None)
+
+
+class AuthLDAPUnitTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mockldap = MockLdap(vars.DIRECTORY)
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.mockldap
+
+    def setUp(self):
+        self.mockldap.start()
+        self.ldapobj = self.mockldap[settings.AUTH_LDAP_SERVER_URI]
+        self.request = set_request(uri='/login')
+
+    def tearDown(self):
+        self.mockldap.stop()
+        del self.ldapobj
+
+    def test_successful_login(self):
+        user = authenticate(request=self.request,
+                            username='alice', password='ldaptest')
+        self.assertTrue(user.username, 'alice')
+
+    def test_successful_login_lowercase(self):
+        user = authenticate(request=self.request,
+                            username='Alice', password='ldaptest')
+        self.assertTrue(user.username, 'alice')
+
+    def test_successful_login_trailing_whitespace(self):
+        user = authenticate(request=self.request,
+                            username='alice ', password='ldaptest')
+        self.assertTrue(user.username, 'alice')
+
+    def test_successful_login_leading_whitespace(self):
+        user = authenticate(request=self.request,
+                            username=' alice', password='ldaptest')
+        self.assertTrue(user.username, 'alice')
+
+    def test_failed_login_wrong_password(self):
+        user = authenticate(request=self.request,
+                            username='alice', password='ldaptest1')
+        self.assertIs(user, None)
+
+    def test_failed_login_wrong_username(self):
+        user = authenticate(request=self.request,
+                            username='wrong', password='ldaptest')
+        self.assertIs(user, None)
+
+    def test_add_user_in_db(self):
+        authenticate(request=self.request,
+                     username='alice', password='ldaptest')
+        self.assertEqual(User.objects.count(), 1)
+
+    def test_successful_login_existing_user(self):
+        User.objects.create(username='alice')
+        user = authenticate(request=self.request,
+                            username='alice', password='ldaptest')
+        self.assertTrue(user is not None)
+        self.assertEqual(User.objects.count(), 1)
+
+    def test_successful_login_existing_user_insensitive(self):
+        User.objects.create(username='alice')
+        user = authenticate(request=self.request,
+                            username='Alice', password='ldaptest')
+        self.assertTrue(user.username, 'alice')
+
+    def test_successful_login_insensitive(self):
+        user = authenticate(request=self.request,
+                            username='Alice', password='ldaptest')
+        self.assertTrue(user.username, 'alice')
