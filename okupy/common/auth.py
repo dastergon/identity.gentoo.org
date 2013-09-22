@@ -23,6 +23,11 @@ class LDAPAuthBackend(ModelBackend):
     """
 
     def authenticate(self, request, username, password):
+        # LDAP is case- and whitespace-insensitive
+        # we do normalization to avoid duplicate django db entries
+        # and help mockldap
+        username = username.lower().strip()
+
         try:
             bound_ldapuser = get_bound_ldapuser(
                 request=request,
