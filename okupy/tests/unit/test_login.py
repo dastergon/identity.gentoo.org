@@ -52,7 +52,7 @@ class LoginUnitTests(OkupyTestCase):
 
     @no_database()
     @override_settings(AUTHENTICATION_BACKENDS=(
-        'django_auth_ldap.backend.LDAPBackend',
+        'okupy.common.auth.LDAPAuthBackend',
         'django.contrib.auth.backends.ModelBackend'))
     def test_no_database_raises_critical(self):
         request = set_request(uri='/login', post=vars.LOGIN_ALICE,
@@ -64,7 +64,7 @@ class LoginUnitTests(OkupyTestCase):
 
     @no_database()
     @override_settings(AUTHENTICATION_BACKENDS=(
-        'django_auth_ldap.backend.LDAPBackend',
+        'okupy.common.auth.LDAPAuthBackend',
         'django.contrib.auth.backends.ModelBackend'))
     def test_no_database_sends_notification_mail(self):
         request = set_request(uri='/login', post=vars.LOGIN_ALICE,
@@ -144,17 +144,20 @@ class LoginUnitTestsNoLDAP(OkupyTestCase):
         self.assertMessage(response, 'Login failed', 40)
 
     def test_dont_authenticate_from_db_when_ldap_is_down(self):
-        request = set_request(uri='/login', post=vars.LOGIN_BOB, messages=True)
+        request = set_request(uri='/login', post=vars.LOGIN_BOB,
+                              messages=True)
         response = login(request)
         response.context = RequestContext(request)
-        self.assertMessage(response, 'Login failed', 40)
+        self.assertMessage(response,
+            "Can't contact the LDAP server or the database", 40)
 
-    def test_no_ldap_connection_raises_login_failed_in_login(self):
+    def test_no_ldap_connection_raises_ldaperror_in_login(self):
         request = set_request(uri='/login', post=vars.LOGIN_WRONG,
                               messages=True)
         response = login(request)
         response.context = RequestContext(request)
-        self.assertMessage(response, 'Login failed', 40)
+        self.assertMessage(response,
+            "Can't contact the LDAP server or the database", 40)
 
     def test_no_ldap_connection_in_logout_sends_notification_mail(self):
         request = set_request(uri='/login', post=vars.LOGIN_ALICE,

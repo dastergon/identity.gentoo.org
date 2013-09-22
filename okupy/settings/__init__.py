@@ -26,7 +26,7 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Custom authentication backend
 AUTHENTICATION_BACKENDS = (
-    'django_auth_ldap.backend.LDAPBackend',
+    'okupy.common.auth.LDAPAuthBackend',
     'okupy.common.auth.SSLCertAuthBackend',
     'okupy.common.auth.SSHKeyAuthBackend',
 )
@@ -137,10 +137,6 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
         'okupy_simple': {
-            'handlers': ['console' if DEBUG else 'syslog'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-        },
-        'django_auth_ldap': {
             'handlers': ['console' if DEBUG else 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },

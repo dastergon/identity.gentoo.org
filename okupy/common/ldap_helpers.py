@@ -8,14 +8,18 @@ from okupy import OkupyError
 from okupy.accounts.models import LDAPUser
 from okupy.crypto.ciphers import cipher
 
+from django.conf import settings #debug
+from django.db import connections
 
-def get_bound_ldapuser(request, password=None):
+
+def get_bound_ldapuser(request, password=None, username=None):
     """
     Get LDAPUser with connection bound to the current user.
     Uses either provided password or the secondary password saved
     in session.
     """
-    username = request.user.username
+    if not username:
+        username = request.user.username
     if not password:
         try:
             password = b64encode(cipher.decrypt(
