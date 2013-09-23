@@ -4,6 +4,7 @@ from django.db.models import fields
 
 from ldapdb import escape_ldap_filter
 
+
 class ACLField(fields.Field):
     def _group(self):
         return self.name.split('_')[1] + '.group'
@@ -14,7 +15,8 @@ class ACLField(fields.Field):
         else:
             return False
 
-    def get_db_prep_lookup(self, lookup_type, value, connection, prepared=False):
+    def get_db_prep_lookup(self, lookup_type, value,
+                           connection, prepared=False):
         "Returns field's value prepared for database lookup."
         return [self.get_prep_lookup(lookup_type, value)]
 

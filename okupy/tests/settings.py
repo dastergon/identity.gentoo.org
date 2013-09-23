@@ -259,6 +259,10 @@ LOGGING = {
             'handlers': ['console' if DEBUG else 'null'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
+        'ldapdb': {
+            'handlers': ['console' if DEBUG else 'null'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        }
     }
 }
 

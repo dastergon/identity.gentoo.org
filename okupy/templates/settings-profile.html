@@ -19,10 +19,6 @@
                             {{ profile_settings.last_name.label_tag }}
                             <input name="last_name" type="text" value="{{ user_info.last_name }}" /> {{ profile_settings.last_name.errors|striptags }}
                         </div>
-                        <div class="row-fluid">
-                            {{ profile_settings.email.label_tag }}
-                            <input name="email" type="text" value="{{ user_info.email.0 }}" /> {{ profile_settings.email.errors|striptags }}
-                        </div>
                         <!-- <div class="row-fluid">
                             {{ profile_settings.birthday.label_tag }}
                             <input name="birthday" type="text" value="{{ user_info.birthday }}" /> {{ profile_settings.birthday.errors|striptags }}
