@@ -431,10 +431,12 @@ def password_settings(request):
             password_settings = PasswordSettingsForm(request.POST)
             if password_settings.is_valid():
                 try:
-                    new_password = password_settings.cleaned_data['new_password']
+                    new_password = password_settings.cleaned_data[
+                        'new_password']
                     new_password_verify = password_settings.cleaned_data[
                         'new_password_verify']
-                    old_password = password_settings.cleaned_data['old_password']
+                    old_password = password_settings.cleaned_data[
+                        'old_password']
 
                     if old_password and (new_password == new_password_verify):
                         for hash in list(user_info.password):
@@ -576,11 +578,14 @@ def gentoo_dev_settings(request):
             gentoo_account_settings = GentooAccountSettingsForm(request.POST)
             if gentoo_account_settings.is_valid():
                 try:
-                    devbug = gentoo_account_settings.cleaned_data['developer_bug']
+                    devbug = gentoo_account_settings.cleaned_data[
+                        'developer_bug']
                     gentoo_join_date = gentoo_account_settings.cleaned_data[
                         'gentoo_join_date']
-                    gentoo_mentor = gentoo_account_settings.cleaned_data['mentor']
-                    ssh_pubkey = gentoo_account_settings.cleaned_data['ssh_key']
+                    gentoo_mentor = gentoo_account_settings.cleaned_data[
+                        'mentor']
+                    ssh_pubkey = gentoo_account_settings.cleaned_data[
+                        'ssh_key']
 
                     if user_info.developer_bug != devbug:
                         user_info.developer_bug.append(devbug)

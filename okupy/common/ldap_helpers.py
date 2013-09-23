@@ -44,7 +44,8 @@ def set_secondary_password(request, password):
     """ Generate a secondary passsword and encrypt it in the session """
     with get_bound_ldapuser(request, password) as user:
         secondary_password = Random.get_random_bytes(48)
-        request.session['secondary_password'] = cipher.encrypt(secondary_password)
+        request.session['secondary_password'] = \
+            cipher.encrypt(secondary_password)
         # Clean up possible leftover secondary passwords from the LDAP account
         if len(user.password) > 1:
             for hash in list(user.password):
@@ -55,7 +56,8 @@ def set_secondary_password(request, password):
                     # don't remove unknown hashes
                     pass
         # Add a new generated encrypted password to LDAP
-        user.password.append(ldap_md5_crypt.encrypt(b64encode(secondary_password)))
+        user.password.append(
+            ldap_md5_crypt.encrypt(b64encode(secondary_password)))
         user.save()
 
 
