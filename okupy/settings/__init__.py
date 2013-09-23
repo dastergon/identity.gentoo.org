@@ -140,6 +140,10 @@ LOGGING = {
             'handlers': ['console' if DEBUG else 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         },
+        'ldapdb': {
+            'handlers': ['console' if DEBUG else 'syslog'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        },
         'paramiko': {
             'handlers': ['console' if DEBUG else 'syslog'],
             'level': 'DEBUG' if DEBUG else 'INFO',
