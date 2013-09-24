@@ -36,6 +36,20 @@
                                 <input class="btn btn-primary" type="submit" value="Add email" />
                             </div>
                         </form>
+                        <div>Current avatar:<br />
+                        {% if user_info.gravatar %}
+                        <img class="thumbnail" src="https://gravatar.com/avatar/{{ user_info.gravatar }}?d=identicons&s=170" />
+                        {% else %}
+                        No avatar
+                        {% endif %}
+                        </div><br />
+                        <form action="." method="POST">{% csrf_token %}
+                            {{ email_settings.gravatar.label_tag }}
+                            {{ email_settings.gravatar }} {{ email_settings.gravatar.errors|striptags }}
+                            <div class="row-fluid buttons">
+                                <input class="btn btn-primary" type="submit" value="Submit" />
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

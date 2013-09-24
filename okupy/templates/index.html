@@ -16,6 +16,11 @@
                     </table>
                 </div>
                 </p>
+                {% if user.gravatar %}
+                <div class="span2">
+                    <img class="thumbnail" src="https://gravatar.com/avatar/{{ user.gravatar }}?d=identicons&s=200" alt="" />
+                </div>
+                {% endif %}
             </div>
             <div class="row-fluid">
                 <p>

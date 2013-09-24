@@ -49,6 +49,7 @@ from okupy.otp.totp.models import TOTPDevice
 import openid.yadis.discover
 import openid.fetchers
 import django_otp
+import hashlib
 import io
 import ldap
 import logging
@@ -481,11 +482,16 @@ def email_settings(request):
             if email_settings.is_valid():
                 try:
                     email = email_settings.cleaned_data['email']
+                    gravatar_mail = email_settings.cleaned_data['gravatar']
 
                     if request.POST.get('delete'):
                         user_info.email.remove(email)
                     else:
                         user_info.email.append(email)
+
+                    if gravatar_mail:
+                        gravatar_hash = hashlib.md5(gravatar_mail).hexdigest()
+                        user_info.gravatar = gravatar_hash
 
                     try:
                         user_info.save()

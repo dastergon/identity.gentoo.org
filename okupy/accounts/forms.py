@@ -105,7 +105,8 @@ class EmailSettingsForm(forms.Form):
     email = forms.EmailField(max_length=254, label='Add Email',
                              help_text='A valid email address, please.',
                              required=False)
-
+    gravatar = forms.EmailField(max_length=254, label='Gravatar Email',
+                                required=False)
 
 class ContactSettingsForm(forms.Form):
     website = forms.URLField(label='Website', required=False)
