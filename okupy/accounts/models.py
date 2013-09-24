@@ -51,6 +51,7 @@ class LDAPUser(ldapdb.models.Model):
     gentoo_retire_date = ListField(db_column='gentooRetire')
     gpg_fingerprint = ListField(db_column='gpgfingerprint')
     gpg_key = ListField(db_column='gpgKey')
+    gravatar = CharField(db_column='gravatar')
     im = ListField(db_column='gentooIM')
     latitude = FloatField(db_column='lat')
     location = CharField(db_column='gentooLocation')
