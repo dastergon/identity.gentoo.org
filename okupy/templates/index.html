@@ -46,6 +46,7 @@
                 </div>
                 </p>
             </div>
+            {% if user.is_developer %}
             <div class="row-fluid">
                 <p>
                 <div class="span9">
@@ -77,6 +78,7 @@
                 </div>
                 </p>
             </div>
+            {% endif %}
             {% endfor %}
         </div>
     </div>
