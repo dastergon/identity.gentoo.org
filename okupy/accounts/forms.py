@@ -108,6 +108,7 @@ class EmailSettingsForm(forms.Form):
     gravatar = forms.EmailField(max_length=254, label='Gravatar Email',
                                 required=False)
 
+
 class ContactSettingsForm(forms.Form):
     website = forms.URLField(label='Website', required=False)
     im = forms.CharField(max_length=100, label='IM', required=False)
@@ -126,8 +127,9 @@ class GentooAccountSettingsForm(forms.Form):
     developer_bug = forms.CharField(
         label='Developer Bugs (Bug Number)', required=False)
     mentor = forms.CharField(max_length=100, label='Mentor', required=False)
-    ssh_key = forms.CharField(widget=forms.Textarea(
-        attrs={'cols': 50, 'rows': 8}), label='SSH Key', required=False)
+    planet_feed = forms.URLField(label='Gentoo Planet Feed', required=False)
+    universe_feed = forms.URLField(
+        label='Gentoo Universe Feed', required=False)
 
 
 # OpenID forms.

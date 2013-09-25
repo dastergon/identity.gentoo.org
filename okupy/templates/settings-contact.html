@@ -8,17 +8,99 @@
                 <h1>Contact Settings</h1>
                 <h3>Change your contact to details.</h3>
                 <div class="form well">
-                    <form action="." method="POST">{% csrf_token %}
-                        {{ contact_settings.errors }}
-                        {{ contact_settings.non_field_errors }}
-                        <div class="row-fluid">
+                    {{ contact_settings.errors }}
+                    {{ contact_settings.non_field_errors }}
+                    <div class="row-fluid">
+                        {% if user_info.website %}
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Websites</th>
+                                        <th> </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for website in user_info.website %}
+                                <form action="." method="POST">{% csrf_token %}
+                                <tr>
+                                    <td><input type="hidden" name="website" value="{{ website }}" />{{ website }}</td>
+                                    <td><input class="btn" type="submit" name="delete_web" value="Delete" /></td>
+                                </tr>
+                                </form>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endif %}
+                        <form action="." method="POST">{% csrf_token %}
                             {{ contact_settings.website.label_tag }}
-                            <input name="website" type="text" value="{{ user_info.website.0 }}" /> {{ contact_settings.website.errors|striptags }}
-                        </div>
-                        <div class="row-fluid">
+                            <input name="website" type="text" /> {{ contact_settings.website.errors|striptags }}
+                            <div class="row-fluid buttons">
+                                <input class="btn btn-primary" type="submit" value="Add" />
+                            </div>
+                        </form>
+                        <br />
+                    </div>
+                    <div class="row-fluid">
+                        {% if user_info.im %}
+                            <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>IMs</th>
+                                    <th> </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for im in user_info.im %}
+                            <form action="." method="POST">{% csrf_token %}
+                                <tr>
+                                    <td><input type="hidden" name="im" value="{{ im }}" />{{ im }}</td>
+                                    <td><input class="btn" type="submit" name="delete_im" value="Delete" /></td>
+                                </tr>
+                            </form>
+                            {% endfor %}
+                            </tbody>
+                            </table>
+                        {% endif %}
+                        <form action="." method="POST">{% csrf_token %}
                             {{ contact_settings.im.label_tag }}
-                            <input name="im" type="text" value="{{ user_info.im.0 }}" /> {{ contact_settings.im.errors|striptags }}
-                        </div>
+                            <input name="im" type="text" /> {{ contact_settings.im.errors|striptags }}
+                            <div class="row-fluid buttons">
+                                <input class="btn btn-primary" type="submit" value="Add" />
+                            </div>
+                        </form>
+                        <br />
+                    </div>
+                    <div class="row-fluid">
+                        {% if user_info.gpg_fingerprint %}
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>GPG Fingerprints</th>
+                                        <th> </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for gpg_fingerprint in user_info.gpg_fingerprint %}
+                                <form action="." method="POST">{% csrf_token %}
+                                    <tr>
+                                        <td><input type="hidden" name="gpg_fingerprint" value="{{ gpg_fingerprint }}" />{{ gpg_fingerprint }}</td>
+                                        <td><input class="btn" type="submit" name="delete_gpg" value="Delete" /></td>
+                                    </tr>
+                                </form>
+                                {% endfor %}
+                            </tbody>
+                            </table>
+                        {% endif %}
+                        <form action="." method="POST">{% csrf_token %}
+                            {{ contact_settings.gpg_fingerprint.label_tag }}
+                            <input name="gpg_fingerprint" type="text" /> {{ contact_settings.gpg_fingerprint.errors|striptags }}
+                            <div class="row-fluid buttons">
+                                <input class="btn btn-primary" type="submit" value="Add" />
+                            </div>
+                        </form>
+                        <br/>
+                    </div>
+                    <form action="." method="POST">{% csrf_token %}
                         <div class="row-fluid">
                             {{ contact_settings.location.label_tag }}
                             <input name="location" type="text" value="{{ user_info.location }}" /> {{ contact_settings.location.errors|striptags }}
@@ -35,12 +117,9 @@
                             {{ contact_settings.phone.label_tag }}
                             <input name="phone" type="text" value="{{ user_info.phone }}" /> {{ contact_settings.phone.errors|striptags }}
                         </div>
-                        <div class="row-fluid">
-                            {{ contact_settings.gpg_fingerprint.label_tag }}
-                            <input name="gpg_fingerprint" type="text" value="{{ user_info.gpg_fingerprint.0 }}" /> {{ contact_settings.gpg_fingerprint.errors|striptags }}
-                        </div>
+                        <br />
                         <div class="row-fluid buttons">
-                            <input class="btn btn-primary" type="submit" value="Save" />
+                            <input class="btn btn-primary" type="submit" value="Update" />
                         </div>
                     </form>
                 </div>

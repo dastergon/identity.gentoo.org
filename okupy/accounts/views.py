@@ -531,18 +531,20 @@ def contact_settings(request):
                     phone = contact_settings.cleaned_data['phone']
                     website = contact_settings.cleaned_data['website']
 
-                    if user_info.location != location:
+                    if location and user_info.location != location:
                         user_info.location = location
 
                     if user_info.phone != phone:
                         user_info.phone = phone
 
-                    if user_info.website != website:
-                        user_info.website.pop()
+                    if request.POST.get('delete_web'):
+                        user_info.website.remove(website)
+                    elif website and (not website in user_info.website):
                         user_info.website.append(website)
 
-                    if user_info.im != im:
-                        user_info.im.pop()
+                    if request.POST.get('delete_im'):
+                        user_info.im.remove(im)
+                    elif im and (not im in user_info.im):
                         user_info.im.append(im)
 
                     if user_info.longitude != longitude:
@@ -551,8 +553,10 @@ def contact_settings(request):
                     if user_info.latitude != latitude:
                         user_info.latitude = latitude
 
-                    if user_info.gpg_fingerprint != gpg_fingerprint:
-                        user_info.gpg_fingerprint.pop()
+                    if request.POST.get('delete_gpg'):
+                        user_info.gpg_fingerprint.remove(gpg_fingerprint)
+                    elif gpg_fingerprint and \
+                            (not gpg_fingerprint in user_info.gpg_fingerprint):
                         user_info.gpg_fingerprint.append(gpg_fingerprint)
 
                     try:
@@ -590,27 +594,42 @@ def gentoo_dev_settings(request):
                         'gentoo_join_date']
                     gentoo_mentor = gentoo_account_settings.cleaned_data[
                         'mentor']
-                    ssh_pubkey = gentoo_account_settings.cleaned_data[
-                        'ssh_key']
+                    gentoo_retire_date = gentoo_account_settings.cleaned_data[
+                        'gentoo_retire_date']
+                    gentoo_mentor = gentoo_account_settings.cleaned_data[
+                        'mentor']
+                    planet_feed = gentoo_account_settings.cleaned_data[
+                        'planet_feed']
+                    universe_feed = gentoo_account_settings.cleaned_data[
+                        'universe_feed']
 
-                    if user_info.developer_bug != devbug:
+                    if request.POST.get('delete_devbug'):
+                        user_info.devbug.remove(devbug)
+                    elif devbug and (not devbug in user_info.developer_bug):
                         user_info.developer_bug.append(devbug)
 
-                    if user_info.gentoo_join_date != gentoo_join_date:
+                    if request.POST.get('delete_gjd'):
+                        user_info.gentoo_join_date.remove(gentoo_join_date)
+                    elif gentoo_join_date and (not gentoo_join_date in user_info.gentoo_join_date):
                         user_info.gentoo_join_date.append(gentoo_join_date)
 
-                    if user_info.mentor != gentoo_mentor:
+                    if request.POST.get('delete_mentor'):
+                        user_info.mentor.remove(gentoo_mentor)
+                    elif gentoo_mentor and \
+                            (not gentoo_mentor in user_info.mentor):
                         user_info.mentor.append(gentoo_mentor)
 
-                    if ssh_pubkey:
-                        user_info.ssh_key.append(ssh_pubkey)
+                    if user_info.gentoo_retire_date:
+                        if request.POST.get('delete_grd'):
+                            user_info.gentoo_retire_date.remove(gentoo_retire_date)
+                        elif gentoo_retire_date and (not gentoo_retire_date in user_info.gentoo_retire_date):
+                            user_info.gentoo_retire_date.append(gentoo_retire_date)
 
-                    if user_info.is_retired or user_info.gentoo_retire_date:
-                        gentoo_retire_date = gentoo_account_settings.cleaned_data[
-                            'gentoo_retire_date']
-                        if user_info.gentoo_retire_date != gentoo_retire_date:
-                            user_info.gentoo_retire_date.append(
-                                gentoo_retire_date)
+                    if user_info.planet_feed != planet_feed:
+                        user_info.planet_feed = planet_feed
+
+                    if user_info.universe_feed != universe_feed:
+                        user_info.universe_feed = universe_feed
 
                     try:
                         user_info.save()

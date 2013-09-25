@@ -22,7 +22,7 @@
                             {% for mail in user_info.email%}
                             <form action="." method="POST">{% csrf_token %}
                                 <tr>
-                                    <td><input type="hidden" name="email" value="{{ mail }}" />{{mail}}</td>
+                                    <td><input type="hidden" name="email" value="{{ mail }}" />{{ mail }}</td>
                                     <td><input class="btn" type="submit" name="delete" value="Delete" /></td>
                                 </tr>
                             </form>
