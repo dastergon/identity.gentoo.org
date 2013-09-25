@@ -149,7 +149,7 @@ class LoginUnitTestsNoLDAP(OkupyTestCase):
         response = login(request)
         response.context = RequestContext(request)
         self.assertMessage(response,
-            "Can't contact the LDAP server or the database", 40)
+                           "Can't contact the LDAP server or the database", 40)
 
     def test_no_ldap_connection_raises_ldaperror_in_login(self):
         request = set_request(uri='/login', post=vars.LOGIN_WRONG,
@@ -157,7 +157,7 @@ class LoginUnitTestsNoLDAP(OkupyTestCase):
         response = login(request)
         response.context = RequestContext(request)
         self.assertMessage(response,
-            "Can't contact the LDAP server or the database", 40)
+                           "Can't contact the LDAP server or the database", 40)
 
     def test_no_ldap_connection_in_logout_sends_notification_mail(self):
         request = set_request(uri='/login', post=vars.LOGIN_ALICE,

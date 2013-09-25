@@ -8,9 +8,6 @@ from okupy import OkupyError
 from okupy.accounts.models import LDAPUser
 from okupy.crypto.ciphers import cipher
 
-from django.conf import settings #debug
-from django.db import connections
-
 
 def get_bound_ldapuser(request, password=None, username=None):
     """
